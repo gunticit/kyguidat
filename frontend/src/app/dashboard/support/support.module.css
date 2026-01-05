@@ -1,0 +1,231 @@
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: var(--text-secondary);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: var(--text-secondary);
+    text-align: center;
+    gap: 16px;
+}
+
+.emptyState p {
+    margin-bottom: 8px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.refreshBtn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.refreshBtn:hover {
+    background: var(--background);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+.pageTitle {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.pageSubtitle {
+    color: var(--text-secondary);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.statCard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.statNumber {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.statLabel {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.tab {
+    padding: 10px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab:hover {
+    border-color: var(--primary);
+    color: var(--text);
+}
+
+.tabActive {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.ticketList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ticketCard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    transition: all 0.2s;
+    display: block;
+}
+
+.ticketCard:hover {
+    border-color: var(--primary);
+    background: var(--card-hover);
+}
+
+.ticketHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.ticketNumber {
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.ticketSubject {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.ticketMeta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.category {
+    background: var(--background);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+}
+
+.priority {
+    font-weight: 600;
+}
+
+.messages {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+}
+
+.ticketFooter {
+    display: flex;
+    gap: 24px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .ticketMeta {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ticketFooter {
+        flex-direction: column;
+        gap: 4px;
+    }
+}

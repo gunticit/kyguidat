@@ -1,0 +1,162 @@
+.container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.formWrapper {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 10;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.socialButtons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.socialBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.socialBtn:hover {
+    background: var(--card-hover);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.divider span {
+    color: var(--text-secondary);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+}
+
+.forgotPassword {
+    text-align: right;
+    margin-top: -8px;
+}
+
+.forgotPassword a {
+    color: var(--primary);
+    font-size: 13px;
+    transition: opacity 0.2s;
+}
+
+.forgotPassword a:hover {
+    opacity: 0.8;
+}
+
+.registerLink {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.registerLink a {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.registerLink a:hover {
+    text-decoration: underline;
+}
+
+/* Decorative Elements */
+.decorative {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.gradient1 {
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.gradient2 {
+    position: absolute;
+    bottom: -30%;
+    left: -20%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+@media (max-width: 480px) {
+    .socialButtons {
+        grid-template-columns: 1fr;
+    }
+
+    .socialBtn {
+        flex-direction: row;
+        justify-content: center;
+    }
+}

@@ -1,0 +1,545 @@
+.packagesPage {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.pageHeader {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.pageTitle {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+}
+
+.pageSubtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Current Package Card */
+.currentPackage {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 40px;
+}
+
+.currentPackageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.currentPackageTitle {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.currentPackageBadge {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.currentPackageInfo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.packageInfoItem {
+    background: var(--surface-elevated);
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.packageInfoLabel {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.packageInfoValue {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Packages Grid */
+.packagesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* Package Card */
+.packageCard {
+    background: var(--surface-elevated);
+    border-radius: 20px;
+    padding: 32px 24px;
+    position: relative;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+.packageCard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.packageCardPopular {
+    border-color: #667eea;
+    background: linear-gradient(180deg, rgba(102, 126, 234, 0.08) 0%, var(--surface-elevated) 100%);
+}
+
+.popularBadge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.discountBadge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.packageDuration {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.packageDurationSuffix {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.packageName {
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.packageDesc {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+    min-height: 40px;
+}
+
+.priceContainer {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.originalPrice {
+    font-size: 1rem;
+    color: var(--text-muted);
+    text-decoration: line-through;
+    margin-bottom: 4px;
+}
+
+.currentPrice {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.priceNote {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.featuresList {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+    flex: 1;
+}
+
+.featureItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.featureItem:last-child {
+    border-bottom: none;
+}
+
+.featureIcon {
+    color: #10b981;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.purchaseBtn {
+    width: 100%;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.purchaseBtnPrimary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.purchaseBtnPrimary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.purchaseBtnSecondary {
+    background: var(--surface-card);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.purchaseBtnSecondary:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.purchaseBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* My Packages Section */
+.myPackagesSection {
+    margin-top: 60px;
+}
+
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.myPackagesTable {
+    background: var(--surface-elevated);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table th {
+    background: var(--surface-card);
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    color: var(--text-primary);
+}
+
+.table tbody tr:hover {
+    background: var(--surface-hover);
+}
+
+.statusBadge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.statusActive {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.statusExpired {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.statusPending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+/* Purchase Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal {
+    background: var(--surface-elevated);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 480px;
+    width: 100%;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modalHeader {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.modalTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.modalSubtitle {
+    color: var(--text-muted);
+}
+
+.modalBody {
+    margin-bottom: 24px;
+}
+
+.summaryCard {
+    background: var(--surface-card);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.summaryRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    color: var(--text-secondary);
+}
+
+.summaryRow:last-child {
+    border-top: 1px solid var(--border-color);
+    margin-top: 8px;
+    padding-top: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.walletBalance {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.walletLabel {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.walletAmount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.walletInsufficient {
+    color: #ef4444;
+}
+
+.modalActions {
+    display: flex;
+    gap: 12px;
+}
+
+.modalBtn {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.modalBtnCancel {
+    background: var(--surface-card);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.modalBtnCancel:hover {
+    background: var(--surface-hover);
+}
+
+.modalBtnConfirm {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.modalBtnConfirm:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.modalBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border-color);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Empty State */
+.emptyState {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .packagesPage {
+        padding: 16px;
+    }
+
+    .pageTitle {
+        font-size: 1.8rem;
+    }
+
+    .packagesGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .packageCard {
+        padding: 24px 20px;
+    }
+
+    .currentPackageInfo {
+        grid-template-columns: 1fr;
+    }
+
+    .modalActions {
+        flex-direction: column;
+    }
+
+    .table th,
+    .table td {
+        padding: 12px 8px;
+        font-size: 0.9rem;
+    }
+}
