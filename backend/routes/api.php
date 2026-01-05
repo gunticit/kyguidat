@@ -9,6 +9,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PostingPackageController;
+use App\Http\Controllers\UploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -87,4 +88,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posting-packages/purchase', [PostingPackageController::class, 'purchaseWithWallet']);
     Route::get('/my-packages', [PostingPackageController::class, 'myPackages']);
     Route::get('/my-packages/current', [PostingPackageController::class, 'currentPackage']);
+
+    // Upload (File upload endpoints)
+    Route::prefix('upload')->group(function () {
+        Route::post('/', [UploadController::class, 'upload']);
+        Route::post('/multiple', [UploadController::class, 'uploadMultiple']);
+        Route::post('/image', [UploadController::class, 'uploadImageHandler']);
+        Route::post('/base64', [UploadController::class, 'uploadBase64']);
+        Route::delete('/', [UploadController::class, 'delete']);
+        Route::get('/info', [UploadController::class, 'info']);
+    });
 });
