@@ -10,6 +10,12 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ConsignmentService
 {
+    public function __construct(
+        private ?ConsignmentWebhookService $webhookService = null
+    ) {
+        $this->webhookService = $webhookService ?? app(ConsignmentWebhookService::class);
+    }
+
     /**
      * Get list of consignments
      */
@@ -58,6 +64,9 @@ class ConsignmentService
         // Create history
         $this->createHistory($consignment, Consignment::STATUS_PENDING, 'Tạo yêu cầu ký gửi mới', $user->id);
 
+        // Dispatch webhook
+        $this->webhookService?->dispatchCreated($consignment);
+
         return $consignment;
     }
 
@@ -97,7 +106,11 @@ class ConsignmentService
 
         $this->createHistory($consignment, $consignment->status, 'Cập nhật thông tin ký gửi', $user->id);
 
-        return $consignment->fresh();
+        // Dispatch webhook
+        $updatedConsignment = $consignment->fresh();
+        $this->webhookService?->dispatchUpdated($updatedConsignment, array_keys($data));
+
+        return $updatedConsignment;
     }
 
     /**
@@ -129,12 +142,17 @@ class ConsignmentService
             return false;
         }
 
+        $oldStatus = $consignment->status;
+
         $consignment->update([
             'status' => Consignment::STATUS_CANCELLED,
             'cancelled_at' => now(),
         ]);
 
         $this->createHistory($consignment, Consignment::STATUS_CANCELLED, 'Đã hủy yêu cầu ký gửi', $user->id);
+
+        // Dispatch webhook
+        $this->webhookService?->dispatchStatusChanged($consignment, $oldStatus, Consignment::STATUS_CANCELLED);
 
         return true;
     }

@@ -167,12 +167,17 @@ NEXT_PUBLIC_API_URL=http://localhost:8015/api
 - `GET /api/dashboard` - Tổng quan
 - `GET /api/dashboard/stats` - Thống kê
 
-### Consignments
-- `GET /api/consignments` - Danh sách
+### Consignments (Protected - Yêu cầu đăng nhập)
+- `GET /api/consignments` - Danh sách của user
 - `POST /api/consignments` - Tạo mới
 - `GET /api/consignments/{id}` - Chi tiết
 - `PUT /api/consignments/{id}` - Cập nhật
 - `DELETE /api/consignments/{id}` - Xóa
+
+### Public Consignments (Public - Không cần đăng nhập)
+- `GET /api/public/consignments` - Danh sách tất cả bất động sản đã duyệt
+  - Query params: `search`, `status`, `min_price`, `max_price`, `sort_by`, `sort_order`, `per_page`
+- `GET /api/public/consignments/{id}` - Chi tiết bất động sản
 
 ### Payments
 - `POST /api/payments/vnpay/create` - Tạo thanh toán VNPay
@@ -190,6 +195,43 @@ NEXT_PUBLIC_API_URL=http://localhost:8015/api
 - `POST /api/posting-packages/purchase` - Mua gói bằng ví (Protected)
 - `GET /api/my-packages` - Lịch sử mua gói của user (Protected)
 - `GET /api/my-packages/current` - Gói đang hoạt động (Protected)
+
+### Webhooks
+Webhooks cho phép nhận thông báo real-time khi có sự kiện xảy ra với consignment.
+
+**Public Endpoint (nhận webhook từ bên ngoài):**
+- `POST /api/webhooks/consignment` - Nhận webhook event từ hệ thống bên ngoài
+
+**Protected Endpoints (quản lý webhooks):**
+- `POST /api/webhooks/register` - Đăng ký webhook mới
+- `GET /api/webhooks` - Danh sách webhooks đã đăng ký
+- `DELETE /api/webhooks/{webhookId}` - Xóa webhook
+- `POST /api/webhooks/test` - Test gửi webhook
+
+**Webhook Events:**
+- `consignment.created` - Khi ký gửi mới được tạo
+- `consignment.updated` - Khi ký gửi được cập nhật
+- `consignment.status_changed` - Khi trạng thái ký gửi thay đổi
+- `consignment.approved` - Khi ký gửi được duyệt
+- `consignment.rejected` - Khi ký gửi bị từ chối
+- `consignment.sold` - Khi ký gửi đã bán
+- `consignment.cancelled` - Khi ký gửi bị hủy
+
+**Webhook Payload Example:**
+```json
+{
+  "event": "consignment.created",
+  "data": {
+    "consignment_id": 1,
+    "code": "KG20260108ABCD",
+    "title": "Đất nền 100m2",
+    "status": "pending",
+    "price": 500000000,
+    "address": "Quận 9, TP.HCM"
+  },
+  "timestamp": "2026-01-08T08:00:00+07:00"
+}
+```
 
 ## License
 

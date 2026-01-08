@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ConsignmentController;
+use App\Http\Controllers\PublicConsignmentController;
+use App\Http\Controllers\ConsignmentWebhookController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\UserController;
@@ -20,6 +22,18 @@ use App\Http\Controllers\UploadController;
 // Public routes - Posting Packages (Gói đăng bài - public để xem giá)
 Route::get('/posting-packages', [PostingPackageController::class, 'index']);
 Route::get('/posting-packages/{id}', [PostingPackageController::class, 'show']);
+
+// Public routes - Consignments (Xem danh sách bất động sản công khai)
+Route::prefix('public')->group(function () {
+    Route::get('/consignments', [PublicConsignmentController::class, 'index']);
+    Route::get('/consignments/{id}', [PublicConsignmentController::class, 'show']);
+});
+
+// Webhook routes - Consignment events
+Route::prefix('webhooks')->group(function () {
+    // Incoming webhook handler (from external systems)
+    Route::post('/consignment', [ConsignmentWebhookController::class, 'handle']);
+});
 
 // Public routes
 Route::prefix('auth')->group(function () {
@@ -97,5 +111,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/base64', [UploadController::class, 'uploadBase64']);
         Route::delete('/', [UploadController::class, 'delete']);
         Route::get('/info', [UploadController::class, 'info']);
+    });
+
+    // Webhook Management (Quản lý webhooks)
+    Route::prefix('webhooks')->group(function () {
+        Route::post('/register', [ConsignmentWebhookController::class, 'register']);
+        Route::get('/', [ConsignmentWebhookController::class, 'list']);
+        Route::delete('/{webhookId}', [ConsignmentWebhookController::class, 'delete']);
+        Route::post('/test', [ConsignmentWebhookController::class, 'test']);
     });
 });
