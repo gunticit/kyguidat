@@ -1,5 +1,5 @@
 // API Configuration
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8015/api';
 
 // Social Login URLs
 export const SOCIAL_LOGIN_URLS = {

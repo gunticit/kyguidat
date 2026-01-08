@@ -31,9 +31,9 @@ docker-compose exec backend php artisan migrate
 
 | Service | URL |
 |---------|-----|
-| **Frontend (Next.js)** | http://localhost:3000 |
-| **Backend API** | http://localhost:8000/api |
-| **phpMyAdmin** | http://localhost:8080 |
+| **Frontend (Next.js)** | http://localhost:3015 |
+| **Backend API** | http://localhost:8015/api |
+| **phpMyAdmin** | http://localhost:8095 |
 
 ## 📁 Cấu trúc dự án
 
@@ -150,7 +150,7 @@ MOMO_SECRET_KEY=
 
 ### Frontend (.env.local)
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_API_URL=http://localhost:8015/api
 ```
 
 ## 📝 API Endpoints

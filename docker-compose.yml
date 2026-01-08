@@ -22,7 +22,7 @@ services:
     container_name: khodat-nginx
     restart: unless-stopped
     ports:
-      - "8000:80"
+      - "8015:80"
     volumes:
       - ./backend:/var/www
       - ./backend/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
@@ -42,7 +42,7 @@ services:
       MYSQL_USER: khodat
       MYSQL_PASSWORD: khodat123
     ports:
-      - "3306:3306"
+      - "3321:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./backend/docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -55,7 +55,7 @@ services:
     container_name: khodat-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6394:6379"
     volumes:
       - redis-data:/data
     networks:
@@ -71,7 +71,7 @@ services:
       PMA_USER: root
       PMA_PASSWORD: root
     ports:
-      - "8080:80"
+      - "8095:80"
     networks:
       - khodat-network
     depends_on:
@@ -85,14 +85,14 @@ services:
     container_name: khodat-frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3015:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - NEXT_PUBLIC_API_URL=http://localhost:8015/api
     networks:
       - khodat-network
     depends_on:

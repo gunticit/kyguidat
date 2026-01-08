@@ -42,7 +42,7 @@ export default function ProfilePage() {
     });
     const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8015/api';
 
     useEffect(() => {
         loadProfile();
