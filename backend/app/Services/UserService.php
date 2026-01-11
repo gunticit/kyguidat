@@ -10,15 +10,26 @@ class UserService
     /**
      * Get user profile with wallet info
      */
-    public function getProfile(User $user): User
+    public function getProfile(User $user): array
     {
-        return $user->load('wallet');
+        $user->load('wallet');
+        
+        // Build social accounts status based on provider field
+        $socialAccounts = [
+            'google' => $user->provider === 'google',
+            'facebook' => $user->provider === 'facebook',
+            'zalo' => $user->provider === 'zalo',
+        ];
+        
+        return array_merge($user->toArray(), [
+            'social_accounts' => $socialAccounts,
+        ]);
     }
 
     /**
      * Update user profile
      */
-    public function updateProfile(User $user, array $data): User
+    public function updateProfile(User $user, array $data): array
     {
         $user->update([
             'name' => $data['name'] ?? $user->name,
@@ -26,7 +37,18 @@ class UserService
             'avatar' => $data['avatar'] ?? $user->avatar,
         ]);
 
-        return $user->fresh()->load('wallet');
+        $user = $user->fresh()->load('wallet');
+        
+        // Build social accounts status based on provider field
+        $socialAccounts = [
+            'google' => $user->provider === 'google',
+            'facebook' => $user->provider === 'facebook',
+            'zalo' => $user->provider === 'zalo',
+        ];
+        
+        return array_merge($user->toArray(), [
+            'social_accounts' => $socialAccounts,
+        ]);
     }
 
     /**

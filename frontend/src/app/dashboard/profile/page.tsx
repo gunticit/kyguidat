@@ -383,7 +383,7 @@ export default function ProfilePage() {
                                 {user?.social_accounts?.google ? 'Hủy liên kết' : 'Liên kết'}
                             </button>
                         </div>
-                        <div className={styles.connectedItem}>
+                        {/* <div className={styles.connectedItem}>
                             <div className={styles.connectedInfo}>
                                 <span className={styles.connectedIcon}>🔷</span>
                                 <div>
@@ -418,7 +418,7 @@ export default function ProfilePage() {
                             >
                                 {user?.social_accounts?.zalo ? 'Hủy liên kết' : 'Liên kết'}
                             </button>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

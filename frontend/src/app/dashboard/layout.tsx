@@ -51,7 +51,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <div className={styles.logo}>
                     <Link href="/dashboard">
                         <span className="gradient-text" style={{ fontSize: '24px', fontWeight: 700 }}>
-                            Khodat
+                            Ký Gửi Kho Đất
                         </span>
                     </Link>
                 </div>

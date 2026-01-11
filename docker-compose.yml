@@ -1,4 +1,49 @@
 services:
+  # ===========================================
+  # OPENCART ADMIN (PHP 8 + Nginx)
+  # ===========================================
+
+  # PHP-FPM for OpenCart Admin
+  admin-php:
+    build:
+      context: ./admin/docker
+      dockerfile: Dockerfile
+    container_name: khodat-admin-php
+    restart: unless-stopped
+    volumes:
+      - ./admin:/var/www/html
+      - ./admin/docker/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - PHP_OPCACHE_ENABLE=1
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
+      - DISABLE_HTTPS_REDIRECT=1
+      - FORCE_HTTP=1
+      - DB_HOST=mysql
+    networks:
+      - khodat-network
+    depends_on:
+      - mysql
+      - redis
+
+  # Nginx for OpenCart Admin
+  admin-nginx:
+    image: nginx:alpine
+    container_name: khodat-admin-nginx
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    volumes:
+      - ./admin:/var/www/html
+      - ./admin/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - khodat-network
+    depends_on:
+      - admin-php
+
+  # ===========================================
+  # LARAVEL BACKEND (kyguidat API)
+  # ===========================================
+
   # PHP + Laravel Backend
   backend:
     build:
@@ -16,7 +61,7 @@ services:
       - mysql
       - redis
 
-  # Nginx Web Server
+  # Nginx Web Server for Laravel
   nginx:
     image: nginx:alpine
     container_name: khodat-nginx
@@ -31,11 +76,16 @@ services:
     depends_on:
       - backend
 
-  # MySQL Database
+  # ===========================================
+  # DATABASE & CACHE
+  # ===========================================
+
+  # MySQL Database (shared by OpenCart and Laravel)
   mysql:
     image: mysql:8.0
     container_name: khodat-mysql
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: khodat
@@ -45,9 +95,15 @@ services:
       - "3321:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./backend/docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./admin/docker/init-opencart.sql:/docker-entrypoint-initdb.d/02-opencart.sql
     networks:
       - khodat-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis for Cache & Sessions
   redis:
@@ -60,8 +116,13 @@ services:
       - redis-data:/data
     networks:
       - khodat-network
+    command: redis-server --appendonly yes
 
-  # phpMyAdmin (optional, for database management)
+  # ===========================================
+  # TOOLS & UTILITIES
+  # ===========================================
+
+  # phpMyAdmin (for database management)
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: khodat-phpmyadmin
@@ -70,12 +131,18 @@ services:
       PMA_HOST: mysql
       PMA_USER: root
       PMA_PASSWORD: root
+      UPLOAD_LIMIT: 100M
     ports:
       - "8095:80"
     networks:
       - khodat-network
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+
+  # ===========================================
+  # NEXT.JS FRONTEND
+  # ===========================================
 
   # Next.js Frontend
   frontend:
@@ -93,6 +160,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8015/api
+      - NEXT_PUBLIC_ADMIN_URL=http://localhost:8080
     networks:
       - khodat-network
     depends_on:
