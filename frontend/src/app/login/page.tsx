@@ -126,6 +126,9 @@ export default function LoginPage() {
                         type="button"
                         className={styles.socialBtn}
                         onClick={() => handleSocialLogin('facebook')}
+                        disabled
+                        style={{ opacity: 0.5, cursor: 'not-allowed' }}
+                        title="Tính năng đang phát triển"
                     >
                         <FaFacebook size={20} color="#1877F2" />
                         <span>Facebook</span>
@@ -134,6 +137,9 @@ export default function LoginPage() {
                         type="button"
                         className={styles.socialBtn}
                         onClick={() => handleSocialLogin('zalo')}
+                        disabled
+                        style={{ opacity: 0.5, cursor: 'not-allowed' }}
+                        title="Tính năng đang phát triển"
                     >
                         <SiZalo size={20} color="#0068FF" />
                         <span>Zalo</span>
