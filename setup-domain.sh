@@ -27,7 +27,7 @@ print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # ============================================================
 
 # Domain chính
-MAIN_DOMAIN="khodat.com.vn"
+MAIN_DOMAIN="khodat.com"
 
 # Sub-domains cho các services
 FRONTEND_DOMAIN="khachhang.${MAIN_DOMAIN}"      # Next.js Frontend
