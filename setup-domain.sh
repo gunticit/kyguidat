@@ -32,13 +32,13 @@ MAIN_DOMAIN="khodat.com"
 # Sub-domains cho các services
 FRONTEND_DOMAIN="khachhang.${MAIN_DOMAIN}"      # Next.js Frontend
 API_DOMAIN="api.${MAIN_DOMAIN}"               # Laravel Backend API
-ADMIN_DOMAIN="${MAIN_DOMAIN}"           # OpenCart Admin
+# ADMIN_DOMAIN="${MAIN_DOMAIN}"           # OpenCart Admin (DISABLED)
 PMA_DOMAIN="pma.${MAIN_DOMAIN}"               # phpMyAdmin (optional)
 
 # Server local ports (từ docker-compose.yml)
 FRONTEND_PORT=3015
 API_PORT=8015
-ADMIN_PORT=8088
+# ADMIN_PORT=8088  # (DISABLED)
 PMA_PORT=8095
 
 # Email cho SSL certificate
@@ -347,7 +347,7 @@ show_summary() {
     echo ""
     echo -e "  ${BLUE}Frontend:${NC}   https://${FRONTEND_DOMAIN}"
     echo -e "  ${BLUE}API:${NC}        https://${API_DOMAIN}"
-    echo -e "  ${BLUE}Admin:${NC}      https://${ADMIN_DOMAIN}"
+    # echo -e "  ${BLUE}Admin:${NC}      https://${ADMIN_DOMAIN}"  # (DISABLED)
     echo -e "  ${BLUE}phpMyAdmin:${NC} https://${PMA_DOMAIN}"
     echo ""
     echo "============================================================"
@@ -358,7 +358,7 @@ show_summary() {
     echo ""
     echo "   Type: A    Name: ${FRONTEND_DOMAIN%%.*}    Value: YOUR_VPS_IP"
     echo "   Type: A    Name: api         Value: YOUR_VPS_IP"
-    echo "   Type: A    Name: admin       Value: YOUR_VPS_IP"
+    # echo "   Type: A    Name: admin       Value: YOUR_VPS_IP"  # (DISABLED)
     echo "   Type: A    Name: pma         Value: YOUR_VPS_IP"
     echo ""
     echo "2. Sau khi DNS đã propagate, chạy lại script với option --ssl"
@@ -406,13 +406,13 @@ main_install() {
     # Create Nginx configurations
     create_nginx_config "$FRONTEND_DOMAIN" "$FRONTEND_PORT" "khodat-frontend"
     create_api_nginx_config
-    create_nginx_config "$ADMIN_DOMAIN" "$ADMIN_PORT" "khodat-admin"
+    # create_nginx_config "$ADMIN_DOMAIN" "$ADMIN_PORT" "khodat-admin"  # (DISABLED)
     create_nginx_config "$PMA_DOMAIN" "$PMA_PORT" "khodat-pma"
 
     # Enable sites
     enable_site "khodat-frontend"
     enable_site "khodat-api"
-    enable_site "khodat-admin"
+    # enable_site "khodat-admin"  # (DISABLED)
     enable_site "khodat-pma"
 
     # Test and reload Nginx
@@ -440,7 +440,7 @@ main_ssl() {
 
     setup_ssl "$FRONTEND_DOMAIN"
     setup_ssl "$API_DOMAIN"
-    setup_ssl "$ADMIN_DOMAIN"
+    # setup_ssl "$ADMIN_DOMAIN"  # (DISABLED)
     setup_ssl "$PMA_DOMAIN"
 
     setup_auto_renew
