@@ -52,7 +52,7 @@ export default function PackagesPage() {
     const [purchasing, setPurchasing] = useState(false);
     const [purchaseError, setPurchaseError] = useState<string | null>(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8015/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.khodat.com/api';
 
     useEffect(() => {
         loadData();
