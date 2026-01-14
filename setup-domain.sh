@@ -122,74 +122,74 @@ server {
     }
 }
 
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name ${domain};
+# server {
+#     listen 443 ssl http2;
+#     listen [::]:443 ssl http2;
+#     server_name ${domain};
 
-    # SSL Configuration (sẽ được Certbot cập nhật)
-    # ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;
-    # include /etc/letsencrypt/options-ssl-nginx.conf;
-    # ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+#     # SSL Configuration (sẽ được Certbot cập nhật)
+#     # ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;
+#     # ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;
+#     # include /etc/letsencrypt/options-ssl-nginx.conf;
+#     # ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    # Security Headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+#     # Security Headers
+#     add_header X-Frame-Options "SAMEORIGIN" always;
+#     add_header X-Content-Type-Options "nosniff" always;
+#     add_header X-XSS-Protection "1; mode=block" always;
+#     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
-    # Logging
-    access_log /var/log/nginx/${config_name}_access.log;
-    error_log /var/log/nginx/${config_name}_error.log;
+#     # Logging
+#     access_log /var/log/nginx/${config_name}_access.log;
+#     error_log /var/log/nginx/${config_name}_error.log;
 
-    # Gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_proxied any;
-    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml application/rss+xml application/atom+xml image/svg+xml;
+#     # Gzip compression
+#     gzip on;
+#     gzip_vary on;
+#     gzip_min_length 1024;
+#     gzip_proxied any;
+#     gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml application/rss+xml application/atom+xml image/svg+xml;
 
-    # Rate limiting
-    limit_req zone=${config_name}_limit burst=20 nodelay;
+#     # Rate limiting
+#     limit_req zone=${config_name}_limit burst=20 nodelay;
 
-    # Proxy settings
-    location / {
-        proxy_pass http://${config_name}_upstream;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
+#     # Proxy settings
+#     location / {
+#         proxy_pass http://${config_name}_upstream;
+#         proxy_http_version 1.1;
+#         proxy_set_header Host \$host;
+#         proxy_set_header X-Real-IP \$remote_addr;
+#         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto \$scheme;
+#         proxy_set_header Upgrade \$http_upgrade;
+#         proxy_set_header Connection "upgrade";
 
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
+#         # Timeouts
+#         proxy_connect_timeout 60s;
+#         proxy_send_timeout 60s;
+#         proxy_read_timeout 60s;
 
-        # Buffer settings
-        proxy_buffer_size 128k;
-        proxy_buffers 4 256k;
-        proxy_busy_buffers_size 256k;
-    }
+#         # Buffer settings
+#         proxy_buffer_size 128k;
+#         proxy_buffers 4 256k;
+#         proxy_busy_buffers_size 256k;
+#     }
 
-    # Static files caching (cho frontend)
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js|pdf|txt|woff|woff2|ttf|svg|eot)$ {
-        proxy_pass http://${config_name}_upstream;
-        proxy_set_header Host \$host;
-        expires 30d;
-        add_header Cache-Control "public, immutable";
-    }
+#     # Static files caching (cho frontend)
+#     location ~* \.(jpg|jpeg|png|gif|ico|css|js|pdf|txt|woff|woff2|ttf|svg|eot)$ {
+#         proxy_pass http://${config_name}_upstream;
+#         proxy_set_header Host \$host;
+#         expires 30d;
+#         add_header Cache-Control "public, immutable";
+#     }
 
-    # Health check endpoint
-    location /health {
-        access_log off;
-        return 200 "OK";
-        add_header Content-Type text/plain;
-    }
-}
+#     # Health check endpoint
+#     location /health {
+#         access_log off;
+#         return 200 "OK";
+#         add_header Content-Type text/plain;
+#     }
+# }
 EOF
 
     print_success "Đã tạo config: $config_file"
@@ -227,93 +227,93 @@ server {
     }
 }
 
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name ${API_DOMAIN};
+# server {
+#     listen 443 ssl http2;
+#     listen [::]:443 ssl http2;
+#     server_name ${API_DOMAIN};
 
-    # SSL sẽ được Certbot cấu hình
+#     # SSL sẽ được Certbot cấu hình
 
-    # Security Headers
-    add_header X-Frame-Options "DENY" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+#     # Security Headers
+#     add_header X-Frame-Options "DENY" always;
+#     add_header X-Content-Type-Options "nosniff" always;
+#     add_header X-XSS-Protection "1; mode=block" always;
+#     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
-    # CORS Headers cho API
-    add_header Access-Control-Allow-Origin "https://${FRONTEND_DOMAIN}" always;
-    add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
-    add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With, Accept, Origin" always;
-    add_header Access-Control-Allow-Credentials "true" always;
+#     # CORS Headers cho API
+#     add_header Access-Control-Allow-Origin "https://${FRONTEND_DOMAIN}" always;
+#     add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+#     add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With, Accept, Origin" always;
+#     add_header Access-Control-Allow-Credentials "true" always;
 
-    # Handle preflight requests
-    if (\$request_method = OPTIONS) {
-        return 204;
-    }
+#     # Handle preflight requests
+#     if (\$request_method = OPTIONS) {
+#         return 204;
+#     }
 
-    # Logging
-    access_log /var/log/nginx/api_access.log;
-    error_log /var/log/nginx/api_error.log;
+#     # Logging
+#     access_log /var/log/nginx/api_access.log;
+#     error_log /var/log/nginx/api_error.log;
 
-    # Gzip
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 256;
-    gzip_proxied any;
-    gzip_types application/json application/javascript text/css text/plain text/xml application/xml;
+#     # Gzip
+#     gzip on;
+#     gzip_vary on;
+#     gzip_min_length 256;
+#     gzip_proxied any;
+#     gzip_types application/json application/javascript text/css text/plain text/xml application/xml;
 
-    # Rate limiting - cao hơn cho API
-    limit_req zone=api_limit burst=50 nodelay;
+#     # Rate limiting - cao hơn cho API
+#     limit_req zone=api_limit burst=50 nodelay;
 
-    # Client body size (cho upload)
-    client_max_body_size 100M;
+#     # Client body size (cho upload)
+#     client_max_body_size 100M;
 
-    # API Proxy
-    location / {
-        proxy_pass http://api_upstream;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+#     # API Proxy
+#     location / {
+#         proxy_pass http://api_upstream;
+#         proxy_http_version 1.1;
+#         proxy_set_header Host \$host;
+#         proxy_set_header X-Real-IP \$remote_addr;
+#         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto \$scheme;
 
-        # Timeouts dài hơn cho API
-        proxy_connect_timeout 120s;
-        proxy_send_timeout 120s;
-        proxy_read_timeout 120s;
+#         # Timeouts dài hơn cho API
+#         proxy_connect_timeout 120s;
+#         proxy_send_timeout 120s;
+#         proxy_read_timeout 120s;
 
-        # Buffer settings
-        proxy_buffer_size 128k;
-        proxy_buffers 8 256k;
-        proxy_busy_buffers_size 512k;
-    }
+#         # Buffer settings
+#         proxy_buffer_size 128k;
+#         proxy_buffers 8 256k;
+#         proxy_busy_buffers_size 512k;
+#     }
 
-    # Sanctum/Auth endpoints - rate limit chặt hơn
-    location ~ ^/(api/login|api/register|api/password|oauth) {
-        limit_req zone=api_limit burst=5 nodelay;
+#     # Sanctum/Auth endpoints - rate limit chặt hơn
+#     location ~ ^/(api/login|api/register|api/password|oauth) {
+#         limit_req zone=api_limit burst=5 nodelay;
         
-        proxy_pass http://api_upstream;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
+#         proxy_pass http://api_upstream;
+#         proxy_http_version 1.1;
+#         proxy_set_header Host \$host;
+#         proxy_set_header X-Real-IP \$remote_addr;
+#         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto \$scheme;
+#     }
 
-    # Storage/uploads
-    location /storage {
-        proxy_pass http://api_upstream;
-        proxy_set_header Host \$host;
-        expires 7d;
-        add_header Cache-Control "public";
-    }
+#     # Storage/uploads
+#     location /storage {
+#         proxy_pass http://api_upstream;
+#         proxy_set_header Host \$host;
+#         expires 7d;
+#         add_header Cache-Control "public";
+#     }
 
-    # Health check
-    location /health {
-        access_log off;
-        proxy_pass http://api_upstream;
-    }
-}
+#     # Health check
+#     location /health {
+#         access_log off;
+#         proxy_pass http://api_upstream;
+#     }
+# }
 EOF
 
     print_success "Đã tạo API config: $config_file"

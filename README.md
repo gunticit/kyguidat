@@ -27,7 +27,7 @@ docker-compose exec backend php artisan key:generate
 docker-compose exec backend php artisan migrate
 
 # Setup OpenCart webhook tables
-docker exec -i khodat-mysql mysql -u root -proot khodat_db < admin/docker/webhook_tables.sql
+docker exec -i khodat-mysql mysql -u root -proot khodat < admin/docker/webhook_tables.sql
 ```
 
 ### Truy cập
