@@ -159,8 +159,8 @@ services:
       - /app/.next
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://api.khodat.com//api
-      - NEXT_PUBLIC_ADMIN_URL=http://khodat.com
+      - NEXT_PUBLIC_API_URL=https://api.khodat.com/api
+      - NEXT_PUBLIC_ADMIN_URL=https://khodat.com
     networks:
       - khodat-network
     depends_on:
