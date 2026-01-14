@@ -16,6 +16,7 @@ return [
         env('FRONTEND_URL', 'http://localhost:3015'),
         'http://localhost:3015',
         'http://127.0.0.1:3015',
+        'https://khachhang.khodat.com',
     ],
 
     'allowed_origins_patterns' => [],
