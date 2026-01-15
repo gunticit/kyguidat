@@ -3,27 +3,30 @@ services:
   # OPENCART ADMIN (PHP 8 + Nginx)
   # ===========================================
 
-  # PHP-FPM for OpenCart Admin
-  # admin-php:
-  #   build:
-  #     context: ./admin/docker
-  #     dockerfile: Dockerfile
-  #   container_name: khodat-admin-php
-  #   restart: unless-stopped
-  #   volumes:
-  #     - ./admin:/var/www/html
-  #     - ./admin/docker/php.ini:/usr/local/etc/php/conf.d/custom.ini
-  #   environment:
-  #     - PHP_OPCACHE_ENABLE=1
-  #     - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
-  #     - DISABLE_HTTPS_REDIRECT=1
-  #     - FORCE_HTTP=1
-  #     - DB_HOST=mysql
-  #   networks:
-  #     - khodat-network
-  #   depends_on:
-  #     - mysql
-  #     - redis
+  # PHP-FPM for OpenCart Admin (running with PHP built-in server - no nginx needed)
+  admin-php:
+    build:
+      context: ./admin/docker
+      dockerfile: Dockerfile
+    container_name: khodat-admin-php
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./admin:/var/www/html
+      - ./admin/docker/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - PHP_OPCACHE_ENABLE=1
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
+      - DISABLE_HTTPS_REDIRECT=1
+      - FORCE_HTTP=1
+      - DB_HOST=mysql
+    networks:
+      - khodat-network
+    depends_on:
+      - mysql
+      - redis
+    command: php -S 0.0.0.0:8080 -t /var/www/html
 
   # Nginx for OpenCart Admin
   # admin-nginx:
@@ -44,7 +47,7 @@ services:
   # LARAVEL BACKEND (kyguidat API)
   # ===========================================
 
-  # PHP + Laravel Backend
+  # PHP + Laravel Backend (running with php artisan serve - no nginx needed)
   backend:
     build:
       context: ./backend
@@ -52,6 +55,8 @@ services:
     container_name: khodat-backend
     restart: unless-stopped
     working_dir: /var/www
+    ports:
+      - "8015:8000"
     volumes:
       - ./backend:/var/www
       - ./backend/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
@@ -60,21 +65,22 @@ services:
     depends_on:
       - mysql
       - redis
+    command: php artisan serve --host=0.0.0.0 --port=8000
 
   # Nginx Web Server for Laravel
-  nginx:
-    image: nginx:alpine
-    container_name: khodat-nginx
-    restart: unless-stopped
-    ports:
-      - "8015:80"
-    volumes:
-      - ./backend:/var/www
-      - ./backend/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - khodat-network
-    depends_on:
-      - backend
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: khodat-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8015:80"
+  #   volumes:
+  #     - ./backend:/var/www
+  #     - ./backend/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+  #   networks:
+  #     - khodat-network
+  #   depends_on:
+  #     - backend
 
   # ===========================================
   # DATABASE & CACHE
@@ -164,7 +170,7 @@ services:
     networks:
       - khodat-network
     depends_on:
-      - nginx
+      - backend
 
 networks:
   khodat-network:

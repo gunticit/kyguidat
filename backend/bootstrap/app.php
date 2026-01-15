@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Enable CORS for all requests
+        $middleware->use([
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+
         // API routes use token-based auth (Sanctum API tokens), not session-based
         // So we don't need EnsureFrontendRequestsAreStateful middleware
         // This avoids CSRF token issues for API calls
