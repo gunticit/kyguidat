@@ -1,6 +1,5 @@
 admin/
 frontend/.env
-frontend/tsconfig.json
 
 # Production secrets - NEVER commit these
 .env.production
