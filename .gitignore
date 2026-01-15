@@ -1,1 +1,3 @@
 admin/
+frontend/.env
+frontend/tsconfig.json
