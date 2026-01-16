@@ -165,7 +165,8 @@ services:
       - /app/.next
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=https://api.khodat.com/api
+      # NEXT_PUBLIC_* vars are used in browser, so must use localhost (not container names)
+      - NEXT_PUBLIC_API_URL=http://localhost:8015/api
       # - NEXT_PUBLIC_ADMIN_URL=https://khodat.com
     networks:
       - khodat-network

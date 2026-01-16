@@ -457,3 +457,20 @@ Các ports đã được thay đổi để tránh xung đột:
 | phpMyAdmin | 8080 | 8095 |
 | MySQL | 3306 | 3321 |
 | Redis | 6379 | 6394 |
+
+
+# Xem các endpoints có sẵn
+curl http://localhost:8015/api/ipn/endpoints
+
+# Tạo cấu hình IPN mới (cần auth token)
+curl -X POST http://localhost:8015/api/ipn-config \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "VNPay Production",
+    "provider": "vnpay",
+    "ipn_url": "https://your-domain.com/api/ipn/vnpay",
+    "merchant_id": "YOUR_MERCHANT_ID",
+    "secret_key": "YOUR_SECRET_KEY",
+    "is_active": true
+  }'

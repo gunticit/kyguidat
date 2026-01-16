@@ -12,6 +12,9 @@ use App\Http\Controllers\SupportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PostingPackageController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\IpnConfigController;
+use App\Http\Controllers\IpnHandlerController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +65,18 @@ Route::prefix('payments')->group(function () {
     Route::post('/momo/callback', [PaymentController::class, 'momoCallback']);
     Route::post('/momo/notify', [PaymentController::class, 'momoNotify']);
 });
+
+// IPN Handler routes (public - called by payment gateways)
+Route::prefix('ipn')->group(function () {
+    Route::post('/vnpay', [IpnHandlerController::class, 'vnpay']);
+    Route::post('/momo', [IpnHandlerController::class, 'momo']);
+    Route::post('/zalopay', [IpnHandlerController::class, 'zalopay']);
+    Route::post('/bank', [IpnHandlerController::class, 'bank']);
+    Route::post('/custom', [IpnHandlerController::class, 'custom']);
+});
+
+// IPN Configuration endpoints (public - for getting URL info)
+Route::get('/ipn/endpoints', [IpnConfigController::class, 'endpoints']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -119,5 +134,26 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [ConsignmentWebhookController::class, 'list']);
         Route::delete('/{webhookId}', [ConsignmentWebhookController::class, 'delete']);
         Route::post('/test', [ConsignmentWebhookController::class, 'test']);
+    });
+
+    // IPN Configuration Management (Quản lý cấu hình IPN)
+    Route::prefix('ipn-config')->group(function () {
+        // CRUD
+        Route::get('/', [IpnConfigController::class, 'index']);
+        Route::post('/', [IpnConfigController::class, 'store']);
+        Route::get('/{id}', [IpnConfigController::class, 'show']);
+        Route::put('/{id}', [IpnConfigController::class, 'update']);
+        Route::delete('/{id}', [IpnConfigController::class, 'destroy']);
+        
+        // Actions
+        Route::post('/{id}/toggle-active', [IpnConfigController::class, 'toggleActive']);
+        Route::post('/{id}/test', [IpnConfigController::class, 'test']);
+        
+        // Logs
+        Route::get('/logs/list', [IpnConfigController::class, 'logs']);
+        Route::get('/logs/{id}', [IpnConfigController::class, 'logDetail']);
+        
+        // Statistics
+        Route::get('/stats/overview', [IpnConfigController::class, 'statistics']);
     });
 });
