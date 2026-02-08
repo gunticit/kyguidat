@@ -58,4 +58,26 @@ class ConsignmentController extends Controller
 
         return view('consignments.show', compact('consignment', 'relatedConsignments'));
     }
+
+    /**
+     * API endpoint for AJAX pagination
+     */
+    public function apiIndex(Request $request)
+    {
+        $params = [
+            'page' => $request->get('page', 1),
+            'limit' => $request->get('limit', 12),
+            'search' => $request->get('search'),
+            'province' => $request->get('province'),
+        ];
+
+        $response = $this->apiService->getConsignments(array_filter($params));
+
+        return response()->json([
+            'data' => $response['data'] ?? [],
+            'total' => $response['meta']['total'] ?? 0,
+            'page' => $params['page'],
+            'limit' => $params['limit'],
+        ]);
+    }
 }

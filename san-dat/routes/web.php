@@ -22,3 +22,6 @@ Route::post('/api/settings', [SettingsController::class, 'store']);
 Route::post('/api/settings/upload', [SettingsController::class, 'upload']);
 Route::post('/api/settings/api-keys', [SettingsController::class, 'storeApiKeys']);
 Route::post('/api/settings/seo', [SettingsController::class, 'storeSeo']);
+
+// API Consignments (for AJAX pagination)
+Route::get('/api/consignments', [ConsignmentController::class, 'apiIndex']);

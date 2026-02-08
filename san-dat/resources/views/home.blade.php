@@ -262,23 +262,23 @@
 
     <!-- Skeleton to Products Transition Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const skeletonGrid = document.getElementById('skeletonGrid');
             const productsGrid = document.getElementById('productsGrid');
-            
+
             // Simulate loading time (or use when data actually loads)
-            setTimeout(function() {
+            setTimeout(function () {
                 // Fade out skeleton
                 skeletonGrid.style.opacity = '0';
                 skeletonGrid.style.transition = 'opacity 0.3s ease-out';
-                
-                setTimeout(function() {
+
+                setTimeout(function () {
                     skeletonGrid.classList.add('hidden');
                     productsGrid.classList.remove('hidden');
                     productsGrid.style.opacity = '0';
-                    
+
                     // Fade in products
-                    requestAnimationFrame(function() {
+                    requestAnimationFrame(function () {
                         productsGrid.style.transition = 'opacity 0.3s ease-in';
                         productsGrid.style.opacity = '1';
                     });
@@ -330,7 +330,142 @@
         </div>
     </section>
 
+    <!-- Bất động sản đang bán Section -->
+    <section class="py-16 bg-white" id="all-properties-section">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Bất động sản đang bán</h2>
+            
+            <!-- Loading Skeleton -->
+            <div id="allPropertiesSkeleton" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @for($i = 0; $i < 12; $i++)
+                    @include('components.skeleton-card')
+                @endfor
+            </div>
+
+            <!-- Properties Grid -->
+            <div id="allPropertiesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 hidden"></div>
+
+            <!-- Pagination -->
+            <div id="allPropertiesPagination" class="flex justify-center items-center gap-2 mt-8 hidden"></div>
+        </div>
+    </section>
+
+    <script>
+        let currentPage = 1;
+        const perPage = 12;
+        let totalPages = 1;
+
+        function loadAllProperties(page = 1) {
+            currentPage = page;
+            const skeleton = document.getElementById('allPropertiesSkeleton');
+            const grid = document.getElementById('allPropertiesGrid');
+            const pagination = document.getElementById('allPropertiesPagination');
+
+            skeleton.classList.remove('hidden');
+            grid.classList.add('hidden');
+            pagination.classList.add('hidden');
+
+            fetch(`/api/consignments?page=${page}&limit=${perPage}`)
+                .then(res => res.json())
+                .then(data => {
+                    const items = data.data || [];
+                    const total = data.total || 0;
+                    totalPages = Math.ceil(total / perPage);
+
+                    grid.innerHTML = items.length > 0 
+                        ? items.map(item => renderPropertyCard(item)).join('')
+                        : '<p class="col-span-full text-center text-gray-500 py-8">Chưa có bất động sản nào</p>';
+
+                    renderPagination(currentPage, totalPages, pagination);
+
+                    skeleton.classList.add('hidden');
+                    grid.classList.remove('hidden');
+                    grid.style.opacity = '0';
+                    requestAnimationFrame(() => {
+                        grid.style.transition = 'opacity 0.3s ease-in';
+                        grid.style.opacity = '1';
+                    });
+                    pagination.classList.remove('hidden');
+                })
+                .catch(err => console.error('Error:', err));
+        }
+
+        function renderPropertyCard(item) {
+            const price = item.price ? (item.price >= 1000000000 
+                ? (item.price / 1000000000).toFixed(2) + ' tỷ' 
+                : (item.price / 1000000).toFixed(0) + ' triệu') : 'Liên hệ';
+            const image = item.images?.[0] || item.image || '/images/placeholder.jpg';
+            const location = [item.district, item.province].filter(Boolean).join(', ');
+            
+            return `
+                <a href="/chi-tiet/${item.id}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="${image}" alt="${item.title || 'BĐS'}" 
+                            class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            onerror="this.src='/images/placeholder.jpg'">
+                        <span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded">
+                            ${item.property_type || 'Đất nền'}
+                        </span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-gray-900 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
+                        <p class="text-indigo-600 font-bold mb-2">${price}</p>
+                        <div class="flex items-center text-sm text-gray-500 gap-3">
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                </svg>
+                                ${item.area || 0}m²
+                            </span>
+                            <span class="flex items-center gap-1 truncate">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                </svg>
+                                ${location}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+
+        function renderPagination(current, total, container) {
+            if (total <= 1) { container.innerHTML = ''; return; }
+
+            let html = `<button onclick="loadAllProperties(${current - 1})" ${current === 1 ? 'disabled' : ''} 
+                class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>`;
+
+            const pages = [];
+            if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i); }
+            else {
+                pages.push(1);
+                if (current > 3) pages.push('...');
+                for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+                if (current < total - 2) pages.push('...');
+                pages.push(total);
+            }
+
+            pages.forEach(p => {
+                if (p === '...') html += '<span class="px-3 py-2 text-gray-400">...</span>';
+                else html += `<button onclick="loadAllProperties(${p})" class="px-4 py-2 rounded-lg ${p === current ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">${p}</button>`;
+            });
+
+            html += `<button onclick="loadAllProperties(${current + 1})" ${current === total ? 'disabled' : ''} 
+                class="px-3 py-2 rounded-lg ${current === total ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>`;
+
+            container.innerHTML = html;
+            if (current !== 1) document.getElementById('all-properties-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => setTimeout(() => loadAllProperties(1), 500));
+    </script>
+
     <!-- Map Scripts -->
+
     @php
         $propertiesData = collect($consignments)->map(function ($item) {
             return [
@@ -426,32 +561,32 @@
 
             // Create info window content
             const infoContent = `
-                                <div style="width: 280px; font-family: Arial, sans-serif;">
-                                    <img src="${property.image}" alt="${property.title}" 
-                                         style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;"
-                                         onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
-                                    <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
-                                    <p style="font-weight: bold; color: #333; font-size: 13px; margin: 0 0 8px 0; 
-                                       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                        ${property.title}
-                                    </p>
-                                    <p style="color: #dc2626; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
-                                        ${property.priceFormatted}
-                                    </p>
-                                    <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">
-                                        Địa chỉ: ${property.address || property.district + ', ' + property.province}
-                                    </p>
-                                    <div style="display: flex; gap: 15px; font-size: 12px; color: #666; margin-top: 8px;">
-                                        <span>Hướng: ${property.direction || 'N/A'}</span>
-                                        <span>Diện tích: ${property.area} m²</span>
+                                    <div style="width: 280px; font-family: Arial, sans-serif;">
+                                        <img src="${property.image}" alt="${property.title}" 
+                                             style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;"
+                                             onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
+                                        <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
+                                        <p style="font-weight: bold; color: #333; font-size: 13px; margin: 0 0 8px 0; 
+                                           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                            ${property.title}
+                                        </p>
+                                        <p style="color: #dc2626; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
+                                            ${property.priceFormatted}
+                                        </p>
+                                        <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">
+                                            Địa chỉ: ${property.address || property.district + ', ' + property.province}
+                                        </p>
+                                        <div style="display: flex; gap: 15px; font-size: 12px; color: #666; margin-top: 8px;">
+                                            <span>Hướng: ${property.direction || 'N/A'}</span>
+                                            <span>Diện tích: ${property.area} m²</span>
+                                        </div>
+                                        <a href="/consignments/${property.id}" 
+                                           style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
+                                                  background: #4f46e5; color: white; border-radius: 6px; text-decoration: none;">
+                                            Xem chi tiết
+                                        </a>
                                     </div>
-                                    <a href="/consignments/${property.id}" 
-                                       style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
-                                              background: #4f46e5; color: white; border-radius: 6px; text-decoration: none;">
-                                        Xem chi tiết
-                                    </a>
-                                </div>
-                            `;
+                                `;
 
             const infoWindow = new google.maps.InfoWindow({
                 content: infoContent,
