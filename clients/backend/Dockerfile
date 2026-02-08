@@ -40,7 +40,11 @@ RUN mkdir -p /home/$user/.composer && \
 WORKDIR /var/www
 
 # Copy existing application directory
-COPY --chown=$user:$user . /var/www
+COPY . /var/www
+
+# Install composer dependencies (as root, then chown)
+RUN composer install --no-dev --optimize-autoloader --no-interaction && \
+    chown -R $user:$user /var/www
 
 USER $user
 

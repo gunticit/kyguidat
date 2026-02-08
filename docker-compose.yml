@@ -34,6 +34,9 @@ services:
     restart: unless-stopped
     ports:
       - "8088:80"
+    volumes:
+      - ./san-dat:/var/www/html
+      - sandat-vendor:/var/www/html/vendor
     environment:
       - GOLANG_API_URL=http://api-gateway:8080
     networks:
@@ -73,13 +76,15 @@ services:
       - "8015:8000"
     volumes:
       - ./clients/backend:/var/www
+      - backend-vendor:/var/www/vendor
       - ./clients/backend/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - khodat-network
     depends_on:
       - mysql
       - redis
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    command: >
+      sh -c "composer install --no-dev --optimize-autoloader --no-interaction && php artisan serve --host=0.0.0.0 --port=8000"
 
   # ===========================================
   # NEXT.JS FRONTEND (User Dashboard)
@@ -168,3 +173,5 @@ networks:
 volumes:
   mysql-data:
   redis-data:
+  backend-vendor:
+  sandat-vendor:
