@@ -1,56 +1,70 @@
 services:
   # ===========================================
-  # OPENCART ADMIN (PHP 8 + Nginx)
+  # GOLANG API GATEWAY
   # ===========================================
-
-  # PHP-FPM for OpenCart Admin (running with PHP built-in server - no nginx needed)
-  admin-php:
+  api-gateway:
     build:
-      context: ./admin/docker
+      context: ./api-gateway
       dockerfile: Dockerfile
-    container_name: khodat-admin-php
+    container_name: khodat-api-gateway
     restart: unless-stopped
     ports:
-      - "8088:8080"
-    volumes:
-      - ./admin:/var/www/html
-      - ./admin/docker/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - "8080:8080"
     environment:
-      - PHP_OPCACHE_ENABLE=1
-      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
-      - DISABLE_HTTPS_REDIRECT=1
-      - FORCE_HTTP=1
       - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=khodat
+      - DB_USERNAME=khodat
+      - DB_PASSWORD=khodat123
+      - JWT_SECRET=your-super-secret-jwt-key
     networks:
       - khodat-network
     depends_on:
-      - mysql
-      - redis
-    command: php -S 0.0.0.0:8080 -t /var/www/html
-
-  # Nginx for OpenCart Admin
-  # admin-nginx:
-  #   image: nginx:alpine
-  #   container_name: khodat-admin-nginx
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8088:80"
-  #   volumes:
-  #     - ./admin:/var/www/html
-  #     - ./admin/docker/nginx.conf:/etc/nginx/conf.d/default.conf
-  #   networks:
-  #     - khodat-network
-  #   depends_on:
-  #     - admin-php
+      mysql:
+        condition: service_healthy
 
   # ===========================================
-  # LARAVEL BACKEND (kyguidat API)
+  # LARAVEL SÀN ĐẤT (Public Website)
   # ===========================================
+  san-dat:
+    build:
+      context: ./san-dat
+      dockerfile: Dockerfile
+    container_name: khodat-san-dat
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    environment:
+      - GOLANG_API_URL=http://api-gateway:8080
+    networks:
+      - khodat-network
+    depends_on:
+      - api-gateway
 
-  # PHP + Laravel Backend (running with php artisan serve - no nginx needed)
+  # ===========================================
+  # VUE ADMIN DASHBOARD
+  # ===========================================
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: khodat-admin
+    restart: unless-stopped
+    ports:
+      - "8089:80"
+    environment:
+      - VITE_API_URL=http://localhost:8080/api
+    networks:
+      - khodat-network
+    depends_on:
+      - api-gateway
+
+  # ===========================================
+  # LARAVEL BACKEND (User API)
+  # ===========================================
   backend:
     build:
-      context: ./backend
+      context: ./clients/backend
       dockerfile: Dockerfile
     container_name: khodat-backend
     restart: unless-stopped
@@ -58,8 +72,8 @@ services:
     ports:
       - "8015:8000"
     volumes:
-      - ./backend:/var/www
-      - ./backend/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./clients/backend:/var/www
+      - ./clients/backend/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - khodat-network
     depends_on:
@@ -67,26 +81,32 @@ services:
       - redis
     command: php artisan serve --host=0.0.0.0 --port=8000
 
-  # Nginx Web Server for Laravel
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: khodat-nginx
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8015:80"
-  #   volumes:
-  #     - ./backend:/var/www
-  #     - ./backend/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-  #   networks:
-  #     - khodat-network
-  #   depends_on:
-  #     - backend
+  # ===========================================
+  # NEXT.JS FRONTEND (User Dashboard)
+  # ===========================================
+  frontend:
+    build:
+      context: ./clients/frontend
+      dockerfile: Dockerfile
+    container_name: khodat-frontend
+    restart: unless-stopped
+    ports:
+      - "3015:3000"
+    volumes:
+      - ./clients/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8015/api
+    networks:
+      - khodat-network
+    depends_on:
+      - backend
 
   # ===========================================
   # DATABASE & CACHE
   # ===========================================
-
-  # MySQL Database (shared by OpenCart and Laravel)
   mysql:
     image: mysql:8.0
     container_name: khodat-mysql
@@ -101,17 +121,14 @@ services:
       - "3321:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./backend/docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./admin/docker/init-opencart.sql:/docker-entrypoint-initdb.d/02-opencart.sql
     networks:
       - khodat-network
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Redis for Cache & Sessions
   redis:
     image: redis:alpine
     container_name: khodat-redis
@@ -127,8 +144,6 @@ services:
   # ===========================================
   # TOOLS & UTILITIES
   # ===========================================
-
-  # phpMyAdmin (for database management)
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: khodat-phpmyadmin
@@ -145,33 +160,6 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-
-  # ===========================================
-  # NEXT.JS FRONTEND
-  # ===========================================
-
-  # Next.js Frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: khodat-frontend
-    restart: unless-stopped
-    ports:
-      - "3015:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
-    environment:
-      - NODE_ENV=development
-      # NEXT_PUBLIC_* vars are used in browser, so must use localhost (not container names)
-      - NEXT_PUBLIC_API_URL=http://localhost:8015/api
-      # - NEXT_PUBLIC_ADMIN_URL=https://khodat.com
-    networks:
-      - khodat-network
-    depends_on:
-      - backend
 
 networks:
   khodat-network:

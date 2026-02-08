@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\GolangApiService;
+use Illuminate\Http\Request;
+
+class SearchController extends Controller
+{
+    protected GolangApiService $apiService;
+
+    public function __construct(GolangApiService $apiService)
+    {
+        $this->apiService = $apiService;
+    }
+
+    public function results(Request $request)
+    {
+        $params = [
+            'page' => $request->get('page', 1),
+            'limit' => 12,
+            'search' => $request->get('q'),
+            'province' => $request->get('province'),
+        ];
+
+        $response = $this->apiService->getConsignments(array_filter($params));
+
+        $consignments = $response['data'] ?? [];
+        $meta = $response['meta'] ?? null;
+        $locations = $this->apiService->getLocations();
+        $searchQuery = $request->get('q', '');
+
+        return view('search.results', compact('consignments', 'meta', 'locations', 'searchQuery'));
+    }
+}
