@@ -194,7 +194,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                Làm mới bộ lọc
+                                Làm mới
                             </button>
                             <button type="submit"
                                 class="flex-1 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2">
@@ -233,7 +233,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-8">Bất động sản nổi bật</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Skeleton Loading Grid -->
+            <div id="skeletonGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @for($i = 0; $i < 8; $i++)
+                    @include('components.skeleton-card')
+                @endfor
+            </div>
+
+            <!-- Actual Products Grid (hidden initially) -->
+            <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 hidden">
                 @forelse($consignments as $item)
                     @include('components.consignment-card', ['consignment' => $item])
                 @empty
@@ -251,6 +259,33 @@
             </div>
         </div>
     </section>
+
+    <!-- Skeleton to Products Transition Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const skeletonGrid = document.getElementById('skeletonGrid');
+            const productsGrid = document.getElementById('productsGrid');
+            
+            // Simulate loading time (or use when data actually loads)
+            setTimeout(function() {
+                // Fade out skeleton
+                skeletonGrid.style.opacity = '0';
+                skeletonGrid.style.transition = 'opacity 0.3s ease-out';
+                
+                setTimeout(function() {
+                    skeletonGrid.classList.add('hidden');
+                    productsGrid.classList.remove('hidden');
+                    productsGrid.style.opacity = '0';
+                    
+                    // Fade in products
+                    requestAnimationFrame(function() {
+                        productsGrid.style.transition = 'opacity 0.3s ease-in';
+                        productsGrid.style.opacity = '1';
+                    });
+                }, 300);
+            }, 800); // Show skeleton for 800ms
+        });
+    </script>
 
     <!-- Locations -->
     @if(count($locations) > 0)
@@ -391,32 +426,32 @@
 
             // Create info window content
             const infoContent = `
-                            <div style="width: 280px; font-family: Arial, sans-serif;">
-                                <img src="${property.image}" alt="${property.title}" 
-                                     style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;"
-                                     onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
-                                <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
-                                <p style="font-weight: bold; color: #333; font-size: 13px; margin: 0 0 8px 0; 
-                                   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                    ${property.title}
-                                </p>
-                                <p style="color: #dc2626; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
-                                    ${property.priceFormatted}
-                                </p>
-                                <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">
-                                    Địa chỉ: ${property.address || property.district + ', ' + property.province}
-                                </p>
-                                <div style="display: flex; gap: 15px; font-size: 12px; color: #666; margin-top: 8px;">
-                                    <span>Hướng: ${property.direction || 'N/A'}</span>
-                                    <span>Diện tích: ${property.area} m²</span>
+                                <div style="width: 280px; font-family: Arial, sans-serif;">
+                                    <img src="${property.image}" alt="${property.title}" 
+                                         style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;"
+                                         onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
+                                    <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
+                                    <p style="font-weight: bold; color: #333; font-size: 13px; margin: 0 0 8px 0; 
+                                       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                        ${property.title}
+                                    </p>
+                                    <p style="color: #dc2626; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
+                                        ${property.priceFormatted}
+                                    </p>
+                                    <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">
+                                        Địa chỉ: ${property.address || property.district + ', ' + property.province}
+                                    </p>
+                                    <div style="display: flex; gap: 15px; font-size: 12px; color: #666; margin-top: 8px;">
+                                        <span>Hướng: ${property.direction || 'N/A'}</span>
+                                        <span>Diện tích: ${property.area} m²</span>
+                                    </div>
+                                    <a href="/consignments/${property.id}" 
+                                       style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
+                                              background: #4f46e5; color: white; border-radius: 6px; text-decoration: none;">
+                                        Xem chi tiết
+                                    </a>
                                 </div>
-                                <a href="/consignments/${property.id}" 
-                                   style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
-                                          background: #4f46e5; color: white; border-radius: 6px; text-decoration: none;">
-                                    Xem chi tiết
-                                </a>
-                            </div>
-                        `;
+                            `;
 
             const infoWindow = new google.maps.InfoWindow({
                 content: infoContent,

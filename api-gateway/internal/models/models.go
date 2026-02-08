@@ -12,6 +12,7 @@ type User struct {
 	Phone     string    `json:"phone"`
 	Balance   float64   `json:"balance" gorm:"default:0"`
 	Status    string    `json:"status" gorm:"default:active"`
+	IsHidden  bool      `json:"-" gorm:"default:false"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

@@ -28,10 +28,14 @@ func main() {
 	// Initialize repository
 	repo := repository.NewMySQLRepository(db)
 
-	// Initialize handlers
 	consignmentHandler := handlers.NewConsignmentHandler(repo)
-	adminHandler := handlers.NewAdminHandler(repo)
-	authHandler := handlers.NewAuthHandler(repo)
+
+	// Backend URL for proxying auth requests
+	backendURL := os.Getenv("BACKEND_URL")
+	if backendURL == "" {
+		backendURL = "http://backend:8000" // Default for Docker network
+	}
+	authHandler := handlers.NewAuthHandler(backendURL)
 
 	// Setup Gin router
 	r := gin.Default()
@@ -57,16 +61,23 @@ func main() {
 		public.GET("/locations", consignmentHandler.Locations)
 	}
 
-	// Admin routes (protected)
+	// Admin routes - proxy to Laravel backend
+	proxyHandler := handlers.NewProxyHandler(backendURL)
 	admin := r.Group("/api/admin")
-	admin.Use(middleware.AuthMiddleware())
 	{
-		admin.GET("/dashboard", adminHandler.Dashboard)
-		admin.GET("/users", adminHandler.ListUsers)
-		admin.GET("/consignments", adminHandler.ListConsignments)
-		admin.PUT("/consignments/:id/approve", adminHandler.ApproveConsignment)
-		admin.PUT("/consignments/:id/reject", adminHandler.RejectConsignment)
-		admin.GET("/transactions", adminHandler.ListTransactions)
+		admin.GET("/dashboard", proxyHandler.ProxyRequest)
+		admin.GET("/users", proxyHandler.ProxyRequest)
+
+		// Consignments - CRUD
+		admin.GET("/consignments", proxyHandler.ProxyRequest)
+		admin.GET("/consignments/:id", proxyHandler.ProxyRequest)
+		admin.POST("/consignments", proxyHandler.ProxyRequest)
+		admin.PUT("/consignments/:id", proxyHandler.ProxyRequest)
+		admin.DELETE("/consignments/:id", proxyHandler.ProxyRequest)
+		admin.PUT("/consignments/:id/approve", proxyHandler.ProxyRequest)
+		admin.PUT("/consignments/:id/reject", proxyHandler.ProxyRequest)
+
+		admin.GET("/transactions", proxyHandler.ProxyRequest)
 	}
 
 	// Get port from environment

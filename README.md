@@ -308,3 +308,13 @@ docker-compose exec san-dat curl http://api-gateway:8080/api/health
 ## License
 
 MIT License
+
+
+admin@khodat.com
+admin123	Admin	✅
+moderator@khodat.com
+mod123	Kiểm duyệt	✅
+publisher@khodat.com
+pub123	Đăng bài	✅
+it@khodat.com
+admin@123	IT	✅

@@ -120,15 +120,15 @@ func (r *MySQLRepository) GetLocations() ([]models.Location, error) {
 	return locations, err
 }
 
-// GetUsers returns users with pagination
+// GetUsers returns users with pagination (excludes hidden users)
 func (r *MySQLRepository) GetUsers(page, limit int) ([]models.User, int64, error) {
 	var users []models.User
 	var total int64
 
-	r.db.Model(&models.User{}).Count(&total)
+	r.db.Model(&models.User{}).Where("is_hidden = ?", false).Count(&total)
 
 	offset := (page - 1) * limit
-	err := r.db.Offset(offset).Limit(limit).Order("created_at DESC").Find(&users).Error
+	err := r.db.Where("is_hidden = ?", false).Offset(offset).Limit(limit).Order("created_at DESC").Find(&users).Error
 
 	return users, total, err
 }

@@ -51,10 +51,10 @@ Route::prefix('auth')->group(function () {
 Route::prefix('auth')->middleware('api.session')->group(function () {
     Route::get('/google', [SocialAuthController::class, 'redirectToGoogle']);
     Route::get('/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
-    
+
     Route::get('/facebook', [SocialAuthController::class, 'redirectToFacebook']);
     Route::get('/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);
-    
+
     Route::get('/zalo', [SocialAuthController::class, 'redirectToZalo']);
     Route::get('/zalo/callback', [SocialAuthController::class, 'handleZaloCallback']);
 });
@@ -83,22 +83,22 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
-    
+
     // User Profile
     Route::get('/user/profile', [UserController::class, 'profile']);
     Route::put('/user/profile', [UserController::class, 'updateProfile']);
     Route::put('/user/password', [UserController::class, 'updatePassword']);
-    
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard/recent-activities', [DashboardController::class, 'recentActivities']);
-    
+
     // Consignments (Ký gửi)
     Route::apiResource('/consignments', ConsignmentController::class);
     Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
     Route::get('/consignments/{id}/history', [ConsignmentController::class, 'history']);
-    
+
     // Payments (Nạp tiền)
     Route::get('/payments', [PaymentController::class, 'index']);
     Route::get('/payments/{id}', [PaymentController::class, 'show']);
@@ -106,7 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/payments/momo/create', [PaymentController::class, 'createMomo']);
     Route::post('/payments/bank-transfer/create', [PaymentController::class, 'createBankTransfer']);
     Route::get('/payments/bank-info', [PaymentController::class, 'getBankInfo']);
-    
+
     // Support (Hỗ trợ)
     Route::apiResource('/supports', SupportController::class);
     Route::post('/supports/{id}/messages', [SupportController::class, 'addMessage']);
@@ -144,16 +144,34 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [IpnConfigController::class, 'show']);
         Route::put('/{id}', [IpnConfigController::class, 'update']);
         Route::delete('/{id}', [IpnConfigController::class, 'destroy']);
-        
+
         // Actions
         Route::post('/{id}/toggle-active', [IpnConfigController::class, 'toggleActive']);
         Route::post('/{id}/test', [IpnConfigController::class, 'test']);
-        
+
         // Logs
         Route::get('/logs/list', [IpnConfigController::class, 'logs']);
         Route::get('/logs/{id}', [IpnConfigController::class, 'logDetail']);
-        
+
         // Statistics
         Route::get('/stats/overview', [IpnConfigController::class, 'statistics']);
     });
+
+    // Admin Panel Routes
+    Route::prefix('admin')->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
+        Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+
+        // Consignments - CRUD
+        Route::get('/consignments', [App\Http\Controllers\AdminController::class, 'consignments']);
+        Route::get('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'showConsignment']);
+        Route::post('/consignments', [App\Http\Controllers\AdminController::class, 'storeConsignment']);
+        Route::put('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'updateConsignment']);
+        Route::delete('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'destroyConsignment']);
+        Route::put('/consignments/{id}/approve', [App\Http\Controllers\AdminController::class, 'approveConsignment']);
+        Route::put('/consignments/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectConsignment']);
+
+        Route::get('/transactions', [App\Http\Controllers\AdminController::class, 'transactions']);
+    });
 });
+
