@@ -133,6 +133,9 @@ class AdminController extends Controller
             'status' => 'nullable|in:pending,approved,rejected',
         ]);
 
+        // Convert empty strings to null for nullable fields
+        $validated = $this->sanitizeData($validated);
+
         $validated['code'] = 'KG' . str_pad(Consignment::max('id') + 1, 6, '0', STR_PAD_LEFT);
         $validated['user_id'] = $request->user()->id;
         $validated['status'] = $validated['status'] ?? 'pending';
@@ -192,7 +195,10 @@ class AdminController extends Controller
             'status' => 'nullable|in:pending,approved,rejected',
         ]);
 
-        $consignment->update($validated);
+        // Convert empty strings to null for nullable fields
+        $sanitized = $this->sanitizeData($validated);
+
+        $consignment->update($sanitized);
 
         return response()->json([
             'success' => true,
@@ -270,5 +276,19 @@ class AdminController extends Controller
                 'total' => 0,
             ]
         ]);
+    }
+
+    /**
+     * Convert empty strings to null for nullable fields
+     */
+    private function sanitizeData(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            // Convert empty strings to null
+            if ($value === '' || $value === []) {
+                $data[$key] = null;
+            }
+        }
+        return $data;
     }
 }
