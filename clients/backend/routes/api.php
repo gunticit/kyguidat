@@ -99,7 +99,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Consignments (Ký gửi)
     Route::apiResource('/consignments', ConsignmentController::class);
     Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
+    Route::post('/consignments/{id}/reactivate', [ConsignmentController::class, 'reactivate']);
     Route::get('/consignments/{id}/history', [ConsignmentController::class, 'history']);
+    Route::get('/posting-quota', [ConsignmentController::class, 'postingQuota']);
 
     // Payments (Nạp tiền)
     Route::get('/payments', [PaymentController::class, 'index']);

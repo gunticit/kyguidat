@@ -21,6 +21,7 @@ class User extends Authenticatable
         'provider_id',
         'email_verified_at',
         'status',
+        'free_posts_remaining',
     ];
 
     protected $hidden = [

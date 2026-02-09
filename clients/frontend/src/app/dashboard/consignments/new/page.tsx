@@ -25,6 +25,7 @@ export default function NewConsignmentPage() {
     const [descriptionFiles, setDescriptionFiles] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [apiError, setApiError] = useState<string | null>(null);
+    const [isQuotaExceeded, setIsQuotaExceeded] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -72,6 +73,7 @@ export default function NewConsignmentPage() {
         e.preventDefault();
         setIsLoading(true);
         setApiError(null);
+        setIsQuotaExceeded(false);
 
         // Validate
         const newErrors: Record<string, string> = {};
@@ -117,7 +119,10 @@ export default function NewConsignmentPage() {
             }
         } catch (error: any) {
             console.error('Create error:', error);
-            if (error.response?.data?.message) {
+            if (error.response?.status === 403) {
+                setApiError(error.response.data.message || 'Bạn đã hết lượt đăng bài. Vui lòng mua gói để tiếp tục đăng.');
+                setIsQuotaExceeded(true);
+            } else if (error.response?.data?.message) {
                 setApiError(error.response.data.message);
             } else if (error.response?.data?.errors) {
                 const backendErrors = error.response.data.errors;
@@ -145,7 +150,12 @@ export default function NewConsignmentPage() {
 
             {apiError && (
                 <div className={styles.errorAlert}>
-                    {apiError}
+                    <p>{apiError}</p>
+                    {isQuotaExceeded && (
+                        <Link href="/dashboard/packages" className="btn btn-primary" style={{ marginTop: '12px', display: 'inline-flex' }}>
+                            🛒 Mua gói đăng bài
+                        </Link>
+                    )}
                 </div>
             )}
 

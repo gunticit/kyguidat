@@ -113,6 +113,10 @@ export const consignmentApi = {
         api.post(`/consignments/${id}/cancel`),
     getHistory: (id: number) =>
         api.get(`/consignments/${id}/history`),
+    reactivate: (id: number) =>
+        api.post(`/consignments/${id}/reactivate`),
+    getPostingQuota: () =>
+        api.get('/posting-quota'),
 };
 
 // Payment APIs

@@ -51,6 +51,8 @@ export default function PackagesPage() {
     const [selectedPackage, setSelectedPackage] = useState<PostingPackage | null>(null);
     const [purchasing, setPurchasing] = useState(false);
     const [purchaseError, setPurchaseError] = useState<string | null>(null);
+    const [freePostsRemaining, setFreePostsRemaining] = useState(0);
+    const [canPost, setCanPost] = useState(false);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.khodat.com/api';
 
@@ -78,9 +80,10 @@ export default function PackagesPage() {
 
             // Load user's packages and wallet (protected)
             if (token) {
-                const [myPackagesRes, walletRes] = await Promise.all([
+                const [myPackagesRes, walletRes, currentPkgRes] = await Promise.all([
                     fetch(`${API_URL}/my-packages`, { headers }),
                     fetch(`${API_URL}/user/profile`, { headers }),
+                    fetch(`${API_URL}/my-packages/current`, { headers }),
                 ]);
 
                 const myPackagesData = await myPackagesRes.json();
@@ -92,6 +95,12 @@ export default function PackagesPage() {
                 const walletData = await walletRes.json();
                 if (walletData.data?.wallet) {
                     setWallet(walletData.data.wallet);
+                }
+
+                const currentPkgData = await currentPkgRes.json();
+                if (currentPkgData.success) {
+                    setFreePostsRemaining(currentPkgData.free_posts_remaining ?? 0);
+                    setCanPost(currentPkgData.can_post ?? false);
                 }
             }
         } catch (error) {
@@ -161,6 +170,47 @@ export default function PackagesPage() {
                 <h1 className={styles.pageTitle}>Gói Đăng Bài</h1>
                 <p className={styles.pageSubtitle}>
                     Chọn gói phù hợp để đăng bài ký gửi và tiếp cận khách hàng tiềm năng
+                </p>
+            </div>
+
+            {/* Free Posts Quota */}
+            <div className={styles.currentPackage} style={{ borderColor: '#22c55e' }}>
+                <div className={styles.currentPackageHeader}>
+                    <h3 className={styles.currentPackageTitle}>
+                        <FiPackage /> Lượt đăng bài
+                    </h3>
+                    <span className={`${styles.currentPackageBadge}`} style={{ background: canPost ? '#22c55e' : '#ef4444' }}>
+                        {canPost ? 'Có thể đăng' : 'Hết lượt đăng'}
+                    </span>
+                </div>
+                <div className={styles.currentPackageInfo}>
+                    <div className={styles.packageInfoItem}>
+                        <div className={styles.packageInfoLabel}>Lượt miễn phí còn lại</div>
+                        <div className={styles.packageInfoValue} style={{ color: freePostsRemaining > 0 ? '#22c55e' : '#94a3b8' }}>
+                            {freePostsRemaining}/3
+                        </div>
+                    </div>
+                    <div className={styles.packageInfoItem}>
+                        <div className={styles.packageInfoLabel}>Gói đang dùng</div>
+                        <div className={styles.packageInfoValue}>
+                            {activePackage ? activePackage.package_name : 'Chưa mua gói'}
+                        </div>
+                    </div>
+                    {activePackage && (
+                        <>
+                            <div className={styles.packageInfoItem}>
+                                <div className={styles.packageInfoLabel}>Còn lại (gói)</div>
+                                <div className={styles.packageInfoValue}>{activePackage.remaining_posts} bài</div>
+                            </div>
+                            <div className={styles.packageInfoItem}>
+                                <div className={styles.packageInfoLabel}>Hết hạn</div>
+                                <div className={styles.packageInfoValue}>{activePackage.expires_at}</div>
+                            </div>
+                        </>
+                    )}
+                </div>
+                <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '12px' }}>
+                    💡 Mỗi tài khoản được tặng 3 lượt đăng miễn phí. Muốn đăng thêm? Hãy mua gói bên dưới (99 bài/gói).
                 </p>
             </div>
 

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Consignment;
 use App\Models\ConsignmentHistory;
+use App\Models\UserPackage;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -30,7 +31,7 @@ class ConsignmentService
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('title', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('code', 'like', '%' . $filters['search'] . '%');
+                    ->orWhere('code', 'like', '%' . $filters['search'] . '%');
             });
         }
 
@@ -42,10 +43,92 @@ class ConsignmentService
     }
 
     /**
+     * Check if user can create a new post (free or package)
+     * Returns: ['allowed' => bool, 'source' => 'free'|'package'|null, 'remaining' => int]
+     */
+    public function checkPostingQuota(User $user): array
+    {
+        // 1. Check free posts
+        if ($user->free_posts_remaining > 0) {
+            return [
+                'allowed' => true,
+                'source' => 'free',
+                'remaining' => $user->free_posts_remaining,
+            ];
+        }
+
+        // 2. Check active package
+        $activePackage = $user->userPackages()
+            ->with('postingPackage')
+            ->active()
+            ->first();
+
+        if ($activePackage && $activePackage->canCreatePost()) {
+            return [
+                'allowed' => true,
+                'source' => 'package',
+                'remaining' => $activePackage->remaining_posts,
+                'package_name' => $activePackage->postingPackage->name,
+            ];
+        }
+
+        return [
+            'allowed' => false,
+            'source' => null,
+            'remaining' => 0,
+        ];
+    }
+
+    /**
+     * Get user's posting quota info
+     */
+    public function getPostingQuota(User $user): array
+    {
+        $freePosts = $user->free_posts_remaining;
+
+        $activePackage = $user->userPackages()
+            ->with('postingPackage')
+            ->active()
+            ->first();
+
+        $packagePosts = 0;
+        $packageInfo = null;
+
+        if ($activePackage) {
+            $packagePosts = $activePackage->remaining_posts;
+            $packageInfo = [
+                'name' => $activePackage->postingPackage->name,
+                'expires_at' => $activePackage->expires_at->format('d/m/Y'),
+                'remaining_days' => $activePackage->remaining_days,
+                'posts_used' => $activePackage->posts_used,
+                'post_limit' => $activePackage->postingPackage->post_limit,
+            ];
+        }
+
+        $totalConsignments = $user->consignments()->count();
+
+        return [
+            'free_posts_remaining' => $freePosts,
+            'package_posts_remaining' => is_numeric($packagePosts) ? $packagePosts : 0,
+            'total_remaining' => $freePosts + (is_numeric($packagePosts) ? $packagePosts : 0),
+            'can_post' => $freePosts > 0 || ($activePackage && $activePackage->canCreatePost()),
+            'active_package' => $packageInfo,
+            'total_consignments' => $totalConsignments,
+        ];
+    }
+
+    /**
      * Create new consignment
      */
     public function create(User $user, array $data): Consignment
     {
+        // Check posting quota
+        $quota = $this->checkPostingQuota($user);
+
+        if (!$quota['allowed']) {
+            throw new \Exception('Bạn đã hết lượt đăng bài. Vui lòng mua gói để tiếp tục đăng.');
+        }
+
         $consignment = $user->consignments()->create([
             'code' => $this->generateCode(),
             'title' => $data['title'],
@@ -61,6 +144,19 @@ class ConsignmentService
             'status' => Consignment::STATUS_PENDING,
         ]);
 
+        // Deduct from quota
+        if ($quota['source'] === 'free') {
+            $user->decrement('free_posts_remaining');
+        } elseif ($quota['source'] === 'package') {
+            $activePackage = $user->userPackages()
+                ->with('postingPackage')
+                ->active()
+                ->first();
+            if ($activePackage) {
+                $activePackage->incrementPostsUsed();
+            }
+        }
+
         // Create history
         $this->createHistory($consignment, Consignment::STATUS_PENDING, 'Tạo yêu cầu ký gửi mới', $user->id);
 
@@ -68,6 +164,26 @@ class ConsignmentService
         $this->webhookService?->dispatchCreated($consignment);
 
         return $consignment;
+    }
+
+    /**
+     * Reactivate a deactivated consignment
+     */
+    public function reactivate(User $user, int $id): ?Consignment
+    {
+        $consignment = $user->consignments()
+            ->where('status', Consignment::STATUS_DEACTIVATED)
+            ->find($id);
+
+        if (!$consignment) {
+            return null;
+        }
+
+        $consignment->reactivate();
+
+        $this->createHistory($consignment, Consignment::STATUS_SELLING, 'Mở lại sản phẩm đã tắt tự động', $user->id);
+
+        return $consignment->fresh();
     }
 
     /**
@@ -181,7 +297,7 @@ class ConsignmentService
     private function generateCode(): string
     {
         $code = 'KG' . date('Ymd') . strtoupper(Str::random(4));
-        
+
         while (Consignment::where('code', $code)->exists()) {
             $code = 'KG' . date('Ymd') . strtoupper(Str::random(4));
         }

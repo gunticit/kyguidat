@@ -19,6 +19,7 @@ class AuthService
             'email' => $data['email'],
             'password' => $data['password'],
             'phone' => $data['phone'] ?? null,
+            'free_posts_remaining' => 3,
         ]);
 
         // Create wallet for user

@@ -13,7 +13,8 @@ class ConsignmentController extends Controller
 {
     public function __construct(
         private ConsignmentService $consignmentService
-    ) {}
+    ) {
+    }
 
     /**
      * Get list of consignments
@@ -36,16 +37,23 @@ class ConsignmentController extends Controller
      */
     public function store(StoreConsignmentRequest $request): JsonResponse
     {
-        $consignment = $this->consignmentService->create(
-            $request->user(),
-            $request->validated()
-        );
+        try {
+            $consignment = $this->consignmentService->create(
+                $request->user(),
+                $request->validated()
+            );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Tạo yêu cầu ký gửi thành công',
-            'data' => $consignment
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Tạo yêu cầu ký gửi thành công',
+                'data' => $consignment
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 403);
+        }
     }
 
     /**
@@ -143,6 +151,40 @@ class ConsignmentController extends Controller
         return response()->json([
             'success' => true,
             'data' => $history
+        ]);
+    }
+
+    /**
+     * Reactivate a deactivated consignment
+     */
+    public function reactivate(Request $request, int $id): JsonResponse
+    {
+        $consignment = $this->consignmentService->reactivate($request->user(), $id);
+
+        if (!$consignment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể mở lại sản phẩm này'
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã mở lại sản phẩm thành công',
+            'data' => $consignment
+        ]);
+    }
+
+    /**
+     * Get user's posting quota
+     */
+    public function postingQuota(Request $request): JsonResponse
+    {
+        $quota = $this->consignmentService->getPostingQuota($request->user());
+
+        return response()->json([
+            'success' => true,
+            'data' => $quota
         ]);
     }
 }

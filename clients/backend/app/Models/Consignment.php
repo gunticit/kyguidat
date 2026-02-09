@@ -57,6 +57,9 @@ class Consignment extends Model
         'reject_reason',
         'approved_at',
         'sold_at',
+        'published_at',
+        'auto_deactivated',
+        'deactivated_at',
         'cancelled_at',
     ];
 
@@ -72,6 +75,9 @@ class Consignment extends Model
         'notification_date' => 'date:Y-m-d',
         'approved_at' => 'datetime',
         'sold_at' => 'datetime',
+        'published_at' => 'datetime',
+        'auto_deactivated' => 'boolean',
+        'deactivated_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
 
@@ -81,6 +87,7 @@ class Consignment extends Model
     const STATUS_SELLING = 'selling';
     const STATUS_SOLD = 'sold';
     const STATUS_CANCELLED = 'cancelled';
+    const STATUS_DEACTIVATED = 'deactivated';
 
     /**
      * Get consignment owner
@@ -96,6 +103,33 @@ class Consignment extends Model
     public function histories()
     {
         return $this->hasMany(ConsignmentHistory::class);
+    }
+
+    /**
+     * Check if consignment is auto-deactivated
+     */
+    public function isDeactivated(): bool
+    {
+        return $this->auto_deactivated || $this->status === self::STATUS_DEACTIVATED;
+    }
+
+    /**
+     * Reactivate a deactivated consignment
+     */
+    public function reactivate(): bool
+    {
+        if ($this->status !== self::STATUS_DEACTIVATED) {
+            return false;
+        }
+
+        $this->update([
+            'status' => self::STATUS_SELLING,
+            'auto_deactivated' => false,
+            'deactivated_at' => null,
+            'published_at' => now(),
+        ]);
+
+        return true;
     }
 }
 

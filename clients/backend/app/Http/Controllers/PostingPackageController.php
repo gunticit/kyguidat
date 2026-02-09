@@ -51,7 +51,7 @@ class PostingPackageController extends Controller
     public function show($id)
     {
         $package = PostingPackage::active()->findOrFail($id);
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -123,7 +123,7 @@ class PostingPackageController extends Controller
                 // Gia hạn gói hiện tại
                 $newExpiresAt = Carbon::parse($activePackage->expires_at)
                     ->addMonths($package->duration_months);
-                
+
                 $activePackage->update([
                     'expires_at' => $newExpiresAt,
                     'amount_paid' => $activePackage->amount_paid + $package->price,
@@ -170,7 +170,7 @@ class PostingPackageController extends Controller
     public function myPackages(Request $request)
     {
         $user = $request->user();
-        
+
         $packages = $user->userPackages()
             ->with('postingPackage')
             ->orderBy('created_at', 'desc')
@@ -206,28 +206,20 @@ class PostingPackageController extends Controller
     }
 
     /**
-     * Lấy gói active hiện tại
+     * Lấy gói active hiện tại + thông tin lượt đăng miễn phí
      */
     public function currentPackage(Request $request)
     {
         $user = $request->user();
-        
+
         $activePackage = $user->userPackages()
             ->with('postingPackage')
             ->active()
             ->first();
 
-        if (!$activePackage) {
-            return response()->json([
-                'success' => true,
-                'data' => null,
-                'message' => 'Chưa có gói đăng bài nào đang hoạt động',
-            ]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => [
+        $packageData = null;
+        if ($activePackage) {
+            $packageData = [
                 'id' => $activePackage->id,
                 'package_name' => $activePackage->postingPackage->name,
                 'duration_months' => $activePackage->postingPackage->duration_months,
@@ -236,7 +228,14 @@ class PostingPackageController extends Controller
                 'remaining_days' => $activePackage->remaining_days,
                 'remaining_posts' => $activePackage->remaining_posts,
                 'can_create_post' => $activePackage->canCreatePost(),
-            ],
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $packageData,
+            'free_posts_remaining' => $user->free_posts_remaining ?? 0,
+            'can_post' => ($user->free_posts_remaining > 0) || ($activePackage && $activePackage->canCreatePost()),
         ]);
     }
 }

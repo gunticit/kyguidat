@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiPlus, FiSearch, FiFilter, FiEye, FiEdit, FiTrash2, FiX } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiFilter, FiEye, FiEdit, FiTrash2, FiX, FiRefreshCw } from 'react-icons/fi';
 import { consignmentApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/formatCurrency';
 import styles from './consignments.module.css';
@@ -38,6 +38,7 @@ const statusOptions = [
     { value: 'selling', label: 'Đang bán' },
     { value: 'sold', label: 'Đã bán' },
     { value: 'cancelled', label: 'Đã hủy' },
+    { value: 'deactivated', label: 'Đã tắt tự động' },
 ];
 
 const getStatusBadge = (status: string) => {
@@ -47,6 +48,7 @@ const getStatusBadge = (status: string) => {
         selling: { label: 'Đang bán', class: 'badge-success' },
         sold: { label: 'Đã bán', class: 'badge-success' },
         cancelled: { label: 'Đã hủy', class: 'badge-error' },
+        deactivated: { label: 'Đã tắt', class: 'badge-warning' },
     };
     return statusMap[status] || { label: status, class: 'badge-info' };
 };
@@ -64,6 +66,7 @@ export default function ConsignmentsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [reactivating, setReactivating] = useState<number | null>(null);
 
     useEffect(() => {
         loadConsignments();
@@ -118,6 +121,23 @@ export default function ConsignmentsPage() {
             alert('Không thể xóa ký gửi này');
         } finally {
             setDeleting(false);
+        }
+    };
+
+    const handleReactivate = async (id: number) => {
+        try {
+            setReactivating(id);
+            const response = await consignmentApi.reactivate(id);
+            if (response.data.success) {
+                loadConsignments();
+            } else {
+                alert(response.data.message || 'Không thể mở lại');
+            }
+        } catch (error) {
+            console.error('Error reactivating:', error);
+            alert('Có lỗi xảy ra khi mở lại sản phẩm');
+        } finally {
+            setReactivating(null);
         }
     };
 
@@ -232,6 +252,17 @@ export default function ConsignmentsPage() {
                                                             <FiTrash2 />
                                                         </button>
                                                     </>
+                                                )}
+                                                {item.status === 'deactivated' && (
+                                                    <button
+                                                        className={`${styles.actionBtn}`}
+                                                        title="Mở lại"
+                                                        onClick={() => handleReactivate(item.id)}
+                                                        disabled={reactivating === item.id}
+                                                        style={{ color: '#22c55e' }}
+                                                    >
+                                                        <FiRefreshCw className={reactivating === item.id ? styles.spinning : ''} />
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
