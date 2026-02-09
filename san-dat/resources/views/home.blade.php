@@ -5,21 +5,21 @@
 
 @section('content')
     <!-- Advanced Search Section -->
-    <section class="bg-white py-6 shadow-sm">
+    <section class="bg-navy-800 py-6 border-b border-navy-600">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Main Search Bar -->
             <form action="{{ route('search.results') }}" method="GET" id="searchForm">
                 <div class="flex flex-col md:flex-row gap-3 mb-4">
                     <div class="flex-1">
                         <input type="text" name="q" placeholder="Tìm theo mã số hoặc số điện thoại"
-                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none text-gray-700">
+                            class="w-full px-4 py-3 bg-navy-700 border-2 border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-100 placeholder-gray-500">
                     </div>
                     <button type="submit"
-                        class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2">
+                        class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 shadow-lg shadow-green-500/25">
                         Tìm Kiếm
                     </button>
                     <button type="button" id="toggleFilters"
-                        class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2">
+                        class="px-8 py-3 bg-navy-600 text-gray-200 font-semibold rounded-lg hover:bg-navy-500 border border-green-500/30 transition flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -33,13 +33,13 @@
                 </div>
 
                 <!-- Advanced Filters (Collapsible) -->
-                <div id="advancedFilters" class="hidden border-t border-gray-200 pt-4">
+                <div id="advancedFilters" class="hidden border-t border-navy-600 pt-4">
                     <!-- Row 1 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tỉnh - Thành phố</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Tỉnh - Thành phố</label>
                             <select name="province"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="ho-chi-minh">Hồ Chí Minh</option>
                                 <option value="ba-ria-vung-tau">Bà Rịa - Vũng Tàu</option>
@@ -50,16 +50,16 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Xã / Phường / Đặc khu</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Xã / Phường / Đặc khu</label>
                             <select name="district"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Loại bất động sản</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Loại bất động sản</label>
                             <select name="property_type"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="dat-nen">Đất nền</option>
                                 <option value="dat-nong-nghiep">Đất nông nghiệp</option>
@@ -69,9 +69,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nhà trên đất</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Nhà trên đất</label>
                             <select name="house_on_land"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="co">Có</option>
                                 <option value="khong">Không</option>
@@ -82,9 +82,9 @@
                     <!-- Row 2 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tài chính</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Tài chính</label>
                             <select name="price_range"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="0-500">Dưới 500 triệu</option>
                                 <option value="500-1000">500 triệu - 1 tỷ</option>
@@ -94,9 +94,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Thổ cư</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Thổ cư</label>
                             <select name="tho_cu"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="full">100% thổ cư</option>
                                 <option value="partial">Một phần thổ cư</option>
@@ -104,9 +104,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Đường thể hiện (trên sổ)</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Đường thể hiện (trên sổ)</label>
                             <select name="road_type"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="mat-tien">Mặt tiền đường</option>
                                 <option value="hem">Hẻm</option>
@@ -114,9 +114,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Chiều dài mặt tiền</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Chiều dài mặt tiền</label>
                             <select name="frontage"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="0-5">Dưới 5m</option>
                                 <option value="5-10">5 - 10m</option>
@@ -129,9 +129,9 @@
                     <!-- Row 3 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Diện tích</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Diện tích</label>
                             <select name="area_range"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="0-100">Dưới 100 m²</option>
                                 <option value="100-200">100 - 200 m²</option>
@@ -141,9 +141,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Hướng đất</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Hướng đất</label>
                             <select name="direction"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="dong">Đông</option>
                                 <option value="tay">Tây</option>
@@ -156,23 +156,23 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Số tờ</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Số tờ</label>
                             <input type="text" name="so_to" placeholder="Số tờ"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200 placeholder-gray-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Số thửa</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Số thửa</label>
                             <input type="text" name="so_thua" placeholder="Số Thửa"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200 placeholder-gray-500">
                         </div>
                     </div>
 
                     <!-- Row 4 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cách sắp xếp</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Cách sắp xếp</label>
                             <select name="sort"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
                                 <option value="newest">Mới nhất</option>
                                 <option value="oldest">Cũ nhất</option>
@@ -183,13 +183,13 @@
                             </select>
                         </div>
                         <div class="lg:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tìm nhanh</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Tìm nhanh</label>
                             <input type="text" name="phone" placeholder="Nhập mã số hoặc số điện thoại (nếu có)"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none">
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200 placeholder-gray-500">
                         </div>
                         <div class="flex items-end gap-2">
                             <button type="button" id="resetFilters"
-                                class="flex-1 px-4 py-2 border-2 border-green-500 text-green-500 font-semibold rounded-lg hover:bg-green-50 transition flex items-center justify-center gap-2">
+                                class="flex-1 px-4 py-2 border-2 border-green-500 text-green-400 font-semibold rounded-lg hover:bg-green-500/10 transition flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -197,7 +197,7 @@
                                 Làm mới
                             </button>
                             <button type="submit"
-                                class="flex-1 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2">
+                                class="flex-1 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 shadow-lg shadow-green-500/25">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -231,7 +231,7 @@
     <!-- Featured Listings -->
     <section class="py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-8">Bất động sản nổi bật</h2>
+            <h2 class="text-3xl font-bold text-gray-100 mb-8">Bất động sản nổi bật</h2>
 
             <!-- Skeleton Loading Grid -->
             <div id="skeletonGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -253,7 +253,7 @@
 
             <div class="text-center mt-8">
                 <a href="{{ route('consignments.index') }}"
-                    class="inline-flex items-center px-6 py-3 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition">
+                    class="inline-flex items-center px-6 py-3 border border-green-500 text-green-400 rounded-lg hover:bg-green-500 hover:text-white transition font-semibold">
                     Xem tất cả
                 </a>
             </div>
@@ -289,16 +289,16 @@
 
     <!-- Locations -->
     @if(count($locations) > 0)
-        <section class="py-16 bg-white">
+        <section class="py-16 bg-navy-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-8">Khu vực nổi bật</h2>
+                <h2 class="text-3xl font-bold text-gray-100 mb-8">Khu vực nổi bật</h2>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     @foreach($locations as $location)
                         <a href="{{ route('consignments.index', ['province' => $location['province']]) }}"
-                            class="p-4 bg-gray-50 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 border border-transparent transition text-center">
-                            <p class="font-medium text-gray-900">{{ $location['province'] }}</p>
-                            <p class="text-sm text-gray-500">{{ $location['count'] }} tin</p>
+                            class="p-4 bg-navy-700 rounded-lg hover:bg-navy-600 hover:border-green-500/50 border border-navy-600 transition text-center">
+                            <p class="font-medium text-gray-100">{{ $location['province'] }}</p>
+                            <p class="text-sm text-gray-400">{{ $location['count'] }} tin</p>
                         </a>
                     @endforeach
                 </div>
@@ -307,34 +307,35 @@
     @endif
 
     <!-- CTA Section -->
-    <section class="py-16 bg-indigo-600">
+    <section class="py-16 bg-gradient-to-r from-green-600 to-green-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-3xl font-bold text-white mb-4">
                 Bạn có bất động sản cần ký gửi?
             </h2>
-            <p class="text-indigo-100 mb-8">
+            <p class="text-green-100 mb-8">
                 Đăng ký ngay để đăng tin và tiếp cận hàng nghìn khách hàng tiềm năng
             </p>
             <a href="http://localhost:3015"
-                class="inline-flex items-center px-8 py-4 bg-white text-indigo-600 rounded-lg hover:bg-gray-100 transition font-semibold">
+                class="inline-flex items-center px-8 py-4 bg-white text-green-700 rounded-lg hover:bg-gray-100 transition font-semibold shadow-xl">
                 Đăng tin ngay
             </a>
         </div>
     </section>
     <!-- Map Section -->
-    <section class="py-16 bg-gray-50">
+    <section class="py-16 bg-navy-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-8">Bản đồ Bất động sản</h2>
+            <h2 class="text-3xl font-bold text-gray-100 mb-8">Bản đồ Bất động sản</h2>
 
-            <div id="property-map" class="w-full h-[500px] rounded-lg shadow-lg overflow-hidden"></div>
+            <div id="property-map" class="w-full h-[500px] rounded-lg shadow-lg overflow-hidden border border-navy-600">
+            </div>
         </div>
     </section>
 
     <!-- Bất động sản đang bán Section -->
-    <section class="py-16 bg-white" id="all-properties-section">
+    <section class="py-16" id="all-properties-section">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-8">Bất động sản đang bán</h2>
-            
+            <h2 class="text-3xl font-bold text-gray-100 mb-8">Bất động sản đang bán</h2>
+
             <!-- Loading Skeleton -->
             <div id="allPropertiesSkeleton" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 @for($i = 0; $i < 12; $i++)
@@ -372,7 +373,7 @@
                     const total = data.total || 0;
                     totalPages = Math.ceil(total / perPage);
 
-                    grid.innerHTML = items.length > 0 
+                    grid.innerHTML = items.length > 0
                         ? items.map(item => renderPropertyCard(item)).join('')
                         : '<p class="col-span-full text-center text-gray-500 py-8">Chưa có bất động sản nào</p>';
 
@@ -391,51 +392,51 @@
         }
 
         function renderPropertyCard(item) {
-            const price = item.price ? (item.price >= 1000000000 
-                ? (item.price / 1000000000).toFixed(2) + ' tỷ' 
+            const price = item.price ? (item.price >= 1000000000
+                ? (item.price / 1000000000).toFixed(2) + ' tỷ'
                 : (item.price / 1000000).toFixed(0) + ' triệu') : 'Liên hệ';
             const image = item.images?.[0] || item.image || '/images/placeholder.jpg';
             const location = [item.district, item.province].filter(Boolean).join(', ');
-            
+
             return `
-                <a href="/chi-tiet/${item.id}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group">
-                    <div class="relative h-48 overflow-hidden">
-                        <img src="${image}" alt="${item.title || 'BĐS'}" 
-                            class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                            onerror="this.src='/images/placeholder.jpg'">
-                        <span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded">
-                            ${item.property_type || 'Đất nền'}
-                        </span>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-gray-900 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
-                        <p class="text-indigo-600 font-bold mb-2">${price}</p>
-                        <div class="flex items-center text-sm text-gray-500 gap-3">
-                            <span class="flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                                </svg>
-                                ${item.area || 0}m²
-                            </span>
-                            <span class="flex items-center gap-1 truncate">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                </svg>
-                                ${location}
-                            </span>
-                        </div>
-                    </div>
-                </a>
-            `;
+                        <a href="/chi-tiet/${item.id}" class="bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="${image}" alt="${item.title || 'BĐS'}" 
+                                    class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                    onerror="this.src='/images/placeholder.jpg'">
+                                <span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded font-medium">
+                                    ${item.property_type || 'Đất nền'}
+                                </span>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-gray-100 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
+                                <p class="text-green-400 font-bold mb-2">${price}</p>
+                                <div class="flex items-center text-sm text-gray-400 gap-3">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                        </svg>
+                                        ${item.area || 0}m²
+                                    </span>
+                                    <span class="flex items-center gap-1 truncate">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        </svg>
+                                        ${location}
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    `;
         }
 
         function renderPagination(current, total, container) {
             if (total <= 1) { container.innerHTML = ''; return; }
 
             let html = `<button onclick="loadAllProperties(${current - 1})" ${current === 1 ? 'disabled' : ''} 
-                class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            </button>`;
+                        class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>`;
 
             const pages = [];
             if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i); }
@@ -448,14 +449,14 @@
             }
 
             pages.forEach(p => {
-                if (p === '...') html += '<span class="px-3 py-2 text-gray-400">...</span>';
-                else html += `<button onclick="loadAllProperties(${p})" class="px-4 py-2 rounded-lg ${p === current ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">${p}</button>`;
+                if (p === '...') html += '<span class="px-3 py-2 text-gray-500">...</span>';
+                else html += `<button onclick="loadAllProperties(${p})" class="px-4 py-2 rounded-lg ${p === current ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">${p}</button>`;
             });
 
             html += `<button onclick="loadAllProperties(${current + 1})" ${current === total ? 'disabled' : ''} 
-                class="px-3 py-2 rounded-lg ${current === total ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </button>`;
+                        class="px-3 py-2 rounded-lg ${current === total ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>`;
 
             container.innerHTML = html;
             if (current !== 1) document.getElementById('all-properties-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -561,32 +562,34 @@
 
             // Create info window content
             const infoContent = `
-                                    <div style="width: 280px; font-family: Arial, sans-serif;">
-                                        <img src="${property.image}" alt="${property.title}" 
-                                             style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;"
-                                             onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
-                                        <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
-                                        <p style="font-weight: bold; color: #333; font-size: 13px; margin: 0 0 8px 0; 
-                                           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                            ${property.title}
-                                        </p>
-                                        <p style="color: #dc2626; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
-                                            ${property.priceFormatted}
-                                        </p>
-                                        <p style="color: #666; font-size: 12px; margin: 0 0 5px 0;">
-                                            Địa chỉ: ${property.address || property.district + ', ' + property.province}
-                                        </p>
-                                        <div style="display: flex; gap: 15px; font-size: 12px; color: #666; margin-top: 8px;">
-                                            <span>Hướng: ${property.direction || 'N/A'}</span>
-                                            <span>Diện tích: ${property.area} m²</span>
-                                        </div>
-                                        <a href="/consignments/${property.id}" 
-                                           style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
-                                                  background: #4f46e5; color: white; border-radius: 6px; text-decoration: none;">
-                                            Xem chi tiết
-                                        </a>
-                                    </div>
-                                `;
+                                            <div style="width: 280px; font-family: Arial, sans-serif; background: var(--navy-800); border-radius: 12px; overflow:hidden;">
+                                                <img src="${property.image}" alt="${property.title}" 
+                                                     style="width: 100%; height: 140px; object-fit: cover;"
+                                                     onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
+                                                <div style="padding: 12px;">
+                                                    <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
+                                                    <p style="font-weight: bold; color: var(--gray-100); font-size: 13px; margin: 0 0 8px 0; 
+                                                       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                                        ${property.title}
+                                                    </p>
+                                                    <p style="color: #22c55e; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
+                                                        ${property.priceFormatted}
+                                                    </p>
+                                                    <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">
+                                                        Địa chỉ: ${property.address || property.district + ', ' + property.province}
+                                                    </p>
+                                                    <div style="display: flex; gap: 15px; font-size: 12px; color: var(--gray-400); margin-top: 8px;">
+                                                        <span>Hướng: ${property.direction || 'N/A'}</span>
+                                                        <span>Diện tích: ${property.area} m²</span>
+                                                    </div>
+                                                    <a href="/consignments/${property.id}" 
+                                                       style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
+                                                              background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                                        Xem chi tiết
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        `;
 
             const infoWindow = new google.maps.InfoWindow({
                 content: infoContent,
