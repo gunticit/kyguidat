@@ -4,6 +4,8 @@ FROM php:8.4-fpm
 ARG user=www
 ARG uid=1000
 
+USER root
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -45,6 +47,10 @@ COPY . /var/www
 # Install composer dependencies (as root, then chown)
 RUN composer install --no-dev --optimize-autoloader --no-interaction && \
     chown -R $user:$user /var/www
+
+RUN mkdir -p /var/www/storage/logs /var/www/bootstrap/cache \
+&& chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+&& chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 USER $user
 
