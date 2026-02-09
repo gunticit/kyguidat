@@ -282,75 +282,76 @@ export default function NewConsignmentPage() {
                     </div>
                 </div>
 
-                {/* Hình ảnh */}
-                <div className="card">
-                    <h3 className={styles.sectionTitle}>Hình ảnh đất bán</h3>
-                    <p className={styles.hint}>Tối đa 20 hình ảnh, định dạng JPG/PNG. Ảnh rõ nét giúp thu hút người mua.</p>
+                {/* Hình ảnh + File mô tả - 2 columns */}
+                <div className={styles.formRow}>
+                    <div className="card">
+                        <h3 className={styles.sectionTitle}>Hình ảnh đất bán</h3>
+                        <p className={styles.hint}>Tối đa 20 hình ảnh, định dạng JPG/PNG. Ảnh rõ nét giúp thu hút người mua.</p>
 
-                    <div className={styles.imageUpload}>
-                        <label className={styles.uploadBtn}>
-                            <FiUpload size={24} />
-                            <span>Tải ảnh lên</span>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={handleImageUpload}
-                                style={{ display: 'none' }}
-                            />
-                        </label>
+                        <div className={styles.imageUpload}>
+                            <label className={styles.uploadBtn}>
+                                <FiUpload size={24} />
+                                <span>Tải ảnh lên</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleImageUpload}
+                                    style={{ display: 'none' }}
+                                />
+                            </label>
 
-                        {images.map((img, index) => (
-                            <div key={index} className={styles.imagePreview}>
-                                <img src={img} alt={`Preview ${index + 1}`} />
-                                <button
-                                    type="button"
-                                    className={styles.removeImageBtn}
-                                    onClick={() => removeImage(index)}
-                                >
-                                    <FiX />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* File mô tả */}
-                <div className="card">
-                    <h3 className={styles.sectionTitle}>File mô tả (nếu có)</h3>
-                    <p className={styles.hint}>Tối đa 5 file, định dạng PDF/DOC/DOCX. VD: giấy tờ đất, bản vẽ, quy hoạch...</p>
-
-                    <div className={styles.fileUpload}>
-                        <label className={styles.uploadBtn}>
-                            <FiFile size={24} />
-                            <span>Tải file lên</span>
-                            <input
-                                type="file"
-                                accept=".pdf,.doc,.docx"
-                                multiple
-                                onChange={handleFileUpload}
-                                style={{ display: 'none' }}
-                            />
-                        </label>
-                    </div>
-
-                    {descriptionFiles.length > 0 && (
-                        <div className={styles.fileList}>
-                            {descriptionFiles.map((file, index) => (
-                                <div key={index} className={styles.fileItem}>
-                                    <FiFile />
-                                    <span>{file}</span>
+                            {images.map((img, index) => (
+                                <div key={index} className={styles.imagePreview}>
+                                    <img src={img} alt={`Preview ${index + 1}`} />
                                     <button
                                         type="button"
-                                        className={styles.removeFileBtn}
-                                        onClick={() => removeFile(index)}
+                                        className={styles.removeImageBtn}
+                                        onClick={() => removeImage(index)}
                                     >
                                         <FiX />
                                     </button>
                                 </div>
                             ))}
                         </div>
-                    )}
+                    </div>
+
+                    <div className="card">
+                        <h3 className={styles.sectionTitle}>File mô tả (nếu có)</h3>
+                        <p className={styles.hint}>Tối đa 5 file, định dạng PDF/DOC/DOCX. VD: giấy tờ đất, bản vẽ, quy hoạch...</p>
+
+                        <div className={styles.fileUpload}>
+                            <label className={styles.uploadBtn}>
+                                <FiFile size={24} />
+                                <span>Tải file lên</span>
+                                <input
+                                    type="file"
+                                    accept=".pdf,.doc,.docx"
+                                    multiple
+                                    onChange={handleFileUpload}
+                                    style={{ display: 'none' }}
+                                />
+                            </label>
+                        </div>
+
+                        {descriptionFiles.length > 0 && (
+                            <div className={styles.fileList}>
+                                {descriptionFiles.map((file, index) => (
+                                    <div key={index} className={styles.fileItem}>
+                                        <FiFile />
+                                        <span>{file}</span>
+                                        <button
+                                            type="button"
+                                            className={styles.removeFileBtn}
+                                            onClick={() => removeFile(index)}
+                                        >
+                                            <FiX />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Chú thích */}
