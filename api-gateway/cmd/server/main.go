@@ -61,12 +61,22 @@ func main() {
 		public.GET("/locations", consignmentHandler.Locations)
 	}
 
-	// Admin routes - proxy to Laravel backend
+	// Proxy handler for Laravel backend
 	proxyHandler := handlers.NewProxyHandler(backendURL)
+
+	// Public proxy routes (to Laravel backend)
+	publicProxy := r.Group("/api/public")
+	{
+		publicProxy.GET("/consignments/by-slug/:slug", proxyHandler.ProxyRequest)
+	}
+
+	// Admin routes - proxy to Laravel backend
 	admin := r.Group("/api/admin")
 	{
 		admin.GET("/dashboard", proxyHandler.ProxyRequest)
 		admin.GET("/users", proxyHandler.ProxyRequest)
+		admin.DELETE("/users/:id", proxyHandler.ProxyRequest)
+		admin.GET("/customers", proxyHandler.ProxyRequest)
 
 		// Consignments - CRUD
 		admin.GET("/consignments", proxyHandler.ProxyRequest)
@@ -76,6 +86,13 @@ func main() {
 		admin.DELETE("/consignments/:id", proxyHandler.ProxyRequest)
 		admin.PUT("/consignments/:id/approve", proxyHandler.ProxyRequest)
 		admin.PUT("/consignments/:id/reject", proxyHandler.ProxyRequest)
+
+		// Support Tickets
+		admin.GET("/supports", proxyHandler.ProxyRequest)
+		admin.GET("/supports/:id", proxyHandler.ProxyRequest)
+		admin.POST("/supports/:id/reply", proxyHandler.ProxyRequest)
+		admin.PUT("/supports/:id/status", proxyHandler.ProxyRequest)
+		admin.POST("/supports/:id/close", proxyHandler.ProxyRequest)
 
 		admin.GET("/transactions", proxyHandler.ProxyRequest)
 	}

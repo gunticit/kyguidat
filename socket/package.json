@@ -1,0 +1,17 @@
+{
+    "name": "khodat-socket",
+    "version": "1.0.0",
+    "description": "Socket.IO server for real-time support chat",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "dependencies": {
+        "socket.io": "^4.7.4",
+        "@socket.io/redis-adapter": "^8.2.1",
+        "redis": "^4.6.12",
+        "axios": "^1.6.5",
+        "cors": "^2.8.5"
+    }
+}

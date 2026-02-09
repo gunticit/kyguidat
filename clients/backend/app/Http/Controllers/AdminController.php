@@ -51,6 +51,72 @@ class AdminController extends Controller
     }
 
     /**
+     * Delete a user
+     */
+    public function destroyUser(Request $request, $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy người dùng',
+            ], 404);
+        }
+
+        // Prevent deleting yourself
+        if ($request->user() && $request->user()->id == $id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể xóa tài khoản của chính bạn',
+            ], 403);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa người dùng thành công',
+        ]);
+    }
+
+    /**
+     * List customers (users registered from frontend, without admin roles)
+     */
+    public function customers(Request $request): JsonResponse
+    {
+        $perPage = $request->input('per_page', 15);
+
+        $query = User::whereDoesntHave('roles', function ($q) {
+            $q->whereIn('name', ['admin', 'moderator', 'publisher']);
+        })->with('consignments:id,user_id,title,status')
+            ->withCount('consignments');
+
+        // Search
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => $customers->items(),
+            'meta' => [
+                'current_page' => $customers->currentPage(),
+                'last_page' => $customers->lastPage(),
+                'per_page' => $customers->perPage(),
+                'total' => $customers->total(),
+            ]
+        ]);
+    }
+
+    /**
      * List consignments with filters
      */
     public function consignments(Request $request): JsonResponse
@@ -94,6 +160,10 @@ class AdminController extends Controller
      */
     public function storeConsignment(Request $request): JsonResponse
     {
+        // Sanitize data before validation to handle empty strings
+        $data = $this->sanitizeData($request->all());
+        $request->merge($data);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'category_id' => 'nullable|integer',
@@ -128,13 +198,22 @@ class AdminController extends Controller
             'parcel_number' => 'nullable|string|max:50',
             'keywords' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'seo_url' => 'nullable|string|max:500',
+            'seo_url' => 'nullable|string|max:500|unique:consignments,seo_url',
             'display_order' => 'nullable|integer',
             'status' => 'nullable|in:pending,approved,rejected',
         ]);
 
-        // Convert empty strings to null for nullable fields
-        $validated = $this->sanitizeData($validated);
+        // Auto-generate seo_url from title if not provided
+        if (empty($validated['seo_url']) && !empty($validated['title'])) {
+            $validated['seo_url'] = \Illuminate\Support\Str::slug($validated['title']);
+            // Ensure uniqueness by appending suffix if needed
+            $original = $validated['seo_url'];
+            $count = 1;
+            while (Consignment::where('seo_url', $validated['seo_url'])->exists()) {
+                $validated['seo_url'] = $original . '-' . $count;
+                $count++;
+            }
+        }
 
         $validated['code'] = 'KG' . str_pad(Consignment::max('id') + 1, 6, '0', STR_PAD_LEFT);
         $validated['user_id'] = $request->user()->id;
@@ -155,6 +234,10 @@ class AdminController extends Controller
     public function updateConsignment(Request $request, $id): JsonResponse
     {
         $consignment = Consignment::findOrFail($id);
+
+        // Sanitize data before validation to handle empty strings
+        $data = $this->sanitizeData($request->all());
+        $request->merge($data);
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
@@ -190,15 +273,12 @@ class AdminController extends Controller
             'parcel_number' => 'nullable|string|max:50',
             'keywords' => 'nullable|string',
             'price' => 'sometimes|numeric|min:0',
-            'seo_url' => 'nullable|string|max:500',
+            'seo_url' => 'nullable|string|max:500|unique:consignments,seo_url,' . $id,
             'display_order' => 'nullable|integer',
             'status' => 'nullable|in:pending,approved,rejected',
         ]);
 
-        // Convert empty strings to null for nullable fields
-        $sanitized = $this->sanitizeData($validated);
-
-        $consignment->update($sanitized);
+        $consignment->update($validated);
 
         return response()->json([
             'success' => true,
@@ -290,5 +370,185 @@ class AdminController extends Controller
             }
         }
         return $data;
+    }
+
+    // =============================================
+    // SUPPORT TICKET MANAGEMENT (Admin)
+    // =============================================
+
+    /**
+     * List all support tickets (admin view - all users)
+     */
+    public function supportTickets(Request $request): JsonResponse
+    {
+        $query = \App\Models\SupportTicket::with(['user:id,name,email,avatar']);
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by category
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        // Filter by priority
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('subject', 'like', "%{$search}%")
+                    ->orWhere('ticket_number', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Count by status for badges
+        $counts = [
+            'open' => \App\Models\SupportTicket::where('status', 'open')->count(),
+            'in_progress' => \App\Models\SupportTicket::where('status', 'in_progress')->count(),
+            'waiting_reply' => \App\Models\SupportTicket::where('status', 'waiting_reply')->count(),
+            'closed' => \App\Models\SupportTicket::where('status', 'closed')->count(),
+            'total' => \App\Models\SupportTicket::count(),
+        ];
+
+        $tickets = $query->withCount('messages')
+            ->orderBy('updated_at', 'desc')
+            ->paginate($request->per_page ?? 20);
+
+        return response()->json([
+            'success' => true,
+            'data' => $tickets,
+            'counts' => $counts,
+        ]);
+    }
+
+    /**
+     * Show support ticket details with messages
+     */
+    public function showSupportTicket($id): JsonResponse
+    {
+        $ticket = \App\Models\SupportTicket::with([
+            'user:id,name,email,avatar,phone',
+            'messages.user:id,name,avatar'
+        ])->find($id);
+
+        if (!$ticket) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy yêu cầu hỗ trợ'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $ticket
+        ]);
+    }
+
+    /**
+     * Admin reply to support ticket
+     */
+    public function replySupportTicket(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'message' => 'required|string|max:5000',
+            'attachments' => 'nullable|array',
+        ]);
+
+        $ticket = \App\Models\SupportTicket::find($id);
+
+        if (!$ticket) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy yêu cầu hỗ trợ'
+            ], 404);
+        }
+
+        $message = $ticket->messages()->create([
+            'user_id' => $request->user()->id,
+            'message' => $request->message,
+            'attachments' => $request->attachments ?? [],
+            'is_admin' => true,
+        ]);
+
+        // Update ticket status to waiting_reply (waiting for user)
+        if ($ticket->status === 'open' || $ticket->status === 'in_progress') {
+            $ticket->update(['status' => 'waiting_reply']);
+        }
+
+        $message->load('user:id,name,avatar');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã gửi phản hồi',
+            'data' => $message
+        ]);
+    }
+
+    /**
+     * Update support ticket status
+     */
+    public function updateTicketStatus(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'status' => 'required|in:open,in_progress,waiting_reply,resolved,closed',
+        ]);
+
+        $ticket = \App\Models\SupportTicket::find($id);
+
+        if (!$ticket) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy yêu cầu hỗ trợ'
+            ], 404);
+        }
+
+        $updateData = ['status' => $request->status];
+        if ($request->status === 'closed') {
+            $updateData['closed_at'] = now();
+        }
+
+        $ticket->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã cập nhật trạng thái',
+            'data' => $ticket->fresh()->load('user:id,name,email,avatar')
+        ]);
+    }
+
+    /**
+     * Close support ticket
+     */
+    public function closeSupportTicket(Request $request, $id): JsonResponse
+    {
+        $ticket = \App\Models\SupportTicket::find($id);
+
+        if (!$ticket) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy yêu cầu hỗ trợ'
+            ], 404);
+        }
+
+        $ticket->update([
+            'status' => 'closed',
+            'closed_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã đóng yêu cầu hỗ trợ',
+            'data' => $ticket->fresh()
+        ]);
     }
 }

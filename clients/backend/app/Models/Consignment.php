@@ -69,7 +69,7 @@ class Consignment extends Model
         'description_files' => 'array',
         'land_directions' => 'array',
         'land_types' => 'array',
-        'notification_date' => 'date',
+        'notification_date' => 'date:Y-m-d',
         'approved_at' => 'datetime',
         'sold_at' => 'datetime',
         'cancelled_at' => 'datetime',

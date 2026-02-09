@@ -29,6 +29,7 @@ Route::get('/posting-packages/{id}', [PostingPackageController::class, 'show']);
 // Public routes - Consignments (Xem danh sách bất động sản công khai)
 Route::prefix('public')->group(function () {
     Route::get('/consignments', [PublicConsignmentController::class, 'index']);
+    Route::get('/consignments/by-slug/{slug}', [PublicConsignmentController::class, 'showBySlug']);
     Route::get('/consignments/{id}', [PublicConsignmentController::class, 'show']);
 });
 
@@ -161,6 +162,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+        Route::delete('/users/{id}', [App\Http\Controllers\AdminController::class, 'destroyUser']);
+
+        // Customers (frontend-registered users)
+        Route::get('/customers', [App\Http\Controllers\AdminController::class, 'customers']);
 
         // Consignments - CRUD
         Route::get('/consignments', [App\Http\Controllers\AdminController::class, 'consignments']);
@@ -170,6 +175,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'destroyConsignment']);
         Route::put('/consignments/{id}/approve', [App\Http\Controllers\AdminController::class, 'approveConsignment']);
         Route::put('/consignments/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectConsignment']);
+
+        // Support Tickets - Admin Management
+        Route::get('/supports', [App\Http\Controllers\AdminController::class, 'supportTickets']);
+        Route::get('/supports/{id}', [App\Http\Controllers\AdminController::class, 'showSupportTicket']);
+        Route::post('/supports/{id}/reply', [App\Http\Controllers\AdminController::class, 'replySupportTicket']);
+        Route::put('/supports/{id}/status', [App\Http\Controllers\AdminController::class, 'updateTicketStatus']);
+        Route::post('/supports/{id}/close', [App\Http\Controllers\AdminController::class, 'closeSupportTicket']);
 
         Route::get('/transactions', [App\Http\Controllers\AdminController::class, 'transactions']);
     });

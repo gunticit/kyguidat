@@ -19,7 +19,7 @@ class PublicConsignmentController extends Controller
     {
         $perPage = min($request->get('per_page', 15), 100);
         $cacheKey = 'public_consignments_' . md5(json_encode($request->all()));
-        
+
         // Cache for 5 minutes
         $consignments = Cache::remember($cacheKey, 300, function () use ($request, $perPage) {
             $query = Consignment::query()
@@ -36,8 +36,8 @@ class PublicConsignmentController extends Controller
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('address', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                        ->orWhere('address', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
                 });
             }
 
@@ -50,11 +50,11 @@ class PublicConsignmentController extends Controller
             }
 
             // Sort
-            $sortBy = in_array($request->get('sort_by'), ['price', 'created_at', 'title']) 
-                ? $request->get('sort_by') 
+            $sortBy = in_array($request->get('sort_by'), ['price', 'created_at', 'title'])
+                ? $request->get('sort_by')
                 : 'created_at';
             $sortOrder = $request->get('sort_order', 'desc') === 'asc' ? 'asc' : 'desc';
-            
+
             $query->orderBy($sortBy, $sortOrder);
 
             return $query->paginate($perPage);
@@ -87,6 +87,35 @@ class PublicConsignmentController extends Controller
                 ->whereIn('status', [Consignment::STATUS_APPROVED, Consignment::STATUS_SELLING])
                 ->with('user:id,name')
                 ->find($id);
+        });
+
+        if (!$consignment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy bất động sản',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $consignment,
+        ]);
+    }
+
+    /**
+     * Get single public consignment by SEO URL slug
+     * 
+     * @param string $slug
+     * @return JsonResponse
+     */
+    public function showBySlug(string $slug): JsonResponse
+    {
+        $consignment = Cache::remember("public_consignment_slug_{$slug}", 300, function () use ($slug) {
+            return Consignment::query()
+                ->whereIn('status', [Consignment::STATUS_APPROVED, Consignment::STATUS_SELLING])
+                ->where('seo_url', $slug)
+                ->with('user:id,name')
+                ->first();
         });
 
         if (!$consignment) {

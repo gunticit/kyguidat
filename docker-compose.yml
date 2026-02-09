@@ -147,6 +147,27 @@ services:
     command: redis-server --appendonly yes
 
   # ===========================================
+  # SOCKET.IO SERVER (Real-time Support Chat)
+  # ===========================================
+  socket:
+    build:
+      context: ./socket
+      dockerfile: Dockerfile
+    container_name: khodat-socket
+    restart: unless-stopped
+    ports:
+      - "3020:3020"
+    environment:
+      - PORT=3020
+      - REDIS_URL=redis://redis:6379
+      - CORS_ORIGINS=http://localhost:3015,http://localhost:8089
+    networks:
+      - khodat-network
+    depends_on:
+      - redis
+      - backend
+
+  # ===========================================
   # TOOLS & UTILITIES
   # ===========================================
   phpmyadmin:
