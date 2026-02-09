@@ -168,7 +168,6 @@
         function updateThemeIcon(theme) {
             var sunIcon = document.getElementById('sun-icon');
             var moonIcon = document.getElementById('moon-icon');
-            var themeLabel = document.getElementById('theme-label');
             if (sunIcon && moonIcon) {
                 if (theme === 'day') {
                     sunIcon.classList.add('hidden');
@@ -177,9 +176,6 @@
                     sunIcon.classList.remove('hidden');
                     moonIcon.classList.add('hidden');
                 }
-            }
-            if (themeLabel) {
-                themeLabel.textContent = theme === 'day' ? 'Ban ngày' : 'Ban đêm';
             }
         }
 
