@@ -8,13 +8,17 @@
     $phone = $settings['phone'] ?? '0123 456 789';
     $address = $settings['address'] ?? 'TP. Hồ Chí Minh';
     $siteName = $settings['siteName'] ?? 'SànĐất';
+    $logo = $settings['logo'] ?? '';
 @endphp
 <footer class="bg-navy-900 border-t border-navy-600 mt-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <!-- Brand -->
             <div>
-                <h3 class="text-2xl font-bold text-green-400">{{ $siteName }}</h3>
+                @if($logo)
+                    <img src="{{ $logo }}" alt="{{ $siteName }}" class="h-12 w-auto object-contain mb-3">
+                @endif
+                <h3 class="text-xl font-bold text-green-400">{{ $siteName }}</h3>
                 <p class="mt-4 text-gray-400">Nền tảng ký gửi bất động sản uy tín hàng đầu Việt Nam</p>
             </div>
 

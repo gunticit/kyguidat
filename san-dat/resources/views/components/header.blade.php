@@ -1,9 +1,23 @@
+@php
+    use Illuminate\Support\Facades\Storage;
+    $settings = [];
+    if (Storage::exists('settings.json')) {
+        $settings = json_decode(Storage::get('settings.json'), true) ?? [];
+    }
+    $logo = $settings['logo'] ?? '';
+    $favicon = $settings['favicon'] ?? '';
+    $siteName = $settings['siteName'] ?? 'SànĐất';
+@endphp
 <header class="bg-navy-800 border-b border-navy-600 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <!-- Logo -->
             <a href="{{ route('home') }}" class="flex items-center space-x-2">
-                <span class="text-2xl font-bold text-green-400">SànĐất</span>
+                @if($logo)
+                    <img src="{{ $logo }}" alt="{{ $siteName }}" class="h-10 w-auto object-contain">
+                @else
+                    <span class="text-2xl font-bold text-green-400">{{ $siteName }}</span>
+                @endif
             </a>
 
             <!-- Navigation -->

@@ -4,8 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Sàn Đất - Ký gửi Bất động sản')</title>
+    @php
+        use Illuminate\Support\Facades\Storage;
+        $appSettings = [];
+        if (Storage::exists('settings.json')) {
+            $appSettings = json_decode(Storage::get('settings.json'), true) ?? [];
+        }
+        $appFavicon = $appSettings['favicon'] ?? '';
+        $appSiteName = $appSettings['siteName'] ?? 'Sàn Đất';
+    @endphp
+    <title>@yield('title', $appSiteName . ' - Ký gửi Bất động sản')</title>
     <meta name="description" content="@yield('description', 'Nền tảng ký gửi bất động sản uy tín hàng đầu Việt Nam')">
+    @if($appFavicon)
+        <link rel="icon" type="image/png" href="{{ $appFavicon }}">
+    @endif
 
     <!-- Theme Detection (runs before render to prevent flash) -->
     <script>
