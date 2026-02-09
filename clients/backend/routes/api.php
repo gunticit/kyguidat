@@ -65,6 +65,7 @@ Route::prefix('payments')->group(function () {
     Route::get('/vnpay/callback', [PaymentController::class, 'vnpayCallback']);
     Route::post('/momo/callback', [PaymentController::class, 'momoCallback']);
     Route::post('/momo/notify', [PaymentController::class, 'momoNotify']);
+    Route::get('/bank-info', [PaymentController::class, 'getBankInfo']);
 });
 
 // IPN Handler routes (public - called by payment gateways)
@@ -106,7 +107,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/payments/vnpay/create', [PaymentController::class, 'createVnpay']);
     Route::post('/payments/momo/create', [PaymentController::class, 'createMomo']);
     Route::post('/payments/bank-transfer/create', [PaymentController::class, 'createBankTransfer']);
-    Route::get('/payments/bank-info', [PaymentController::class, 'getBankInfo']);
 
     // Support (Hỗ trợ)
     Route::apiResource('/supports', SupportController::class);
