@@ -33,8 +33,9 @@ COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 # Copy supervisor config
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Create storage and bootstrap/cache directories and set permissions
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Create supervisor log directory
 RUN mkdir -p /var/log/supervisor
