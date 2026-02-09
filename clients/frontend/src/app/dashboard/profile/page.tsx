@@ -176,7 +176,7 @@ export default function ProfilePage() {
             <div className={styles.container}>
                 {/* Wallet Info */}
                 {user?.wallet && (
-                    <div className={`card ${styles.walletCard}`}>
+                    <div className={`card ${styles.walletCard} ${styles.containerFullWidth}`}>
                         <div className={styles.walletInfo}>
                             <FiDollarSign size={24} />
                             <div>
