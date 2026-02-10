@@ -27,7 +27,11 @@ func (h *ConsignmentHandler) List(c *gin.Context) {
 	search := c.Query("search")
 	province := c.Query("province")
 
-	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province)
+	// Parse user location for proximity sorting
+	lat, _ := strconv.ParseFloat(c.Query("lat"), 64)
+	lng, _ := strconv.ParseFloat(c.Query("lng"), 64)
+
+	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, lat, lng)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch consignments")
 		return

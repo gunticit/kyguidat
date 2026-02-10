@@ -24,6 +24,8 @@ class ConsignmentController extends Controller
             'limit' => 12,
             'search' => $request->get('search'),
             'province' => $request->get('province'),
+            'lat' => $request->get('lat'),
+            'lng' => $request->get('lng'),
         ];
 
         $response = $this->apiService->getConsignments(array_filter($params));
@@ -33,7 +35,10 @@ class ConsignmentController extends Controller
         $categories = $this->apiService->getCategories();
         $locations = $this->apiService->getLocations();
 
-        return view('consignments.index', compact('consignments', 'meta', 'categories', 'locations'));
+        $userLat = $request->get('lat');
+        $userLng = $request->get('lng');
+
+        return view('consignments.index', compact('consignments', 'meta', 'categories', 'locations', 'userLat', 'userLng'));
     }
 
     /**
@@ -69,6 +74,8 @@ class ConsignmentController extends Controller
             'limit' => $request->get('limit', 12),
             'search' => $request->get('search'),
             'province' => $request->get('province'),
+            'lat' => $request->get('lat'),
+            'lng' => $request->get('lng'),
         ];
 
         $response = $this->apiService->getConsignments(array_filter($params));

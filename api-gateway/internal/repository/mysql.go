@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"khodat/api-gateway/internal/models"
 
 	"gorm.io/gorm"
@@ -9,7 +11,7 @@ import (
 // Repository interface for database operations
 type Repository interface {
 	// Consignments
-	GetApprovedConsignments(page, limit int, search, province string) ([]models.Consignment, int64, error)
+	GetApprovedConsignments(page, limit int, search, province string, lat, lng float64) ([]models.Consignment, int64, error)
 	GetConsignmentByID(id uint) (*models.Consignment, error)
 	GetAllConsignments(page, limit int, status string) ([]models.Consignment, int64, error)
 	UpdateConsignmentStatus(id uint, status string) error
@@ -42,7 +44,8 @@ func NewMySQLRepository(db *gorm.DB) *MySQLRepository {
 }
 
 // GetApprovedConsignments returns approved consignments with pagination
-func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, province string) ([]models.Consignment, int64, error) {
+// When lat/lng are provided (non-zero), sorts by distance using Haversine formula
+func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, province string, lat, lng float64) ([]models.Consignment, int64, error) {
 	var consignments []models.Consignment
 	var total int64
 
@@ -58,6 +61,26 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 	query.Count(&total)
 
 	offset := (page - 1) * limit
+
+	// If user location is provided, sort by distance (Haversine formula)
+	if lat != 0 && lng != 0 {
+		distanceExpr := fmt.Sprintf(
+			"(6371 * acos(LEAST(1.0, cos(radians(%f)) * cos(radians(CAST(latitude AS DECIMAL(10,7)))) * cos(radians(CAST(longitude AS DECIMAL(10,7))) - radians(%f)) + sin(radians(%f)) * sin(radians(CAST(latitude AS DECIMAL(10,7)))))))",
+			lat, lng, lat,
+		)
+
+		err := query.
+			Select(fmt.Sprintf("*, %s AS distance", distanceExpr)).
+			Preload("User").Preload("Category").
+			Where("latitude IS NOT NULL AND latitude != '' AND longitude IS NOT NULL AND longitude != ''").
+			Offset(offset).Limit(limit).
+			Order("distance ASC").
+			Find(&consignments).Error
+
+		return consignments, total, err
+	}
+
+	// Default: sort by created_at
 	err := query.Preload("User").Preload("Category").
 		Offset(offset).Limit(limit).
 		Order("created_at DESC").

@@ -30,11 +30,16 @@ type Consignment struct {
 	Province    string    `json:"province"`
 	District    string    `json:"district"`
 	Ward        string    `json:"ward"`
+	Latitude    string    `json:"latitude"`
+	Longitude   string    `json:"longitude"`
 	CategoryID  uint      `json:"category_id"`
 	Status      string    `json:"status" gorm:"default:pending"` // pending, approved, rejected, sold
 	Images      string    `json:"images" gorm:"type:json"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+
+	// Computed field (not stored in DB)
+	Distance float64 `json:"distance,omitempty" gorm:"-"`
 
 	User     User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Category Category `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
