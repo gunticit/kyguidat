@@ -62,8 +62,11 @@ RUN { \
     } > /usr/local/etc/php/conf.d/production.ini
 
 # PHP-FPM configuration for production
+# IMPORTANT: listen = 9000 is required because php:8.4-fpm's zz-docker.conf
+# no longer sets it, defaulting to 127.0.0.1:9000 which blocks external connections
 RUN { \
     echo '[www]'; \
+    echo 'listen = 9000'; \
     echo 'pm = dynamic'; \
     echo 'pm.max_children = 50'; \
     echo 'pm.start_servers = 5'; \
