@@ -147,6 +147,8 @@ services:
     container_name: khodat-mysql
     restart: always
     command: --default-authentication-plugin=caching_sha2_password
+    ports:
+      - "127.0.0.1:3316:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
