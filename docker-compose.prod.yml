@@ -1,0 +1,205 @@
+# ===========================================
+# PRODUCTION DOCKER COMPOSE - kyguidatvuon.com
+# ===========================================
+# Sử dụng với Nginx đã cài sẵn trên host Ubuntu
+# Usage: docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+services:
+  # ===========================================
+  # GOLANG API GATEWAY
+  # ===========================================
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: khodat-api-gateway
+    restart: always
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - khodat-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ===========================================
+  # LARAVEL SÀN ĐẤT (Public Website)
+  # ===========================================
+  san-dat:
+    build:
+      context: ./san-dat
+      dockerfile: Dockerfile
+    container_name: khodat-san-dat
+    restart: always
+    ports:
+      - "127.0.0.1:8088:80"
+    environment:
+      - GOLANG_API_URL=http://api-gateway:8080
+      - APP_ENV=production
+      - APP_DEBUG=false
+    networks:
+      - khodat-network
+    depends_on:
+      - api-gateway
+
+  # ===========================================
+  # VUE ADMIN DASHBOARD
+  # ===========================================
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://api.kyguidatvuon.com/api
+    container_name: khodat-admin
+    restart: always
+    ports:
+      - "127.0.0.1:8089:80"
+    networks:
+      - khodat-network
+    depends_on:
+      - api-gateway
+
+  # ===========================================
+  # LARAVEL BACKEND (User API) - PHP-FPM
+  # ===========================================
+  backend:
+    build:
+      context: ./clients/backend
+      dockerfile: Dockerfile.prod
+    container_name: khodat-backend
+    restart: always
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - APP_URL=https://backend.kyguidatvuon.com
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+    networks:
+      - khodat-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # ===========================================
+  # NGINX FOR LARAVEL BACKEND (PHP-FPM proxy)
+  # ===========================================
+  backend-nginx:
+    image: nginx:alpine
+    container_name: khodat-backend-nginx
+    restart: always
+    ports:
+      - "127.0.0.1:8015:80"
+    volumes:
+      - ./clients/backend:/var/www:ro
+      - ./clients/backend/docker/nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - khodat-network
+    depends_on:
+      - backend
+
+  # ===========================================
+  # NEXT.JS FRONTEND (User Dashboard)
+  # ===========================================
+  frontend:
+    build:
+      context: ./clients/frontend
+      dockerfile: Dockerfile.prod
+      args:
+        - NEXT_PUBLIC_API_URL=https://backend.kyguidatvuon.com/api
+    container_name: khodat-frontend
+    restart: always
+    ports:
+      - "127.0.0.1:3015:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://backend.kyguidatvuon.com/api
+    networks:
+      - khodat-network
+    depends_on:
+      - backend
+
+  # ===========================================
+  # DATABASE
+  # ===========================================
+  mysql:
+    image: mysql:8.0
+    container_name: khodat-mysql
+    restart: always
+    command: --default-authentication-plugin=caching_sha2_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - khodat-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # CACHE
+  # ===========================================
+  redis:
+    image: redis:alpine
+    container_name: khodat-redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    networks:
+      - khodat-network
+
+  # ===========================================
+  # SOCKET.IO SERVER (Real-time Support Chat)
+  # ===========================================
+  socket:
+    build:
+      context: ./socket
+      dockerfile: Dockerfile
+    container_name: khodat-socket
+    restart: always
+    ports:
+      - "127.0.0.1:3020:3020"
+    environment:
+      - PORT=3020
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - CORS_ORIGINS=https://app.kyguidatvuon.com,https://admin.kyguidatvuon.com
+    networks:
+      - khodat-network
+    depends_on:
+      - redis
+      - backend
+
+networks:
+  khodat-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
