@@ -36,19 +36,13 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 # Create supervisor log directory
 RUN mkdir -p /var/log/supervisor
 
-# Create entrypoint script to fix permissions on every start
-RUN printf '#!/bin/sh\n\
-mkdir -p /var/www/html/storage/logs \
-         /var/www/html/storage/framework/cache \
-         /var/www/html/storage/framework/sessions \
-         /var/www/html/storage/framework/views \
-         /var/www/html/bootstrap/cache\n\
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache\n\
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache\n\
-exec "$@"\n' > /entrypoint.sh && chmod +x /entrypoint.sh
+# Copy and set permissions for entrypoint script
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Expose port
 EXPOSE 80
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+
