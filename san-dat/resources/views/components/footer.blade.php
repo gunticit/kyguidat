@@ -47,9 +47,9 @@
             <div>
                 <h4 class="font-semibold mb-4 text-gray-200">Người dùng</h4>
                 <ul class="space-y-2 text-gray-400">
-                    <li><a href="http://localhost:3015" class="hover:text-green-400 transition">Đăng ký</a></li>
-                    <li><a href="http://localhost:3015" class="hover:text-green-400 transition">Đăng nhập</a></li>
-                    <li><a href="http://localhost:3015" class="hover:text-green-400 transition">Đăng tin</a></li>
+                    <li><a href="{{ env('APP_URL_SANDAT') }}" class="hover:text-green-400 transition">Đăng ký</a></li>
+                    <li><a href="{{ env('APP_URL_SANDAT') }}" class="hover:text-green-400 transition">Đăng nhập</a></li>
+                    <li><a href="{{ env('APP_URL_SANDAT') }}" class="hover:text-green-400 transition">Đăng tin</a></li>
                 </ul>
             </div>
         </div>
