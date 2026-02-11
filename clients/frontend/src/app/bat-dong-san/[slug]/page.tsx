@@ -51,7 +51,7 @@ export default function ConsignmentBySlugPage() {
 
         const fetchData = async () => {
             try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8015/api';
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
                 const res = await fetch(`${apiUrl}/public/consignments/by-slug/${slug}`);
                 const json = await res.json();
                 if (json.success) {

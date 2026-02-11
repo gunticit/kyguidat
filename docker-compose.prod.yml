@@ -44,6 +44,9 @@ services:
       - GOLANG_API_URL=http://api-gateway:8080
       - APP_ENV=production
       - APP_DEBUG=false
+      - APP_URL=https://kyguidatvuon.com
+      - APP_URL_SANDAT=https://app.kyguidatvuon.com
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
     networks:
       - khodat-network
     depends_on:
@@ -58,6 +61,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=https://api.kyguidatvuon.com/api
+        - VITE_SANDAT_API_URL=https://kyguidatvuon.com/api
     container_name: khodat-admin
     restart: always
     ports:
@@ -127,6 +131,7 @@ services:
       dockerfile: Dockerfile.prod
       args:
         - NEXT_PUBLIC_API_URL=https://backend.kyguidatvuon.com/api
+        - NEXT_PUBLIC_SOCKET_URL=https://socket.kyguidatvuon.com
     container_name: khodat-frontend
     restart: always
     ports:
@@ -134,6 +139,7 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=https://backend.kyguidatvuon.com/api
+      - NEXT_PUBLIC_SOCKET_URL=https://socket.kyguidatvuon.com
     networks:
       - khodat-network
     depends_on:

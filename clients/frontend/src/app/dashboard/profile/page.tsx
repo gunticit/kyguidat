@@ -42,7 +42,7 @@ export default function ProfilePage() {
     });
     const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.khodat.com/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
     useEffect(() => {
         loadProfile();

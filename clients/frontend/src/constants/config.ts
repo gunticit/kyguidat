@@ -1,5 +1,5 @@
 // API Configuration
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.khodat.com/api';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 // Social Login URLs
 export const SOCIAL_LOGIN_URLS = {
@@ -10,7 +10,7 @@ export const SOCIAL_LOGIN_URLS = {
 
 // App Configuration
 export const APP_CONFIG = {
-    name: 'Khodat',
+    name: 'Ký Gửi Đất Vuôn',
     description: 'Nền tảng ký gửi trực tuyến',
     maxFileSize: 5 * 1024 * 1024, // 5MB
     allowedImageTypes: ['image/jpeg', 'image/png', 'image/webp'],

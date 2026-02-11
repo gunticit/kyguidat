@@ -54,7 +54,7 @@ export default function PackagesPage() {
     const [freePostsRemaining, setFreePostsRemaining] = useState(0);
     const [canPost, setCanPost] = useState(false);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.khodat.com/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
     useEffect(() => {
         loadData();
