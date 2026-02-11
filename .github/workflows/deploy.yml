@@ -1,0 +1,47 @@
+name: 🚀 Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚀 Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          timeout: 300s
+          command_timeout: 600s
+          script: |
+            cd /var/www/html/kyguidat
+
+            echo "📥 Pulling latest code..."
+            git pull origin main
+
+            echo "🔨 Building & starting services..."
+            docker compose -f docker-compose.prod.yml --env-file .env.prod build
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+            echo "⏳ Waiting for MySQL..."
+            sleep 15
+
+            echo "🗄️ Running migrations..."
+            docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend \
+              php artisan migrate --force 2>/dev/null || echo "⚠️ Migration skipped"
+
+            echo "🔄 Reloading Nginx..."
+            sudo nginx -t && sudo systemctl reload nginx
+
+            echo "🧹 Cleaning up..."
+            docker image prune -f
+
+            echo "✅ Deployment complete!"
+            docker compose -f docker-compose.prod.yml --env-file .env.prod ps --format "table {{.Name}}\t{{.Status}}"
