@@ -48,6 +48,8 @@ services:
       - APP_URL=https://kyguidatvuon.com
       - APP_URL_SANDAT=https://app.kyguidatvuon.com
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+    volumes:
+      - sandat-storage:/var/www/html/storage/app
     networks:
       - khodat-network
     depends_on:
@@ -214,3 +216,4 @@ networks:
 volumes:
   mysql-data:
   redis-data:
+  sandat-storage:
