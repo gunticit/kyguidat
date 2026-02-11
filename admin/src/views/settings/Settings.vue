@@ -339,7 +339,7 @@ import axios from 'axios'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Header from '@/components/layout/Header.vue'
 
-const apiUrl = import.meta.env.VITE_API_URL + '/settings'
+const apiUrl = import.meta.env.KYGUIDAT_API_URL + '/settings'
 const activeTab = ref('contact')
 
 // Contact settings
