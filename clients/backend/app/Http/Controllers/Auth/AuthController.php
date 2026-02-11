@@ -16,7 +16,8 @@ class AuthController extends Controller
 {
     public function __construct(
         private AuthService $authService
-    ) {}
+    ) {
+    }
 
     /**
      * Register a new user
@@ -111,6 +112,42 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Đặt lại mật khẩu thành công'
+        ]);
+    }
+
+    /**
+     * Delete user account (required by Apple App Store & Google Play Store)
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        $user = $request->user();
+
+        // Verify password
+        if (!\Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mật khẩu không đúng'
+            ], 422);
+        }
+
+        // Revoke all tokens
+        $user->tokens()->delete();
+
+        // Delete user's consignments
+        if (method_exists($user, 'consignments')) {
+            $user->consignments()->delete();
+        }
+
+        // Delete user
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tài khoản đã được xóa thành công'
         ]);
     }
 }

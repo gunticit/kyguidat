@@ -17,9 +17,17 @@ return [
         'http://localhost:3015',
         'http://127.0.0.1:3015',
         env('APP_URL_SANDAT', 'https://app.kyguidatvuon.com'),
+        // Flutter web development (port varies)
+        'http://localhost:*',
+        'http://127.0.0.1:*',
+        // Mobile web deployment
+        'https://mobile.kyguidatvuon.com',
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '#^http://localhost:\d+$#',
+        '#^http://127\.0\.0\.1:\d+$#',
+    ],
 
     'allowed_headers' => ['*'],
 
