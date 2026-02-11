@@ -79,7 +79,7 @@ class SettingsController extends Controller
         $filename = $type . '_' . time() . '.' . $extension;
 
         $path = $file->storeAs('public/settings', $filename);
-        $url = url('/storage/settings/' . $filename);
+        $url = '/storage/settings/' . $filename;
 
         $settings = $this->getSettings();
         $settings[$type] = $url;
