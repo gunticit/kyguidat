@@ -48,3 +48,6 @@ frontend/.env
 
 # Go module cache (local)
 api-gateway/.cache/
+
+# Flutter mobile app (separate git repo)
+mobile/
