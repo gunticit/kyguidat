@@ -1,186 +1,334 @@
 # 🚀 Hướng dẫn Deploy kyguidatvuon.com lên Ubuntu VPS
 
-> VPS đã cài sẵn Nginx. Sử dụng host Nginx làm reverse proxy + Certbot cho SSL.
+## Yêu cầu VPS
+- Ubuntu 22.04+
+- Docker & Docker Compose
+- Nginx (đã cài trên host)
+- Certbot (đã cài trên host)
+- RAM ≥ 4GB, Disk ≥ 40GB
 
 ---
 
-## Bước 1: Cài Docker trên VPS
+## Kiến trúc
+
+```
+Internet → Nginx (Host) → Docker Containers
+                ↓
+    ┌───────────────────────────────────┐
+    │  kyguidatvuon.com    → :8088     │  san-dat (Laravel)
+    │  api.kyguidatvuon.com → :8080    │  api-gateway (Go)
+    │  admin.kyguidatvuon.com → :8089  │  admin (Vue)
+    │  app.kyguidatvuon.com → :3015   │  frontend (Next.js)
+    │  backend.kyguidatvuon.com → :8015│  backend-nginx → backend
+    │  socket.kyguidatvuon.com → :3020 │  socket (Node.js)
+    └───────────────────────────────────┘
+              ↓              ↓
+          MySQL:3316    Redis (internal)
+```
+
+---
+
+## Bước 1: Cài đặt Docker (nếu chưa có)
 
 ```bash
 # Cài Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
+curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
 
-# Cài Docker Compose plugin
-sudo apt install -y docker-compose-plugin
-
-# Đăng xuất rồi SSH lại
+# Đăng xuất và đăng nhập lại
 exit
-```
+# ssh lại vào VPS
 
-Kiểm tra:
-```bash
+# Kiểm tra
 docker --version
 docker compose version
 ```
 
 ---
 
-## Bước 2: Cấu hình DNS
+## Bước 2: Cài đặt Nginx & Certbot (nếu chưa có)
 
-Tạo **A Record** trỏ về IP VPS cho tất cả domains:
+```bash
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx
 
-| Name | Value |
-|------|-------|
-| `@` | `IP_VPS` |
-| `www` | `IP_VPS` |
-| `api` | `IP_VPS` |
-| `admin` | `IP_VPS` |
-| `app` | `IP_VPS` |
-| `backend` | `IP_VPS` |
-| `socket` | `IP_VPS` |
-
-Kiểm tra DNS: `ping kyguidatvuon.com`
+# Kiểm tra
+nginx -v
+certbot --version
+```
 
 ---
 
-## Bước 3: Clone repo & cấu hình
+## Bước 3: Cấu hình DNS
+
+Tại nhà cung cấp domain, tạo các bản ghi DNS:
+
+| Type | Name | Value |
+|------|------|-------|
+| A | @ | IP_VPS |
+| A | www | IP_VPS |
+| A | api | IP_VPS |
+| A | admin | IP_VPS |
+| A | app | IP_VPS |
+| A | backend | IP_VPS |
+| A | socket | IP_VPS |
+
+⏰ Chờ DNS propagate (5-30 phút). Kiểm tra:
 
 ```bash
-cd /var/www
-git clone https://github.com/YOUR_USERNAME/kyguidat.git
-cd kyguidat
+dig +short kyguidatvuon.com
+dig +short api.kyguidatvuon.com
+```
 
-# Tạo .env.prod
+---
+
+## Bước 4: Clone source code
+
+```bash
+cd /home/$USER
+git clone https://github.com/YOUR_REPO/kyguidat.git
+cd kyguidat
+```
+
+---
+
+## Bước 5: Tạo file .env.prod
+
+```bash
 cp .env.prod.example .env.prod
 nano .env.prod
 ```
 
-**Sửa các giá trị trong `.env.prod`:**
+### Điền các giá trị quan trọng:
+
 ```env
-DOMAIN=kyguidatvuon.com
-EMAIL=email@gmail.com
-DB_PASSWORD=MatKhauManh123!
-MYSQL_ROOT_PASSWORD=RootManh456!
-REDIS_PASSWORD=RedisManh789!
-JWT_SECRET=JwtSecret321!
-APP_KEY=  # ← tạo bằng lệnh dưới
+# --- Database (đặt mật khẩu MẠNH) ---
+DB_DATABASE=khodat
+DB_USERNAME=khodat
+DB_PASSWORD=MatKhauRatManh2026!
+MYSQL_ROOT_PASSWORD=RootMatKhauManh2026!
+
+# --- Redis ---
+REDIS_PASSWORD=RedisPass2026!
+
+# --- Laravel APP_KEY (tạo random 32 ký tự) ---
+APP_KEY=base64:$(openssl rand -base64 32)
+
+# --- JWT Secret (tạo random) ---
+JWT_SECRET=$(openssl rand -hex 32)
+
+# --- SMTP (dùng Gmail App Password) ---
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-real-email@gmail.com
+MAIL_PASSWORD=xxxx-xxxx-xxxx-xxxx     # Gmail App Password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@kyguidatvuon.com
+MAIL_FROM_NAME="Ky Gui Dat Vuon"
 ```
 
-Tạo APP_KEY:
+### Cách tạo Gmail App Password:
+1. Vào https://myaccount.google.com/security
+2. Bật **2-Step Verification**
+3. Vào **App passwords** → Chọn "Mail" → Chọn "Other" → Nhập "kyguidatvuon"
+4. Copy 16 ký tự → paste vào `MAIL_PASSWORD`
+
+### Cách tạo APP_KEY:
 ```bash
-docker run --rm php:8.4-cli php -r "echo 'base64:' . base64_encode(random_bytes(32)) . PHP_EOL;"
+# Chạy lệnh này trên VPS
+echo "base64:$(openssl rand -base64 32)"
+# Copy kết quả vào APP_KEY trong .env.prod
 ```
 
 ---
 
-## Bước 4: Cấu hình Host Nginx
+## Bước 6: Cấu hình Nginx
 
 ```bash
-# Copy config vào nginx
-sudo cp nginx/kyguidatvuon.conf /etc/nginx/sites-available/kyguidatvuon.conf
+# Copy file config
+sudo cp nginx/kyguidatvuon.conf /etc/nginx/sites-available/kyguidat.conf
 
 # Enable site
-sudo ln -sf /etc/nginx/sites-available/kyguidatvuon.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/kyguidat.conf /etc/nginx/sites-enabled/
 
-# Xoá default nếu cần
+# Xóa default site (nếu có)
 sudo rm -f /etc/nginx/sites-enabled/default
 
-# Test & reload
+# Test config
 sudo nginx -t
+
+# Reload
 sudo systemctl reload nginx
 ```
 
 ---
 
-## Bước 5: Cấu hình Firewall
+## Bước 7: Cài đặt SSL (Let's Encrypt)
 
 ```bash
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+sudo certbot --nginx \
+  -d kyguidatvuon.com \
+  -d www.kyguidatvuon.com \
+  -d api.kyguidatvuon.com \
+  -d admin.kyguidatvuon.com \
+  -d app.kyguidatvuon.com \
+  -d backend.kyguidatvuon.com \
+  -d socket.kyguidatvuon.com \
+  --email your-email@gmail.com \
+  --agree-tos \
+  --no-eff-email \
+  --redirect
+```
+
+> Certbot tự sửa file Nginx config để thêm SSL + redirect HTTP → HTTPS
+
+### Kiểm tra auto-renew:
+```bash
+sudo certbot renew --dry-run
+```
+
+---
+
+## Bước 8: Firewall (UFW)
+
+```bash
+sudo ufw allow 22/tcp     # SSH
+sudo ufw allow 80/tcp     # HTTP
+sudo ufw allow 443/tcp    # HTTPS
 sudo ufw enable
+sudo ufw status
 ```
+
+> ⚠️ KHÔNG mở port 3316, 8080, 8015, etc. — chỉ Nginx truy cập qua 127.0.0.1
 
 ---
 
-## Bước 6: Khởi tạo SSL
+## Bước 9: Deploy lần đầu 🚀
 
 ```bash
-chmod +x init-ssl.sh
-sudo bash init-ssl.sh email@gmail.com
-```
-
-Certbot sẽ tự động:
-- Xin certificate Let's Encrypt cho tất cả 7 domains
-- Sửa nginx config để thêm HTTPS + redirect HTTP → HTTPS
-- Setup auto-renew
-
-Test renewal: `sudo certbot renew --dry-run`
-
----
-
-## Bước 7: Deploy
-
-```bash
+# Cấp quyền
 chmod +x deploy.sh
 
-# Lần đầu: build tất cả images
+# Deploy (build tất cả images)
 bash deploy.sh --build
 ```
 
-Kiểm tra:
-```bash
-# Tất cả containers running?
-docker compose -f docker-compose.prod.yml --env-file .env.prod ps
-
-# Xem logs nếu có lỗi
-docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f [service_name]
-```
+### Quá trình deploy sẽ:
+1. ✅ Pull latest code từ Git
+2. ✅ Build tất cả Docker images
+3. ✅ Start containers
+4. ✅ Chờ MySQL ready
+5. ✅ Chạy database migrations
+6. ✅ Reload Nginx
+7. ✅ Dọn dẹp Docker images cũ
 
 ---
 
-## Bước 8: Kiểm tra trên browser
+## Bước 10: Kiểm tra
 
-| URL | Kỳ vọng |
-|-----|---------|
-| https://kyguidatvuon.com | Trang Sàn Đất |
-| https://api.kyguidatvuon.com | API Gateway |
-| https://admin.kyguidatvuon.com | Admin Dashboard |
-| https://app.kyguidatvuon.com | User Dashboard |
-| https://backend.kyguidatvuon.com/api | Backend API |
-| https://socket.kyguidatvuon.com | Socket.IO |
+### Kiểm tra containers:
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod ps
+```
+
+Tất cả phải ở trạng thái `Up`:
+```
+khodat-api-gateway    Up
+khodat-san-dat        Up
+khodat-admin          Up
+khodat-backend        Up
+khodat-backend-nginx  Up
+khodat-frontend       Up
+khodat-mysql          Up (healthy)
+khodat-redis          Up
+khodat-socket         Up
+```
+
+### Kiểm tra website:
+```bash
+curl -I https://kyguidatvuon.com       # → 200
+curl -I https://api.kyguidatvuon.com    # → 200
+curl -I https://app.kyguidatvuon.com    # → 200
+curl -I https://admin.kyguidatvuon.com  # → 200
+curl -I https://backend.kyguidatvuon.com/api/public/consignments  # → 200
+```
+
+### Kiểm tra logs nếu lỗi:
+```bash
+# Log từng container
+docker logs khodat-backend --tail 50
+docker logs khodat-frontend --tail 50
+docker logs khodat-api-gateway --tail 50
+docker logs khodat-mysql --tail 50
+
+# Log Nginx host
+sudo tail -f /var/log/nginx/error.log
+```
 
 ---
 
 ## Lệnh thường dùng
 
-```bash
-# Alias ngắn gọn (thêm vào ~/.bashrc)
-alias dc="docker compose -f docker-compose.prod.yml --env-file .env.prod"
-
-# Sau đó dùng:
-dc ps                    # Xem status
-dc logs -f api-gateway   # Xem logs
-dc restart backend       # Restart service
-dc exec backend bash     # Vào container
-
-# Deploy bản mới
-bash deploy.sh
-
-# Rebuild hoàn toàn
-bash deploy.sh --build
-```
+| Lệnh | Mô tả |
+|-------|--------|
+| `bash deploy.sh` | Deploy nhanh (dùng cache) |
+| `bash deploy.sh --build` | Deploy full rebuild |
+| `docker compose -f docker-compose.prod.yml --env-file .env.prod ps` | Xem status |
+| `docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f backend` | Xem log backend |
+| `docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan migrate` | Chạy migration |
+| `docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan tinker` | Laravel tinker |
+| `docker compose -f docker-compose.prod.yml --env-file .env.prod restart backend backend-nginx` | Restart backend |
+| `sudo certbot renew` | Gia hạn SSL |
+| `sudo nginx -t && sudo systemctl reload nginx` | Test & reload Nginx |
 
 ---
 
-## Troubleshooting
+## Xử lý sự cố
 
-| Vấn đề | Giải pháp |
-|---------|-----------|
-| 502 Bad Gateway | Container chưa chạy → `dc ps` & `dc logs [service]` |
-| SSL error | `sudo certbot renew --force-renewal` |
-| Permission denied (Laravel) | `dc exec backend chmod -R 775 storage bootstrap/cache` |
-| MySQL refused | Đợi healthcheck → `dc logs mysql` |
-| Port đã bị dùng | `sudo lsof -i :8080` → kill process |
+### Container không start?
+```bash
+docker logs khodat-backend --tail 100
+# Thường là do: thiếu env var, sai DB password, hoặc APP_KEY chưa set
+```
+
+### 502 Bad Gateway?
+```bash
+# Container có đang chạy không?
+docker ps | grep khodat
+
+# Port có đang listen?
+ss -tlnp | grep 8015
+
+# Nginx config có đúng?
+sudo nginx -t
+```
+
+### Email verification không gửi?
+```bash
+# Kiểm tra SMTP config
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+  php artisan tinker --execute="Mail::raw('Test', fn(\$m) => \$m->to('your@email.com')->subject('Test'));"
+
+# Xem log
+docker logs khodat-backend --tail 50 | grep -i mail
+```
+
+### Tạo Admin user:
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+  php artisan tinker --execute="
+    \$user = App\Models\User::where('email', 'admin@kyguidatvuon.com')->first();
+    if (\$user) {
+      \$role = App\Models\Role::firstOrCreate(['name' => 'admin', 'display_name' => 'Administrator']);
+      \$user->assignRole(\$role);
+      echo 'Admin role assigned!';
+    }
+  "
+```
+
+### Seed dữ liệu ban đầu:
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+  php artisan db:seed --force
+```
