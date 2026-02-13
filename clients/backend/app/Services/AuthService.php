@@ -29,6 +29,9 @@ class AuthService
             'frozen_balance' => 0,
         ]);
 
+        // Send email verification
+        $user->sendEmailVerificationNotification();
+
         return $user;
     }
 

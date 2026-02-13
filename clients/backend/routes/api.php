@@ -14,6 +14,8 @@ use App\Http\Controllers\PostingPackageController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\IpnConfigController;
 use App\Http\Controllers\IpnHandlerController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request as HttpRequest;
 
 
 /*
@@ -23,11 +25,13 @@ use App\Http\Controllers\IpnHandlerController;
 */
 
 // Public routes - Posting Packages (Gói đăng bài - public để xem giá)
-Route::get('/posting-packages', [PostingPackageController::class, 'index']);
-Route::get('/posting-packages/{id}', [PostingPackageController::class, 'show']);
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/posting-packages', [PostingPackageController::class, 'index']);
+    Route::get('/posting-packages/{id}', [PostingPackageController::class, 'show']);
+});
 
 // Public routes - Consignments (Xem danh sách bất động sản công khai)
-Route::prefix('public')->group(function () {
+Route::prefix('public')->middleware('throttle:60,1')->group(function () {
     Route::get('/consignments', [PublicConsignmentController::class, 'index']);
     Route::get('/consignments/by-slug/{slug}', [PublicConsignmentController::class, 'showBySlug']);
     Route::get('/consignments/{id}', [PublicConsignmentController::class, 'show']);
@@ -39,8 +43,8 @@ Route::prefix('webhooks')->group(function () {
     Route::post('/consignment', [ConsignmentWebhookController::class, 'handle']);
 });
 
-// Public routes
-Route::prefix('auth')->group(function () {
+// Public routes - Auth (rate limited to prevent brute force)
+Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
     // Regular authentication
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
@@ -60,8 +64,8 @@ Route::prefix('auth')->middleware('api.session')->group(function () {
     Route::get('/zalo/callback', [SocialAuthController::class, 'handleZaloCallback']);
 });
 
-// Payment callbacks (public)
-Route::prefix('payments')->group(function () {
+// Payment callbacks (public, rate limited)
+Route::prefix('payments')->middleware('throttle:30,1')->group(function () {
     Route::get('/vnpay/callback', [PaymentController::class, 'vnpayCallback']);
     Route::post('/momo/callback', [PaymentController::class, 'momoCallback']);
     Route::post('/momo/notify', [PaymentController::class, 'momoNotify']);
@@ -69,7 +73,7 @@ Route::prefix('payments')->group(function () {
 });
 
 // IPN Handler routes (public - called by payment gateways)
-Route::prefix('ipn')->group(function () {
+Route::prefix('ipn')->middleware('throttle:30,1')->group(function () {
     Route::post('/vnpay', [IpnHandlerController::class, 'vnpay']);
     Route::post('/momo', [IpnHandlerController::class, 'momo']);
     Route::post('/zalopay', [IpnHandlerController::class, 'zalopay']);
@@ -80,14 +84,37 @@ Route::prefix('ipn')->group(function () {
 // IPN Configuration endpoints (public - for getting URL info)
 Route::get('/ipn/endpoints', [IpnConfigController::class, 'endpoints']);
 
-// Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+// Protected routes (authenticated + rate limited)
+Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     // Auth
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::delete('/auth/account', [AuthController::class, 'deleteAccount']);
 
-    // User Profile
+    // Email verification
+    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+        $request->fulfill();
+        return response()->json([
+            'success' => true,
+            'message' => 'Email đã được xác thực thành công'
+        ]);
+    })->middleware('signed')->name('verification.verify');
+
+    Route::post('/email/resend', function (HttpRequest $request) {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email đã được xác thực rồi'
+            ]);
+        }
+        $request->user()->sendEmailVerificationNotification();
+        return response()->json([
+            'success' => true,
+            'message' => 'Link xác thực đã được gửi lại'
+        ]);
+    })->middleware('throttle:3,1')->name('verification.send');
+
+    // User Profile (accessible without email verification)
     Route::get('/user/profile', [UserController::class, 'profile']);
     Route::put('/user/profile', [UserController::class, 'updateProfile']);
     Route::put('/user/password', [UserController::class, 'updatePassword']);
@@ -161,8 +188,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/stats/overview', [IpnConfigController::class, 'statistics']);
     });
 
-    // Admin Panel Routes
-    Route::prefix('admin')->group(function () {
+    // Admin Panel Routes (admin role required)
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
         Route::delete('/users/{id}', [App\Http\Controllers\AdminController::class, 'destroyUser']);

@@ -22,9 +22,25 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             return '/';
         });
-        // Enable CORS for all requests
+
+        // Global middleware stack
         $middleware->use([
             \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+
+        // Trust reverse proxy (Nginx) for HTTPS
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_FOR |
+            Request::HEADER_X_FORWARDED_HOST |
+            Request::HEADER_X_FORWARDED_PORT |
+            Request::HEADER_X_FORWARDED_PROTO |
+            Request::HEADER_X_FORWARDED_AWS_ELB,
+        );
+
+        // Sanitize all input (XSS prevention)
+        $middleware->appendToGroup('api', [
+            \App\Http\Middleware\SanitizeInput::class,
         ]);
 
         // API routes use token-based auth (Sanctum API tokens), not session-based

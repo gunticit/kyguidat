@@ -11,7 +11,8 @@ class MomoService
 {
     public function __construct(
         private PaymentService $paymentService
-    ) {}
+    ) {
+    }
 
     /**
      * Create Momo payment
@@ -45,11 +46,11 @@ class MomoService
         ]);
 
         // Create signature
-        $rawHash = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData 
-            . "&ipnUrl=" . $notifyUrl . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo 
-            . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $returnUrl 
+        $rawHash = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData
+            . "&ipnUrl=" . $notifyUrl . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo
+            . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $returnUrl
             . "&requestId=" . $requestId . "&requestType=" . $requestType;
-        
+
         $signature = hash_hmac("sha256", $rawHash, $secretKey);
 
         $requestData = [
@@ -105,6 +106,36 @@ class MomoService
     }
 
     /**
+     * Verify MoMo signature
+     */
+    private function verifySignature(array $data): bool
+    {
+        $secretKey = config('payment.momo.secret_key');
+        $accessKey = config('payment.momo.access_key');
+
+        $signature = $data['signature'] ?? '';
+
+        // Build raw hash string per MoMo docs
+        $rawHash = "accessKey=" . $accessKey
+            . "&amount=" . ($data['amount'] ?? '')
+            . "&extraData=" . ($data['extraData'] ?? '')
+            . "&message=" . ($data['message'] ?? '')
+            . "&orderId=" . ($data['orderId'] ?? '')
+            . "&orderInfo=" . ($data['orderInfo'] ?? '')
+            . "&orderType=" . ($data['orderType'] ?? '')
+            . "&partnerCode=" . ($data['partnerCode'] ?? '')
+            . "&payType=" . ($data['payType'] ?? '')
+            . "&requestId=" . ($data['requestId'] ?? '')
+            . "&responseTime=" . ($data['responseTime'] ?? '')
+            . "&resultCode=" . ($data['resultCode'] ?? '')
+            . "&transId=" . ($data['transId'] ?? '');
+
+        $expectedSignature = hash_hmac('sha256', $rawHash, $secretKey);
+
+        return hash_equals($expectedSignature, $signature);
+    }
+
+    /**
      * Handle Momo callback
      */
     public function handleCallback(array $data): array
@@ -118,6 +149,20 @@ class MomoService
                 'success' => false,
                 'transaction_id' => $transactionId,
                 'message' => 'Không tìm thấy giao dịch',
+            ];
+        }
+
+        // Verify MoMo signature to prevent forged callbacks
+        if (!$this->verifySignature($data)) {
+            $payment->update([
+                'status' => Payment::STATUS_FAILED,
+                'gateway_response' => array_merge($data, ['error' => 'Invalid signature']),
+            ]);
+
+            return [
+                'success' => false,
+                'transaction_id' => $transactionId,
+                'message' => 'Chữ ký không hợp lệ',
             ];
         }
 
