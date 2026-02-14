@@ -1,16 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiArrowLeft, FiUpload, FiX, FiFile } from 'react-icons/fi';
 import Link from 'next/link';
-import { consignmentApi } from '@/lib/api';
+import { consignmentApi, uploadApi } from '@/lib/api';
 import { formatCurrencyInput } from '@/lib/formatCurrency';
 import styles from './new.module.css';
+
+interface ImageItem {
+    file: File;
+    preview: string; // blob URL for preview only
+}
 
 export default function NewConsignmentPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState('');
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -21,7 +27,7 @@ export default function NewConsignmentPage() {
         seller_phone: '',
         note_to_admin: '',
     });
-    const [images, setImages] = useState<string[]>([]);
+    const [imageItems, setImageItems] = useState<ImageItem[]>([]);
     const [descriptionFiles, setDescriptionFiles] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [apiError, setApiError] = useState<string | null>(null);
@@ -36,30 +42,33 @@ export default function NewConsignmentPage() {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files) {
-            // TODO: Implement actual upload to server
-            const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-            setImages(prev => [...prev, ...newImages].slice(0, 20));
+            const newItems: ImageItem[] = Array.from(files).map(file => ({
+                file,
+                preview: URL.createObjectURL(file),
+            }));
+            setImageItems(prev => [...prev, ...newItems].slice(0, 20));
         }
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files) {
-            // TODO: Implement actual upload to server
             const newFiles = Array.from(files).map(file => file.name);
             setDescriptionFiles(prev => [...prev, ...newFiles].slice(0, 5));
         }
     };
 
     const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
+        setImageItems(prev => {
+            const removed = prev[index];
+            if (removed) URL.revokeObjectURL(removed.preview);
+            return prev.filter((_, i) => i !== index);
+        });
     };
 
     const removeFile = (index: number) => {
         setDescriptionFiles(prev => prev.filter((_, i) => i !== index));
     };
-
-
 
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -99,6 +108,21 @@ export default function NewConsignmentPage() {
         }
 
         try {
+            // Step 1: Upload images to server first
+            let uploadedImageUrls: string[] = [];
+            if (imageItems.length > 0) {
+                setUploadProgress('Đang tải ảnh lên...');
+                const files = imageItems.map(item => item.file);
+                const uploadResponse = await uploadApi.uploadMultiple(files, 'consignments');
+                if (uploadResponse.data.success) {
+                    uploadedImageUrls = uploadResponse.data.data.map((item: any) => item.url);
+                } else {
+                    throw new Error(uploadResponse.data.message || 'Upload ảnh thất bại');
+                }
+            }
+
+            // Step 2: Create consignment with real image URLs
+            setUploadProgress('Đang tạo ký gửi...');
             const response = await consignmentApi.create({
                 title: formData.title,
                 description: formData.description || undefined,
@@ -107,12 +131,14 @@ export default function NewConsignmentPage() {
                 price: parseInt(formData.price),
                 min_price: formData.min_price ? parseInt(formData.min_price) : undefined,
                 seller_phone: formData.seller_phone,
-                images: images.length > 0 ? images : undefined,
+                images: uploadedImageUrls.length > 0 ? uploadedImageUrls : undefined,
                 description_files: descriptionFiles.length > 0 ? descriptionFiles : undefined,
                 note_to_admin: formData.note_to_admin || undefined,
             });
 
             if (response.data.success) {
+                // Clean up blob URLs
+                imageItems.forEach(item => URL.revokeObjectURL(item.preview));
                 router.push('/dashboard/consignments');
             } else {
                 setApiError(response.data.message || 'Có lỗi xảy ra khi tạo ký gửi');
@@ -132,10 +158,11 @@ export default function NewConsignmentPage() {
                 });
                 setErrors(newErrors);
             } else {
-                setApiError('Có lỗi xảy ra. Vui lòng thử lại.');
+                setApiError(error.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
             }
         } finally {
             setIsLoading(false);
+            setUploadProgress('');
         }
     };
 
@@ -301,9 +328,9 @@ export default function NewConsignmentPage() {
                                 />
                             </label>
 
-                            {images.map((img, index) => (
+                            {imageItems.map((item, index) => (
                                 <div key={index} className={styles.imagePreview}>
-                                    <img src={img} alt={`Preview ${index + 1}`} />
+                                    <img src={item.preview} alt={`Preview ${index + 1}`} />
                                     <button
                                         type="button"
                                         className={styles.removeImageBtn}
@@ -376,7 +403,7 @@ export default function NewConsignmentPage() {
                         Hủy
                     </Link>
                     <button type="submit" className="btn btn-primary" disabled={isLoading}>
-                        {isLoading ? <span className="spinner" /> : 'Tạo yêu cầu'}
+                        {isLoading ? <><span className="spinner" /> {uploadProgress}</> : 'Tạo yêu cầu'}
                     </button>
                 </div>
             </form>

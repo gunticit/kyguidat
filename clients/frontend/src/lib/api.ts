@@ -169,4 +169,24 @@ export const postingPackageApi = {
         api.get('/my-packages/current'),
 };
 
+// Upload APIs
+export const uploadApi = {
+    uploadMultiple: (files: File[], directory = 'consignments') => {
+        const formData = new FormData();
+        files.forEach(file => formData.append('files[]', file));
+        formData.append('directory', directory);
+        return api.post('/upload/multiple', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+    uploadSingle: (file: File, directory = 'uploads') => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('directory', directory);
+        return api.post('/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+};
+
 export default api;
