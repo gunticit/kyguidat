@@ -62,9 +62,11 @@ RUN { \
     } > /usr/local/etc/php/conf.d/production.ini
 
 # PHP-FPM configuration for production
-# Remove default config that binds to 127.0.0.1:9000 (blocks external connections)
-RUN rm -f /usr/local/etc/php-fpm.d/zz-docker.conf && \
-    { \
+# Overwrite default zz-docker.conf to bind to 0.0.0.0:9000 (not 127.0.0.1)
+# MUST keep daemonize=no or Docker will restart the container endlessly
+RUN { \
+    echo '[global]'; \
+    echo 'daemonize = no'; \
     echo '[www]'; \
     echo 'listen = 0.0.0.0:9000'; \
     echo 'pm = dynamic'; \
@@ -76,7 +78,7 @@ RUN rm -f /usr/local/etc/php-fpm.d/zz-docker.conf && \
     echo 'pm.status_path = /status'; \
     echo 'ping.path = /ping'; \
     echo 'ping.response = pong'; \
-    } > /usr/local/etc/php-fpm.d/zz-production.conf
+    } > /usr/local/etc/php-fpm.d/zz-docker.conf
 
 # Install php-fpm-healthcheck
 RUN curl -o /usr/local/bin/php-fpm-healthcheck \
