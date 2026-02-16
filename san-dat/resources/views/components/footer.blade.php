@@ -8,7 +8,7 @@
     $phone = $settings['phone'] ?? '0123 456 789';
     $address = $settings['address'] ?? 'TP. Hồ Chí Minh';
     $siteName = $settings['siteName'] ?? 'SànĐất';
-    $logo = $settings['logo'] ?? '';
+    $logo = isset($settings['logo']) ? preg_replace('#^https?://[^/]+#', '', $settings['logo']) : '';
 @endphp
 <footer class="bg-navy-900 border-t border-navy-600 mt-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

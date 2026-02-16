@@ -10,7 +10,7 @@
         if (Storage::exists('settings.json')) {
             $appSettings = json_decode(Storage::get('settings.json'), true) ?? [];
         }
-        $appFavicon = $appSettings['favicon'] ?? '';
+        $appFavicon = isset($appSettings['favicon']) ? preg_replace('#^https?://[^/]+#', '', $appSettings['favicon']) : '';
         $appSiteName = $appSettings['siteName'] ?? 'Sàn Đất';
     @endphp
     <title>@yield('title', $appSiteName . ' - Ký gửi Bất động sản')</title>

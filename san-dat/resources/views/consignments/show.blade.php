@@ -14,6 +14,8 @@
                 $images = $consignment['images'];
             }
         }
+        // Strip any hardcoded domain from image URLs
+        $images = array_map(fn($img) => preg_replace('#^https?://[^/]+#', '', $img), $images);
 
         // Calculate price per m2
         $pricePerM2 = null;

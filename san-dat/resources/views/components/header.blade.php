@@ -4,8 +4,9 @@
     if (Storage::exists('settings.json')) {
         $settings = json_decode(Storage::get('settings.json'), true) ?? [];
     }
-    $logo = $settings['logo'] ?? '';
-    $favicon = $settings['favicon'] ?? '';
+    // Strip any hardcoded domain from URLs (e.g. http://localhost:8088/storage/... → /storage/...)
+    $logo = isset($settings['logo']) ? preg_replace('#^https?://[^/]+#', '', $settings['logo']) : '';
+    $favicon = isset($settings['favicon']) ? preg_replace('#^https?://[^/]+#', '', $settings['favicon']) : '';
     $siteName = $settings['siteName'] ?? 'SànĐất';
 @endphp
 <header class="bg-navy-800 border-b border-navy-600 sticky top-0 z-50">

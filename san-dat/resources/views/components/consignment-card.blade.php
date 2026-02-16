@@ -4,6 +4,8 @@
     <div class="aspect-video bg-navy-800 relative overflow-hidden">
         @php
             $images = is_string($consignment['images'] ?? '') ? json_decode($consignment['images'], true) : ($consignment['images'] ?? []);
+            // Strip any hardcoded domain from image URLs
+            $images = array_map(fn($img) => preg_replace('#^https?://[^/]+#', '', $img), $images ?: []);
             $firstImage = $images[0] ?? null;
         @endphp
 
