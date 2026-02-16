@@ -78,5 +78,9 @@ export const adminApi = {
     replySupportTicket: (id, data) => api.post(`/admin/supports/${id}/reply`, data),
     updateTicketStatus: (id, data) => api.put(`/admin/supports/${id}/status`, data),
     closeSupportTicket: (id) => api.post(`/admin/supports/${id}/close`),
+
+    // Reports
+    getReportOverview: () => api.get('/admin/reports/overview'),
+    exportReport: () => api.get('/admin/reports/export', { responseType: 'blob' }),
 }
 

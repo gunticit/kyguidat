@@ -29,6 +29,7 @@ func main() {
 	repo := repository.NewMySQLRepository(db)
 
 	consignmentHandler := handlers.NewConsignmentHandler(repo)
+	reportHandler := handlers.NewReportHandler(repo)
 
 	// Backend URL for proxying auth requests
 	backendURL := os.Getenv("BACKEND_URL")
@@ -95,6 +96,10 @@ func main() {
 		admin.POST("/supports/:id/close", proxyHandler.ProxyRequest)
 
 		admin.GET("/transactions", proxyHandler.ProxyRequest)
+
+		// Reports (handled directly by Go, not proxied)
+		admin.GET("/reports/overview", reportHandler.Overview)
+		admin.GET("/reports/export", reportHandler.ExportExcel)
 	}
 
 	// Get port from environment

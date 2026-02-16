@@ -198,3 +198,96 @@ func (r *MySQLRepository) GetDashboardStats() (map[string]interface{}, error) {
 		"total_transactions":   totalTransactions,
 	}, nil
 }
+
+// ---- Report Methods ----
+
+// MonthlyCount holds count per month
+type MonthlyCount struct {
+	Year  int   `json:"year"`
+	Month int   `json:"month"`
+	Count int64 `json:"count"`
+}
+
+// MonthlyRevenue holds revenue per month
+type MonthlyRevenue struct {
+	Year   int     `json:"year"`
+	Month  int     `json:"month"`
+	Amount float64 `json:"amount"`
+}
+
+// StatusCount holds count per status
+type StatusCount struct {
+	Status string `json:"status"`
+	Count  int64  `json:"count"`
+}
+
+// ProvinceCount holds count per province
+type ProvinceCount struct {
+	Province string `json:"province"`
+	Count    int64  `json:"count"`
+}
+
+// GetConsignmentsByMonth returns consignment counts grouped by month
+func (r *MySQLRepository) GetConsignmentsByMonth(months int) ([]MonthlyCount, error) {
+	var results []MonthlyCount
+	err := r.db.Model(&models.Consignment{}).
+		Select("YEAR(created_at) as year, MONTH(created_at) as month, COUNT(*) as count").
+		Where("created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)", months).
+		Group("YEAR(created_at), MONTH(created_at)").
+		Order("year ASC, month ASC").
+		Find(&results).Error
+	return results, err
+}
+
+// GetConsignmentsByStatus returns consignment counts grouped by status
+func (r *MySQLRepository) GetConsignmentsByStatus() ([]StatusCount, error) {
+	var results []StatusCount
+	err := r.db.Model(&models.Consignment{}).
+		Select("status, COUNT(*) as count").
+		Group("status").
+		Find(&results).Error
+	return results, err
+}
+
+// GetConsignmentsByProvince returns top provinces by consignment count
+func (r *MySQLRepository) GetConsignmentsByProvince(limit int) ([]ProvinceCount, error) {
+	var results []ProvinceCount
+	err := r.db.Model(&models.Consignment{}).
+		Select("province, COUNT(*) as count").
+		Where("province != '' AND province IS NOT NULL").
+		Group("province").
+		Order("count DESC").
+		Limit(limit).
+		Find(&results).Error
+	return results, err
+}
+
+// GetRevenueByMonth returns revenue grouped by month
+func (r *MySQLRepository) GetRevenueByMonth(months int) ([]MonthlyRevenue, error) {
+	var results []MonthlyRevenue
+	err := r.db.Model(&models.Transaction{}).
+		Select("YEAR(created_at) as year, MONTH(created_at) as month, COALESCE(SUM(amount), 0) as amount").
+		Where("status = ? AND created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)", "completed", months).
+		Group("YEAR(created_at), MONTH(created_at)").
+		Order("year ASC, month ASC").
+		Find(&results).Error
+	return results, err
+}
+
+// GetAllConsignmentsForExport returns all consignments without pagination
+func (r *MySQLRepository) GetAllConsignmentsForExport() ([]models.Consignment, error) {
+	var consignments []models.Consignment
+	err := r.db.Preload("User").Preload("Category").
+		Order("created_at DESC").
+		Find(&consignments).Error
+	return consignments, err
+}
+
+// GetAllTransactionsForExport returns all transactions without pagination
+func (r *MySQLRepository) GetAllTransactionsForExport() ([]models.Transaction, error) {
+	var transactions []models.Transaction
+	err := r.db.Preload("User").
+		Order("created_at DESC").
+		Find(&transactions).Error
+	return transactions, err
+}
