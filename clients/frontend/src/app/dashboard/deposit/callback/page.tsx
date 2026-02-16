@@ -1,9 +1,10 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { FiCheckCircle, FiXCircle, FiAlertTriangle, FiArrowLeft } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiAlertTriangle, FiArrowLeft, FiLoader } from 'react-icons/fi';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 const responseMessages: Record<string, string> = {
     '00': 'Giao dịch thành công',
@@ -29,6 +30,8 @@ function CallbackContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [countdown, setCountdown] = useState(10);
+    const [verifying, setVerifying] = useState(true);
+    const [backendResult, setBackendResult] = useState<{ success: boolean; message?: string } | null>(null);
 
     const responseCode = searchParams.get('vnp_ResponseCode') || '';
     const transactionStatus = searchParams.get('vnp_TransactionStatus') || '';
@@ -37,7 +40,7 @@ function CallbackContent() {
     const bankCode = searchParams.get('vnp_BankCode') || '';
     const payDate = searchParams.get('vnp_PayDate') || '';
 
-    const isSuccess = responseCode === '00' && transactionStatus === '00';
+    const isVnpaySuccess = responseCode === '00' && transactionStatus === '00';
     const isCancelled = responseCode === '24';
     const message = responseMessages[responseCode] || 'Giao dịch không thành công';
 
@@ -45,7 +48,42 @@ function CallbackContent() {
         ? `${payDate.slice(6, 8)}/${payDate.slice(4, 6)}/${payDate.slice(0, 4)} ${payDate.slice(8, 10)}:${payDate.slice(10, 12)}:${payDate.slice(12, 14)}`
         : '';
 
+    // Call backend to verify and process the payment
+    const verifyPayment = useCallback(async () => {
+        try {
+            // Forward all VNPay params to backend for verification
+            const params = new URLSearchParams();
+            searchParams.forEach((value, key) => {
+                params.append(key, value);
+            });
+
+            const response = await api.get(`/payments/vnpay/callback?${params.toString()}`);
+            setBackendResult({
+                success: response.data?.success || false,
+                message: response.data?.message,
+            });
+        } catch (error: any) {
+            console.error('Payment verification error:', error);
+            // Even if backend call fails, the payment might have been processed via IPN
+            setBackendResult({
+                success: false,
+                message: 'Không thể xác thực thanh toán. Vui lòng kiểm tra lại số dư.',
+            });
+        } finally {
+            setVerifying(false);
+        }
+    }, [searchParams]);
+
     useEffect(() => {
+        verifyPayment();
+    }, [verifyPayment]);
+
+    // Determine final status
+    const isSuccess = backendResult ? backendResult.success : isVnpaySuccess;
+    const statusMessage = backendResult?.message || message;
+
+    useEffect(() => {
+        if (verifying) return;
         const timer = setInterval(() => {
             setCountdown(prev => {
                 if (prev <= 1) {
@@ -57,7 +95,35 @@ function CallbackContent() {
             });
         }, 1000);
         return () => clearInterval(timer);
-    }, [router]);
+    }, [router, verifying]);
+
+    if (verifying) {
+        return (
+            <div style={{ maxWidth: 560, margin: '0 auto', padding: '40px 20px' }}>
+                <div style={{
+                    background: 'var(--card)',
+                    borderRadius: 16,
+                    padding: '60px 32px',
+                    textAlign: 'center',
+                    border: '1px solid var(--border)',
+                }}>
+                    <div style={{
+                        width: 64, height: 64, margin: '0 auto 20px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                        <FiLoader size={48} color="var(--primary)" style={{ animation: 'spin 1s linear infinite' }} />
+                    </div>
+                    <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>
+                        Đang xác thực thanh toán...
+                    </h1>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+                        Vui lòng chờ trong giây lát
+                    </p>
+                </div>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+        );
+    }
 
     return (
         <div style={{ maxWidth: 560, margin: '0 auto', padding: '40px 20px' }}>
@@ -86,7 +152,7 @@ function CallbackContent() {
                 </h1>
 
                 <p style={{ color: 'var(--text-secondary)', marginBottom: 24, fontSize: 14 }}>
-                    {message}
+                    {statusMessage}
                 </p>
 
                 <div style={{

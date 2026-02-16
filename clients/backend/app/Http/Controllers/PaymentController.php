@@ -15,7 +15,8 @@ class PaymentController extends Controller
         private PaymentService $paymentService,
         private VnpayService $vnpayService,
         private MomoService $momoService
-    ) {}
+    ) {
+    }
 
     /**
      * Get payment history
@@ -75,11 +76,21 @@ class PaymentController extends Controller
     /**
      * Handle VNPay callback
      */
-    public function vnpayCallback(Request $request): \Illuminate\Http\RedirectResponse
+    public function vnpayCallback(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $result = $this->vnpayService->handleCallback($request->all());
 
-        $redirectUrl = config('app.frontend_url') . '/deposit/result';
+        // If called from frontend (AJAX), return JSON
+        if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'] ?? '',
+                'transaction_id' => $result['transaction_id'] ?? '',
+            ]);
+        }
+
+        // Otherwise redirect (direct browser access)
+        $redirectUrl = config('app.frontend_url') . '/dashboard/deposit/callback';
         $redirectUrl .= '?status=' . ($result['success'] ? 'success' : 'failed');
         $redirectUrl .= '&transaction_id=' . $result['transaction_id'];
 
