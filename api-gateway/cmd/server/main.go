@@ -65,6 +65,17 @@ func main() {
 	// Proxy handler for Laravel backend
 	proxyHandler := handlers.NewProxyHandler(backendURL)
 
+	// Social auth routes - proxy to Laravel backend (OAuth redirect flow)
+	authProxy := r.Group("/api/auth")
+	{
+		authProxy.GET("/google", proxyHandler.ProxyRequest)
+		authProxy.GET("/google/callback", proxyHandler.ProxyRequest)
+		authProxy.GET("/facebook", proxyHandler.ProxyRequest)
+		authProxy.GET("/facebook/callback", proxyHandler.ProxyRequest)
+		authProxy.GET("/zalo", proxyHandler.ProxyRequest)
+		authProxy.GET("/zalo/callback", proxyHandler.ProxyRequest)
+	}
+
 	// Public proxy routes (to Laravel backend)
 	publicProxy := r.Group("/api/public")
 	{
