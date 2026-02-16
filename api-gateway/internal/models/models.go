@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // User represents user model
@@ -19,38 +21,29 @@ type User struct {
 
 // Consignment represents consignment/property model
 type Consignment struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	UserID      uint      `json:"user_id"`
-	Code        string    `json:"code" gorm:"uniqueIndex"`
-	Title       string    `json:"title"`
-	Description string    `json:"description" gorm:"type:text"`
-	Price       float64   `json:"price"`
-	Area        float64   `json:"area"`
-	Address     string    `json:"address"`
-	Province    string    `json:"province"`
-	District    string    `json:"district"`
-	Ward        string    `json:"ward"`
-	Latitude    string    `json:"latitude"`
-	Longitude   string    `json:"longitude"`
-	CategoryID  uint      `json:"category_id"`
-	Status      string    `json:"status" gorm:"default:pending"` // pending, approved, rejected, sold
-	Images      string    `json:"images" gorm:"type:json"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID            uint           `json:"id" gorm:"primaryKey"`
+	UserID        uint           `json:"user_id"`
+	Code          string         `json:"code" gorm:"uniqueIndex"`
+	Title         string         `json:"title"`
+	Description   string         `json:"description" gorm:"type:text"`
+	FeaturedImage string         `json:"featured_image"`
+	Price         float64        `json:"price"`
+	Address       string         `json:"address"`
+	Province      string         `json:"province"`
+	Ward          string         `json:"ward"`
+	Latitude      string         `json:"latitude"`
+	Longitude     string         `json:"longitude"`
+	SeoUrl        string         `json:"seo_url"`
+	Status        string         `json:"status" gorm:"default:pending"` // pending, approved, rejected, sold
+	Images        string         `json:"images" gorm:"type:json"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `json:"-" gorm:"index"`
 
 	// Computed field (not stored in DB)
 	Distance float64 `json:"distance,omitempty" gorm:"-"`
 
-	User     User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
-	Category Category `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
-}
-
-// Category represents property category
-type Category struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Name      string    `json:"name"`
-	Slug      string    `json:"slug" gorm:"uniqueIndex"`
-	CreatedAt time.Time `json:"created_at"`
+	User User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 
 // Transaction represents payment transaction
@@ -67,9 +60,8 @@ type Transaction struct {
 	User User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 
-// Location for province/district data
+// Location for province data
 type Location struct {
 	Province string `json:"province"`
-	District string `json:"district"`
 	Count    int    `json:"count"`
 }

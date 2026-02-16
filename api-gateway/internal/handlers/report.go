@@ -74,7 +74,7 @@ func (h *ReportHandler) ExportExcel(c *gin.Context) {
 	f.SetSheetName("Sheet1", sheetName)
 
 	// Headers
-	headers := []string{"ID", "Mã", "Tiêu đề", "Giá (VNĐ)", "Diện tích (m²)", "Địa chỉ", "Tỉnh/TP", "Quận/Huyện", "Trạng thái", "Ngày tạo", "Người gửi"}
+	headers := []string{"ID", "Mã", "Tiêu đề", "Giá (VNĐ)", "Địa chỉ", "Tỉnh/TP", "Phường/Xã", "Trạng thái", "Ngày tạo", "Người gửi"}
 	for i, h := range headers {
 		cell := fmt.Sprintf("%c1", 'A'+i)
 		f.SetCellValue(sheetName, cell, h)
@@ -111,17 +111,16 @@ func (h *ReportHandler) ExportExcel(c *gin.Context) {
 		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), item.Code)
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), item.Title)
 		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), item.Price)
-		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), item.Area)
-		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), item.Address)
-		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), item.Province)
-		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), item.District)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), item.Address)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), item.Province)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), item.Ward)
 		status := item.Status
 		if v, ok := statusMap[item.Status]; ok {
 			status = v
 		}
-		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), status)
-		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), item.CreatedAt.Format("02/01/2006"))
-		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), item.User.Name)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), status)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), item.CreatedAt.Format("02/01/2006"))
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), item.User.Name)
 	}
 
 	// Auto-fit columns

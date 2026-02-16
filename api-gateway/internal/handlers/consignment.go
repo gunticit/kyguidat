@@ -57,15 +57,9 @@ func (h *ConsignmentHandler) Show(c *gin.Context) {
 	response.Success(c, consignment)
 }
 
-// Categories returns all categories
+// Categories returns all categories (currently empty - no categories table)
 func (h *ConsignmentHandler) Categories(c *gin.Context) {
-	categories, err := h.repo.GetCategories()
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Failed to fetch categories")
-		return
-	}
-
-	response.Success(c, categories)
+	response.Success(c, []interface{}{})
 }
 
 // Locations returns available locations

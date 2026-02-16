@@ -16,9 +16,6 @@ type Repository interface {
 	GetAllConsignments(page, limit int, status string) ([]models.Consignment, int64, error)
 	UpdateConsignmentStatus(id uint, status string) error
 
-	// Categories
-	GetCategories() ([]models.Category, error)
-
 	// Locations
 	GetLocations() ([]models.Location, error)
 
@@ -71,7 +68,7 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 
 		err := query.
 			Select(fmt.Sprintf("*, %s AS distance", distanceExpr)).
-			Preload("User").Preload("Category").
+			Preload("User").
 			Where("latitude IS NOT NULL AND latitude != '' AND longitude IS NOT NULL AND longitude != ''").
 			Offset(offset).Limit(limit).
 			Order("distance ASC").
@@ -81,7 +78,7 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 	}
 
 	// Default: sort by created_at
-	err := query.Preload("User").Preload("Category").
+	err := query.Preload("User").
 		Offset(offset).Limit(limit).
 		Order("created_at DESC").
 		Find(&consignments).Error
@@ -92,7 +89,7 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 // GetConsignmentByID returns single consignment
 func (r *MySQLRepository) GetConsignmentByID(id uint) (*models.Consignment, error) {
 	var consignment models.Consignment
-	err := r.db.Preload("User").Preload("Category").First(&consignment, id).Error
+	err := r.db.Preload("User").First(&consignment, id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +109,7 @@ func (r *MySQLRepository) GetAllConsignments(page, limit int, status string) ([]
 	query.Count(&total)
 
 	offset := (page - 1) * limit
-	err := query.Preload("User").Preload("Category").
+	err := query.Preload("User").
 		Offset(offset).Limit(limit).
 		Order("created_at DESC").
 		Find(&consignments).Error
@@ -125,20 +122,13 @@ func (r *MySQLRepository) UpdateConsignmentStatus(id uint, status string) error 
 	return r.db.Model(&models.Consignment{}).Where("id = ?", id).Update("status", status).Error
 }
 
-// GetCategories returns all categories
-func (r *MySQLRepository) GetCategories() ([]models.Category, error) {
-	var categories []models.Category
-	err := r.db.Find(&categories).Error
-	return categories, err
-}
-
 // GetLocations returns provinces with count
 func (r *MySQLRepository) GetLocations() ([]models.Location, error) {
 	var locations []models.Location
 	err := r.db.Model(&models.Consignment{}).
-		Select("province, district, COUNT(*) as count").
+		Select("province, COUNT(*) as count").
 		Where("status = ?", "approved").
-		Group("province, district").
+		Group("province").
 		Find(&locations).Error
 	return locations, err
 }
@@ -277,7 +267,7 @@ func (r *MySQLRepository) GetRevenueByMonth(months int) ([]MonthlyRevenue, error
 // GetAllConsignmentsForExport returns all consignments without pagination
 func (r *MySQLRepository) GetAllConsignmentsForExport() ([]models.Consignment, error) {
 	var consignments []models.Consignment
-	err := r.db.Preload("User").Preload("Category").
+	err := r.db.Preload("User").
 		Order("created_at DESC").
 		Find(&consignments).Error
 	return consignments, err
