@@ -28,11 +28,11 @@ class GolangApiService
     }
 
     /**
-     * Get single consignment
+     * Get single consignment by ID or slug
      */
-    public function getConsignment(int $id): ?array
+    public function getConsignment(string $slugOrId): ?array
     {
-        $response = Http::get("{$this->baseUrl}/api/consignments/{$id}");
+        $response = Http::get("{$this->baseUrl}/api/consignments/{$slugOrId}");
 
         if ($response->successful()) {
             return $response->json();

@@ -44,9 +44,9 @@ class ConsignmentController extends Controller
     /**
      * Display single consignment
      */
-    public function show(int $id)
+    public function show(string $slug)
     {
-        $response = $this->apiService->getConsignment($id);
+        $response = $this->apiService->getConsignment($slug);
 
         if (!$response || !isset($response['data'])) {
             abort(404);

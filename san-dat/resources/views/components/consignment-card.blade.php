@@ -1,4 +1,4 @@
-<a href="{{ route('consignments.show', $consignment['id']) }}"
+<a href="{{ route('consignments.show', $consignment['seo_url'] ?? $consignment['id']) }}"
     class="block bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
     <!-- Image -->
     <div class="aspect-video bg-navy-800 relative overflow-hidden">
