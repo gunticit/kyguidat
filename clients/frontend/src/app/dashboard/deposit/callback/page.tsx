@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FiCheckCircle, FiXCircle, FiAlertTriangle, FiArrowLeft } from 'react-icons/fi';
 import Link from 'next/link';
@@ -25,15 +25,14 @@ function formatCurrency(amount: number): string {
     return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
 }
 
-export default function VnpayCallbackPage() {
+function CallbackContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [countdown, setCountdown] = useState(10);
 
     const responseCode = searchParams.get('vnp_ResponseCode') || '';
     const transactionStatus = searchParams.get('vnp_TransactionStatus') || '';
-    const amount = parseInt(searchParams.get('vnp_Amount') || '0') / 100; // VNPay returns amount * 100
-    const orderInfo = searchParams.get('vnp_OrderInfo') || '';
+    const amount = parseInt(searchParams.get('vnp_Amount') || '0') / 100;
     const txnRef = searchParams.get('vnp_TxnRef') || '';
     const bankCode = searchParams.get('vnp_BankCode') || '';
     const payDate = searchParams.get('vnp_PayDate') || '';
@@ -42,7 +41,6 @@ export default function VnpayCallbackPage() {
     const isCancelled = responseCode === '24';
     const message = responseMessages[responseCode] || 'Giao dịch không thành công';
 
-    // Format payment date (YYYYMMDDHHmmss)
     const formattedDate = payDate
         ? `${payDate.slice(6, 8)}/${payDate.slice(4, 6)}/${payDate.slice(0, 4)} ${payDate.slice(8, 10)}:${payDate.slice(10, 12)}:${payDate.slice(12, 14)}`
         : '';
@@ -70,7 +68,6 @@ export default function VnpayCallbackPage() {
                 textAlign: 'center',
                 border: '1px solid var(--border)',
             }}>
-                {/* Status icon */}
                 {isSuccess ? (
                     <FiCheckCircle size={64} color="#22c55e" style={{ marginBottom: 20 }} />
                 ) : isCancelled ? (
@@ -79,7 +76,6 @@ export default function VnpayCallbackPage() {
                     <FiXCircle size={64} color="#ef4444" style={{ marginBottom: 20 }} />
                 )}
 
-                {/* Title */}
                 <h1 style={{
                     fontSize: 24,
                     fontWeight: 700,
@@ -93,7 +89,6 @@ export default function VnpayCallbackPage() {
                     {message}
                 </p>
 
-                {/* Transaction details */}
                 <div style={{
                     background: 'var(--background)',
                     borderRadius: 12,
@@ -135,7 +130,6 @@ export default function VnpayCallbackPage() {
                     </div>
                 </div>
 
-                {/* Actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <Link
                         href="/dashboard/deposit"
@@ -163,5 +157,17 @@ export default function VnpayCallbackPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function VnpayCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+                <p>Đang xử lý kết quả thanh toán...</p>
+            </div>
+        }>
+            <CallbackContent />
+        </Suspense>
     );
 }
