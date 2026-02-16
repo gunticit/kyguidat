@@ -32,7 +32,17 @@
         </h3>
 
         <p class="text-green-400 font-bold text-lg mb-2">
-            {{ number_format($consignment['price']) }} VNĐ
+            @php
+                $price = $consignment['price'] ?? 0;
+                if ($price >= 1000000000) {
+                    $formatted = rtrim(rtrim(number_format($price / 1000000000, 2), '0'), '.') . ' tỷ';
+                } elseif ($price >= 1000000) {
+                    $formatted = rtrim(rtrim(number_format($price / 1000000, 1), '0'), '.') . ' triệu';
+                } else {
+                    $formatted = number_format($price) . ' đ';
+                }
+            @endphp
+            {{ $formatted }}
         </p>
 
         <div class="flex items-center text-sm text-gray-400 space-x-4">

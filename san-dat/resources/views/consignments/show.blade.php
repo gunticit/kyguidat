@@ -111,12 +111,29 @@
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div>
                             <p class="text-green-200 text-sm mb-1">Giá bán</p>
-                            <p class="text-3xl md:text-4xl font-bold">{{ number_format($consignment['price']) }} VNĐ</p>
+                            @php
+                                $price = $consignment['price'] ?? 0;
+                                if ($price >= 1000000000) {
+                                    $priceFormatted = rtrim(rtrim(number_format($price / 1000000000, 2), '0'), '.') . ' tỷ';
+                                } elseif ($price >= 1000000) {
+                                    $priceFormatted = rtrim(rtrim(number_format($price / 1000000, 1), '0'), '.') . ' triệu';
+                                } else {
+                                    $priceFormatted = number_format($price) . ' đ';
+                                }
+                            @endphp
+                            <p class="text-3xl md:text-4xl font-bold">{{ $priceFormatted }}</p>
                         </div>
                         @if($pricePerM2)
                             <div class="mt-4 md:mt-0 md:text-right">
                                 <p class="text-green-200 text-sm mb-1">Đơn giá</p>
-                                <p class="text-xl font-semibold">{{ number_format($pricePerM2) }} VNĐ/m²</p>
+                                @php
+                                    if ($pricePerM2 >= 1000000) {
+                                        $perM2Formatted = rtrim(rtrim(number_format($pricePerM2 / 1000000, 1), '0'), '.') . ' triệu/m²';
+                                    } else {
+                                        $perM2Formatted = number_format($pricePerM2) . ' đ/m²';
+                                    }
+                                @endphp
+                                <p class="text-xl font-semibold">{{ $perM2Formatted }}</p>
                             </div>
                         @endif
                     </div>
