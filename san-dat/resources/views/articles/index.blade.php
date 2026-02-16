@@ -19,8 +19,9 @@
                         <!-- Image -->
                         <div class="aspect-video bg-navy-800 relative overflow-hidden">
                             @if(!empty($article['featured_image']))
-                                <img src="{{ preg_replace('#^https?://[^/]+#', '', $article['featured_image']) }}"
-                                    alt="{{ $article['title'] }}"
+                                @php $artImg = $article['featured_image'];
+                                $artImgSrc = str_starts_with($artImg, 'data:') ? $artImg : preg_replace('#^https?://[^/]+#', '', $artImg); @endphp
+                                <img src="{{ $artImgSrc }}" alt="{{ $article['title'] }}"
                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                     onerror="this.src='/images/placeholder.jpg'">
                             @else

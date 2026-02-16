@@ -4,14 +4,20 @@
     <div class="aspect-video bg-navy-800 relative overflow-hidden">
         @php
             $images = is_string($consignment['images'] ?? '') ? json_decode($consignment['images'], true) : ($consignment['images'] ?? []);
-            // Strip any hardcoded domain from image URLs
-            $images = array_map(fn($img) => preg_replace('#^https?://[^/]+#', '', $img), $images ?: []);
+            // Strip any hardcoded domain from http image URLs (but not data: URIs)
+            $images = array_map(fn($img) => str_starts_with($img, 'data:') ? $img : preg_replace('#^https?://[^/]+#', '', $img), $images ?: []);
             $firstImage = $images[0] ?? null;
+
+            // Fallback to featured_image if no images array
+            if (!$firstImage && !empty($consignment['featured_image'])) {
+                $fi = $consignment['featured_image'];
+                $firstImage = str_starts_with($fi, 'data:') ? $fi : preg_replace('#^https?://[^/]+#', '', $fi);
+            }
         @endphp
 
         @if($firstImage)
             <img src="{{ $firstImage }}" alt="{{ $consignment['title'] }}"
-                class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
         @else
             <div class="w-full h-full flex items-center justify-center text-gray-500">
                 <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">

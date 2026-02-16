@@ -20,7 +20,8 @@
                 <div class="bg-navy-700 rounded-lg shadow-md overflow-hidden border border-navy-600">
                     <!-- Featured Image -->
                     @if(!empty($article['featured_image']))
-                        <img src="{{ preg_replace('#^https?://[^/]+#', '', $article['featured_image']) }}"
+                        @php $showImg = $article['featured_image']; $showImgSrc = str_starts_with($showImg, 'data:') ? $showImg : preg_replace('#^https?://[^/]+#', '', $showImg); @endphp
+                        <img src="{{ $showImgSrc }}"
                             alt="{{ $article['title'] }}" class="w-full h-64 md:h-80 object-cover"
                             onerror="this.style.display='none'">
                     @endif
@@ -80,7 +81,8 @@
                                 @if(($recent['slug'] ?? '') !== ($article['slug'] ?? ''))
                                     <a href="{{ route('articles.show', $recent['slug']) }}" class="flex gap-3 group">
                                         @if(!empty($recent['featured_image']))
-                                            <img src="{{ preg_replace('#^https?://[^/]+#', '', $recent['featured_image']) }}"
+                                            @php $recImg = $recent['featured_image']; $recImgSrc = str_starts_with($recImg, 'data:') ? $recImg : preg_replace('#^https?://[^/]+#', '', $recImg); @endphp
+                                            <img src="{{ $recImgSrc }}"
                                                 class="w-16 h-12 object-cover rounded flex-shrink-0"
                                                 onerror="this.src='/images/placeholder.jpg'">
                                         @else

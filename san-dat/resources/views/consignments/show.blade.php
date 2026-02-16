@@ -14,8 +14,14 @@
                 $images = $consignment['images'];
             }
         }
-        // Strip any hardcoded domain from image URLs
-        $images = array_map(fn($img) => preg_replace('#^https?://[^/]+#', '', $img), $images);
+        // Strip any hardcoded domain from http image URLs (but not data: URIs)
+        $images = array_map(fn($img) => str_starts_with($img, 'data:') ? $img : preg_replace('#^https?://[^/]+#', '', $img), $images);
+
+        // Fallback to featured_image if no images
+        if (empty($images) && !empty($consignment['featured_image'])) {
+            $fi = $consignment['featured_image'];
+            $images = [str_starts_with($fi, 'data:') ? $fi : preg_replace('#^https?://[^/]+#', '', $fi)];
+        }
 
         // Calculate price per m2
         $pricePerM2 = null;
