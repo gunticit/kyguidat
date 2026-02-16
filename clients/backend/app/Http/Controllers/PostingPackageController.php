@@ -107,10 +107,10 @@ class PostingPackageController extends Controller
                 'wallet_id' => $wallet->id,
                 'type' => 'purchase',
                 'amount' => -$package->price,
+                'balance_before' => $wallet->balance + $package->price,
                 'balance_after' => $wallet->balance,
                 'description' => "Mua {$package->name}",
                 'reference_type' => 'user_package',
-                'status' => 'completed',
             ]);
 
             // Kiểm tra nếu user đang có gói active, gia hạn thêm
