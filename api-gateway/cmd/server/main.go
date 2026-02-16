@@ -71,6 +71,8 @@ func main() {
 		publicProxy.GET("/consignments/by-slug/:slug", proxyHandler.ProxyRequest)
 		publicProxy.GET("/articles", proxyHandler.ProxyRequest)
 		publicProxy.GET("/articles/:slug", proxyHandler.ProxyRequest)
+		publicProxy.GET("/provinces", proxyHandler.ProxyRequest)
+		publicProxy.GET("/provinces/:slug/wards", proxyHandler.ProxyRequest)
 	}
 
 	// Admin routes - proxy to Laravel backend
@@ -105,6 +107,18 @@ func main() {
 		admin.POST("/articles", proxyHandler.ProxyRequest)
 		admin.PUT("/articles/:id", proxyHandler.ProxyRequest)
 		admin.DELETE("/articles/:id", proxyHandler.ProxyRequest)
+
+		// Administrative Divisions — Provinces
+		admin.GET("/provinces", proxyHandler.ProxyRequest)
+		admin.POST("/provinces", proxyHandler.ProxyRequest)
+		admin.PUT("/provinces/:id", proxyHandler.ProxyRequest)
+		admin.DELETE("/provinces/:id", proxyHandler.ProxyRequest)
+
+		// Administrative Divisions — Wards
+		admin.GET("/wards", proxyHandler.ProxyRequest)
+		admin.POST("/wards", proxyHandler.ProxyRequest)
+		admin.PUT("/wards/:id", proxyHandler.ProxyRequest)
+		admin.DELETE("/wards/:id", proxyHandler.ProxyRequest)
 
 		// Reports (handled directly by Go, not proxied)
 		admin.GET("/reports/overview", reportHandler.Overview)

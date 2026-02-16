@@ -89,5 +89,17 @@ export const adminApi = {
     createArticle: (data) => api.post('/admin/articles', data),
     updateArticle: (id, data) => api.put(`/admin/articles/${id}`, data),
     deleteArticle: (id) => api.delete(`/admin/articles/${id}`),
+
+    // Administrative Divisions — Provinces
+    getProvinces: (params) => api.get('/admin/provinces', { params }),
+    createProvince: (data) => api.post('/admin/provinces', data),
+    updateProvince: (id, data) => api.put(`/admin/provinces/${id}`, data),
+    deleteProvince: (id) => api.delete(`/admin/provinces/${id}`),
+
+    // Administrative Divisions — Wards
+    getWards: (params) => api.get('/admin/wards', { params }),
+    createWard: (data) => api.post('/admin/wards', data),
+    updateWard: (id, data) => api.put(`/admin/wards/${id}`, data),
+    deleteWard: (id) => api.delete(`/admin/wards/${id}`),
 }
 

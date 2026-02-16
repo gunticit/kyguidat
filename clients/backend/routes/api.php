@@ -11,6 +11,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\AdministrativeDivisionController;
 use App\Http\Controllers\PostingPackageController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\IpnConfigController;
@@ -77,6 +78,10 @@ Route::prefix('payments')->middleware('throttle:30,1')->group(function () {
 Route::prefix('public')->group(function () {
     Route::get('/articles', [ArticleController::class, 'publicIndex']);
     Route::get('/articles/{slug}', [ArticleController::class, 'publicShow']);
+
+    // Administrative divisions
+    Route::get('/provinces', [AdministrativeDivisionController::class, 'publicProvinces']);
+    Route::get('/provinces/{slug}/wards', [AdministrativeDivisionController::class, 'publicWards']);
 });
 
 // IPN Handler routes (public - called by payment gateways)
@@ -228,6 +233,18 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/articles', [ArticleController::class, 'store']);
         Route::put('/articles/{id}', [ArticleController::class, 'update']);
         Route::delete('/articles/{id}', [ArticleController::class, 'destroy']);
+
+        // Administrative Divisions — Provinces
+        Route::get('/provinces', [AdministrativeDivisionController::class, 'provinceIndex']);
+        Route::post('/provinces', [AdministrativeDivisionController::class, 'provinceStore']);
+        Route::put('/provinces/{id}', [AdministrativeDivisionController::class, 'provinceUpdate']);
+        Route::delete('/provinces/{id}', [AdministrativeDivisionController::class, 'provinceDestroy']);
+
+        // Administrative Divisions — Wards
+        Route::get('/wards', [AdministrativeDivisionController::class, 'wardIndex']);
+        Route::post('/wards', [AdministrativeDivisionController::class, 'wardStore']);
+        Route::put('/wards/{id}', [AdministrativeDivisionController::class, 'wardUpdate']);
+        Route::delete('/wards/{id}', [AdministrativeDivisionController::class, 'wardDestroy']);
     });
 });
 

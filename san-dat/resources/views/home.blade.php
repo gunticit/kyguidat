@@ -38,23 +38,224 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-1">Tỉnh - Thành phố</label>
-                            <select name="province"
-                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
+                            <select name="province" id="provinceSelect"
+                                class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200"
+                                onchange="updateWards()">
                                 <option value="">-- Tất cả --</option>
-                                <option value="ho-chi-minh">Hồ Chí Minh</option>
-                                <option value="ba-ria-vung-tau">Bà Rịa - Vũng Tàu</option>
-                                <option value="binh-duong">Bình Dương</option>
+                                <option value="ho-chi-minh">TP Hồ Chí Minh</option>
                                 <option value="dong-nai">Đồng Nai</option>
-                                <option value="long-an">Long An</option>
-                                <option value="binh-phuoc">Bình Phước</option>
+                                <option value="tay-ninh">Tây Ninh</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-1">Xã / Phường / Đặc khu</label>
-                            <select name="district"
+                            <select name="district" id="wardSelect"
                                 class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
-                                <option value="">-- Tất cả --</option>
+                                <option value="">-- Chọn tỉnh trước --</option>
                             </select>
+
+                            <script>
+                                // Dữ liệu sau sáp nhập hành chính 01/07/2025
+                                // Bỏ cấp huyện — chính quyền 2 cấp: tỉnh → xã/phường/đặc khu
+                                const wardsByProvince = {
+                                    'ho-chi-minh': [
+                                        // === Khu vực TP HCM cũ (102 đơn vị: 78 phường, 24 xã) ===
+                                        // Quận 1 → 4 phường
+                                        'P. Sài Gòn', 'P. Tân Định', 'P. Bến Thành', 'P. Cầu Ông Lãnh',
+                                        // Quận 3 → 3 phường
+                                        'P. Bàn Cờ', 'P. Xuân Hòa', 'P. Nhiêu Lộc',
+                                        // Quận 4 → 3 phường
+                                        'P. Vĩnh Hội', 'P. Khánh Hội', 'P. Xóm Chiếu',
+                                        // Quận 5 → 3 phường
+                                        'P. Chợ Quán', 'P. An Đông', 'P. Chợ Lớn',
+                                        // Quận 6 → 4 phường
+                                        'P. Bình Tiên', 'P. Bình Tây', 'P. Bình Phú', 'P. Phú Lâm',
+                                        // Quận 7 → 4 phường
+                                        'P. Tân Hưng', 'P. Tân Thuận', 'P. Tân Mỹ', 'P. Phú Thuận',
+                                        // Quận 8 → 3 phường
+                                        'P. Chánh Hưng', 'P. Bình Đông', 'P. Phú Định',
+                                        // Quận 10 → 3 phường
+                                        'P. Vườn Lài', 'P. Diên Hồng', 'P. Hòa Hưng',
+                                        // Quận 11 → 4 phường
+                                        'P. Bình Thới', 'P. Phú Thọ', 'P. Hòa Bình', 'P. Minh Phụng',
+                                        // Quận 12 → 5 phường
+                                        'P. Đông Hưng Thuận', 'P. Trung Mỹ Tây', 'P. Tân Thới Hiệp', 'P. Thới An', 'P. An Phú Đông',
+                                        // Quận Bình Tân → 5 phường
+                                        'P. Bình Trị Đông', 'P. Tân Tạo', 'P. An Lạc', 'P. Bình Hưng Hòa', 'P. Tên Lửa',
+                                        // Quận Bình Thạnh → 4 phường
+                                        'P. Bình Quới', 'P. Bạch Đằng', 'P. Hàng Xanh', 'P. Thanh Đa',
+                                        // Quận Gò Vấp → 4 phường
+                                        'P. Quang Trung', 'P. Hạnh Thông Tây', 'P. An Hội', 'P. Thống Nhất',
+                                        // Quận Phú Nhuận → 3 phường
+                                        'P. Phú Nhuận', 'P. Phan Xích Long', 'P. Tân Sơn Nhất',
+                                        // Quận Tân Bình → 4 phường
+                                        'P. Tân Bình', 'P. Gia Định', 'P. Bảy Hiền', 'P. Tân Sơn',
+                                        // Quận Tân Phú → 4 phường
+                                        'P. Tân Phú', 'P. Tây Thạnh', 'P. Hiệp Tân', 'P. Tân Quý',
+                                        // TP Thủ Đức → 12 phường
+                                        'P. Hiệp Bình', 'P. Thủ Đức', 'P. Tam Bình', 'P. Linh Trung',
+                                        'P. Thủ Thiêm', 'P. Cát Lái', 'P. An Khánh', 'P. Thạnh Mỹ Lợi',
+                                        'P. Trường Thạnh', 'P. Phước Long', 'P. Tăng Nhơn Phú', 'P. Long Trường',
+                                        // Huyện Bình Chánh → 7 xã
+                                        'X. Vĩnh Lộc', 'X. Tân Kiên', 'X. Bình Lợi', 'X. Lê Minh Xuân',
+                                        'X. Phong Phú', 'X. Đa Phước', 'X. Quy Đức',
+                                        // Huyện Cần Giờ → 5 xã + 1 đặc khu
+                                        'X. Bình Khánh', 'X. An Thới Đông', 'X. Tam Thôn Hiệp', 'X. Lý Nhơn', 'X. Long Hòa',
+                                        'ĐK. Thạnh An',
+                                        // Huyện Củ Chi → 7 xã
+                                        'X. Tân An Hội', 'X. Phước Vĩnh An', 'X. Trung An', 'X. Tân Thạnh Đông',
+                                        'X. Phú Hòa Đông', 'X. Hòa Phú', 'X. Nhuận Đức',
+                                        // Huyện Hóc Môn → 3 xã
+                                        'X. Xuân Thới Thượng', 'X. Tân Hiệp', 'X. Đông Thạnh',
+                                        // Huyện Nhà Bè → 2 xã
+                                        'X. Phước Kiển', 'X. Hiệp Phước',
+                                        // === Khu vực Bình Dương cũ (36 đơn vị) ===
+                                        'P. Thủ Dầu Một', 'P. Phú Hòa', 'P. Chánh Nghĩa', 'P. Hiệp Thành (BD)',
+                                        'P. Dĩ An', 'P. Đông Hòa', 'P. Tân Đông Hiệp',
+                                        'P. Thuận An', 'P. Bình Hòa', 'P. An Phú (BD)',
+                                        'P. Uyên Hưng', 'P. Tân Phước Khánh', 'P. Thái Hòa',
+                                        'P. Mỹ Phước', 'P. Thới Hòa',
+                                        'X. Lai Uyên', 'X. Tân Hưng (BD)', 'X. Long Nguyên',
+                                        'X. Tân Định (BD)', 'X. Tân Mỹ', 'X. Đất Cuốc',
+                                        'X. Minh Hòa', 'X. Định Thành', 'X. Long Hòa (BD)',
+                                        'X. An Bình (BD)', 'X. Tân Hiệp (BD)', 'X. Phước Sang',
+                                        'X. An Lập', 'X. Thanh Tuyền', 'X. Minh Tân',
+                                        'X. Phú An', 'X. Vĩnh Hòa', 'X. An Long',
+                                        'X. An Linh', 'X. Tân Lập (BD)', 'X. Phước Hòa (BD)',
+                                        // === Khu vực Bà Rịa - Vũng Tàu cũ (30 đơn vị) ===
+                                        'P. Vũng Tàu', 'P. Thắng Nhất', 'P. Rạch Dừa', 'P. Nguyễn An Ninh',
+                                        'P. Long Toàn', 'P. Phước Hiệp', 'P. Kim Dinh',
+                                        'P. Phú Mỹ', 'P. Mỹ Xuân', 'P. Tân Phước (BRVT)',
+                                        'X. Long Sơn', 'X. Hòa Hiệp', 'X. Bình Châu',
+                                        'X. Châu Pha', 'X. Sông Xoài', 'X. Hắc Dịch',
+                                        'X. Ngãi Giao', 'X. Suối Nghệ', 'X. Bình Ba',
+                                        'X. Láng Lớn', 'X. Quảng Thành', 'X. Kim Long',
+                                        'X. Phước Tỉnh', 'X. Long Hải', 'X. Phước Hải',
+                                        'X. Đất Đỏ', 'X. Lộc An (BRVT)', 'X. Phước Bửu',
+                                        'X. Bông Trang', 'X. Bưng Riềng'
+                                    ],
+                                    'dong-nai': [
+                                        // === Tỉnh Đồng Nai mới (Đồng Nai + Bình Phước) — 95 đơn vị ===
+                                        // Khu vực Đồng Nai cũ
+                                        // TP Biên Hòa → 9 phường
+                                        'P. Trấn Biên', 'P. Tam Hiệp', 'P. Tân Phong (BH)', 'P. Bửu Hòa', 'P. Long Bình',
+                                        'P. Tam Phước', 'P. Phước Tân', 'P. An Hòa (BH)', 'P. Hiệp Hòa',
+                                        // TP Long Khánh → 4 phường
+                                        'P. Xuân An', 'P. Xuân Lập', 'P. Xuân Bình', 'P. Xuân Trung',
+                                        // Huyện Long Thành
+                                        'X. Long Thành', 'X. An Phước', 'X. Phước Thái', 'X. Tam An',
+                                        // Huyện Nhơn Trạch
+                                        'X. Phú Hội', 'X. Phước Thiền', 'X. Long Tân', 'X. Hiệp Phước (ĐN)',
+                                        // Huyện Trảng Bom
+                                        'X. Trảng Bom', 'X. Bắc Sơn', 'X. Hố Nai 3', 'X. Sông Thao',
+                                        // Huyện Thống Nhất
+                                        'X. Dầu Giây', 'X. Xuân Thiện', 'X. Bàu Hàm 2',
+                                        // Huyện Vĩnh Cửu
+                                        'X. Vĩnh An', 'X. Thiện Tân', 'X. Phú Lý', 'X. Mã Đà',
+                                        // Huyện Xuân Lộc
+                                        'X. Xuân Hưng', 'X. Xuân Tâm', 'X. Suối Cát', 'X. Xuân Hòa (XL)',
+                                        // Huyện Định Quán
+                                        'X. Định Quán', 'X. Phú Ngọc', 'X. Thanh Sơn', 'X. La Ngà',
+                                        // Huyện Tân Phú
+                                        'X. Tân Phú (ĐN)', 'X. Phú Sơn', 'X. Đak Lua', 'X. Nam Cát Tiên',
+                                        // Huyện Cẩm Mỹ
+                                        'X. Long Giao', 'X. Xuân Quế', 'X. Sông Nhạn', 'X. Xuân Đông',
+                                        // Khu vực Bình Phước cũ
+                                        // TP Đồng Xoài → 5 phường
+                                        'P. Tân Phú (BP)', 'P. Tân Đồng', 'P. Tân Xuân', 'P. Tân Thiện', 'P. Tiến Thành',
+                                        // TX Phước Long
+                                        'X. Phước Bình', 'X. Long Giang', 'X. Bình Tân (BP)',
+                                        // TX Bình Long
+                                        'X. An Khương', 'X. Thanh Phú (BP)', 'X. Thanh Lương',
+                                        // TX Chơn Thành
+                                        'X. Minh Lập', 'X. Nha Bích', 'X. Thành Tâm',
+                                        // Huyện Bù Đăng
+                                        'X. Đức Liễu', 'X. Nghĩa Trung', 'X. Đồng Nai (BĐ)', 'X. Thống Nhất (BĐ)',
+                                        // Huyện Bù Gia Mập
+                                        'X. Bù Gia Mập', 'X. Đăk Ơ', 'X. Phú Nghĩa', 'X. Đa Kia',
+                                        // Huyện Bù Đốp
+                                        'X. Thanh Hòa (BĐ)', 'X. Phước Thiện', 'X. Tân Tiến (BĐ)',
+                                        // Huyện Đồng Phú
+                                        'X. Tân Lập (ĐP)', 'X. Tân Hòa', 'X. Đồng Tiến', 'X. Tân Phước (ĐP)',
+                                        // Huyện Hớn Quản
+                                        'X. Tân Khai', 'X. Thanh An', 'X. An Phú (HQ)', 'X. Minh Đức',
+                                        // Huyện Lộc Ninh
+                                        'X. Lộc Ninh', 'X. Lộc Hòa', 'X. Lộc Thạnh', 'X. Lộc Thiện',
+                                        // Huyện Phú Riềng
+                                        'X. Phú Riềng', 'X. Long Tân (PR)', 'X. Bù Nho', 'X. Long Bình (PR)'
+                                    ],
+                                    'tay-ninh': [
+                                        // === Tỉnh Tây Ninh mới (Tây Ninh + Long An) — 96 đơn vị ===
+                                        // Khu vực Tây Ninh cũ (36 đơn vị: 10 phường, 26 xã)
+                                        // TP Tây Ninh → 5 phường
+                                        'P. Ninh Sơn', 'P. Ninh Thạnh', 'P. Hiệp Ninh', 'P. Long Hoa (TN)', 'P. Thạnh Tân',
+                                        // TX Trảng Bàng → 3 phường
+                                        'P. Trảng Bàng', 'P. An Tịnh', 'P. Gia Lộc',
+                                        // TX Hòa Thành → 2 phường
+                                        'P. Long Thành Bắc', 'P. Trường Hòa',
+                                        // Huyện Gò Dầu
+                                        'X. Thanh Phước (GD)', 'X. Hiệp Thạnh (GD)', 'X. Phước Đông', 'X. Bàu Đồn',
+                                        // Huyện Bến Cầu
+                                        'X. Long Chữ', 'X. Long Phước (BC)', 'X. Tiên Thuận',
+                                        // Huyện Dương Minh Châu
+                                        'X. Suối Đá', 'X. Phước Ninh', 'X. Chà Là', 'X. Bến Củi',
+                                        // Huyện Châu Thành (TN)
+                                        'X. Thành Long', 'X. Hảo Đước', 'X. Ninh Điền', 'X. Long Vĩnh',
+                                        // Huyện Tân Biên
+                                        'X. Tân Phong (TB)', 'X. Thạnh Bắc', 'X. Tân Lập (TB)', 'X. Hòa Hiệp (TB)',
+                                        // Huyện Tân Châu
+                                        'X. Tân Hà', 'X. Suối Ngô', 'X. Tân Đông (TC)', 'X. Tân Hòa (TC)',
+                                        // Khu vực Long An cũ (60 đơn vị: 4 phường, 56 xã)
+                                        // TP Tân An → 4 phường
+                                        'P. Tân An', 'P. Tân Khánh', 'P. Khánh Hậu', 'P. Hướng Thọ Phú',
+                                        // Huyện Đức Hòa
+                                        'X. Đức Hòa', 'X. Hựu Thạnh', 'X. Hiệp Hòa (ĐH)', 'X. Đức Lập', 'X. Mỹ Hạnh',
+                                        // Huyện Bến Lức
+                                        'X. Bến Lức', 'X. Long Hiệp', 'X. Phước Lợi', 'X. Thạnh Đức', 'X. Nhựt Chánh',
+                                        // Huyện Cần Giuộc
+                                        'X. Trường Bình', 'X. Long Thượng', 'X. Phước Lý', 'X. Mỹ Lộc', 'X. Long An (CG)',
+                                        // Huyện Cần Đước
+                                        'X. Tân Trạch', 'X. Long Sơn (CĐ)', 'X. Long Hựu', 'X. Phước Tuy',
+                                        // Huyện Châu Thành (LA)
+                                        'X. Tầm Vu', 'X. Thanh Phú Long', 'X. Hòa Phú (LA)', 'X. Dương Xuân Hội',
+                                        // Huyện Tân Trụ
+                                        'X. Tân Phước Tây', 'X. Lạc Tấn', 'X. Nhựt Ninh',
+                                        // Huyện Thủ Thừa
+                                        'X. Bình An', 'X. Mỹ Phú', 'X. Long Thạnh',
+                                        // Huyện Thạnh Hóa
+                                        'X. Thạnh Hóa', 'X. Tân Hiệp (TH)', 'X. Thuận Bình',
+                                        // TX Kiến Tường
+                                        'X. Tuyên Thạnh', 'X. Bình Hiệp', 'X. Thạnh Trị',
+                                        // Huyện Mộc Hóa
+                                        'X. Bình Phong Thạnh', 'X. Tân Lập (MH)', 'X. Bình Hòa Tây',
+                                        // Huyện Vĩnh Hưng
+                                        'X. Vĩnh Bửu', 'X. Thái Bình Trung', 'X. Tuyên Bình',
+                                        // Huyện Tân Hưng
+                                        'X. Vĩnh Thạnh', 'X. Hưng Hà', 'X. Vĩnh Đại',
+                                        // Huyện Tân Thạnh
+                                        'X. Tân Thạnh', 'X. Nhơn Hòa Lập', 'X. Tân Ninh',
+                                        // Huyện Đức Huệ
+                                        'X. Đông Thành', 'X. Mỹ Quý Đông', 'X. Bình Hòa Hưng'
+                                    ]
+                                };
+
+                                function updateWards() {
+                                    const province = document.getElementById('provinceSelect').value;
+                                    const wardSelect = document.getElementById('wardSelect');
+                                    wardSelect.innerHTML = '<option value="">-- Tất cả --</option>';
+
+                                    if (province && wardsByProvince[province]) {
+                                        wardsByProvince[province].forEach(w => {
+                                            const opt = document.createElement('option');
+                                            opt.value = w;
+                                            opt.textContent = w;
+                                            wardSelect.appendChild(opt);
+                                        });
+                                    } else if (!province) {
+                                        wardSelect.innerHTML = '<option value="">-- Chọn tỉnh trước --</option>';
+                                    }
+                                }
+                            </script>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-1">Loại bất động sản</label>
@@ -411,44 +612,44 @@
             const slug = item.seo_url || item.id;
 
             return `
-                                                                        <a href="/bat-dong-san/${slug}" class="bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
-                                                                            <div class="relative h-48 overflow-hidden">
-                                                                                <img src="${image}" alt="${item.title || 'BĐS'}" 
-                                                                                    class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                                                                    onerror="this.src='/images/placeholder.jpg'">
-                                                                                <span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded font-medium">
-                                                                                    ${item.property_type || 'Đất nền'}
-                                                                                </span>
-                                                                            </div>
-                                                                            <div class="p-4">
-                                                                                <h3 class="font-semibold text-gray-100 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
-                                                                                <p class="text-green-400 font-bold mb-2">${price}</p>
-                                                                                <div class="flex items-center text-sm text-gray-400 gap-3">
-                                                                                    <span class="flex items-center gap-1">
-                                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                                                                                        </svg>
-                                                                                        ${item.area || 0}m²
-                                                                                    </span>
-                                                                                    <span class="flex items-center gap-1 truncate">
-                                                                                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                                                                        </svg>
-                                                                                        ${location}
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                        </a>
-                                                                    `;
+                                                                                <a href="/bat-dong-san/${slug}" class="bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
+                                                                                    <div class="relative h-48 overflow-hidden">
+                                                                                        <img src="${image}" alt="${item.title || 'BĐS'}" 
+                                                                                            class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                                                                            onerror="this.src='/images/placeholder.jpg'">
+                                                                                        <span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded font-medium">
+                                                                                            ${item.property_type || 'Đất nền'}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <div class="p-4">
+                                                                                        <h3 class="font-semibold text-gray-100 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
+                                                                                        <p class="text-green-400 font-bold mb-2">${price}</p>
+                                                                                        <div class="flex items-center text-sm text-gray-400 gap-3">
+                                                                                            <span class="flex items-center gap-1">
+                                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                                                                                </svg>
+                                                                                                ${item.area || 0}m²
+                                                                                            </span>
+                                                                                            <span class="flex items-center gap-1 truncate">
+                                                                                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                                                                </svg>
+                                                                                                ${location}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </a>
+                                                                            `;
         }
 
         function renderPagination(current, total, container) {
             if (total <= 1) { container.innerHTML = ''; return; }
 
             let html = `<button onclick="loadAllProperties(${current - 1})" ${current === 1 ? 'disabled' : ''} 
-                                                                        class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
-                                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                                                                    </button>`;
+                                                                                class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
+                                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                                                            </button>`;
 
             const pages = [];
             if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i); }
@@ -466,9 +667,9 @@
             });
 
             html += `<button onclick="loadAllProperties(${current + 1})" ${current === total ? 'disabled' : ''} 
-                                                                        class="px-3 py-2 rounded-lg ${current === total ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
-                                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                                                    </button>`;
+                                                                                class="px-3 py-2 rounded-lg ${current === total ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
+                                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                                                            </button>`;
 
             container.innerHTML = html;
             if (current !== 1) document.getElementById('all-properties-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -581,34 +782,34 @@
 
             // Create info window content
             const infoContent = `
-                                                                                            <div style="width: 280px; font-family: Arial, sans-serif; background: var(--navy-800); border-radius: 12px; overflow:hidden;">
-                                                                                                <img src="${property.image}" alt="${property.title}" 
-                                                                                                     style="width: 100%; height: 140px; object-fit: cover;"
-                                                                                                     onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
-                                                                                                <div style="padding: 12px;">
-                                                                                                    <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
-                                                                                                    <p style="font-weight: bold; color: var(--gray-100); font-size: 13px; margin: 0 0 8px 0; 
-                                                                                                       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                                                                                        ${property.title}
-                                                                                                    </p>
-                                                                                                    <p style="color: #22c55e; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
-                                                                                                        ${property.priceFormatted}
-                                                                                                    </p>
-                                                                                                    <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">
-                                                                                                        Địa chỉ: ${property.address || property.district + ', ' + property.province}
-                                                                                                    </p>
-                                                                                                    <div style="display: flex; gap: 15px; font-size: 12px; color: var(--gray-400); margin-top: 8px;">
-                                                                                                        <span>Hướng: ${property.direction || 'N/A'}</span>
-                                                                                                        <span>Diện tích: ${property.area} m²</span>
+                                                                                                    <div style="width: 280px; font-family: Arial, sans-serif; background: var(--navy-800); border-radius: 12px; overflow:hidden;">
+                                                                                                        <img src="${property.image}" alt="${property.title}" 
+                                                                                                             style="width: 100%; height: 140px; object-fit: cover;"
+                                                                                                             onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
+                                                                                                        <div style="padding: 12px;">
+                                                                                                            <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
+                                                                                                            <p style="font-weight: bold; color: var(--gray-100); font-size: 13px; margin: 0 0 8px 0; 
+                                                                                                               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                                                                                                ${property.title}
+                                                                                                            </p>
+                                                                                                            <p style="color: #22c55e; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
+                                                                                                                ${property.priceFormatted}
+                                                                                                            </p>
+                                                                                                            <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">
+                                                                                                                Địa chỉ: ${property.address || property.district + ', ' + property.province}
+                                                                                                            </p>
+                                                                                                            <div style="display: flex; gap: 15px; font-size: 12px; color: var(--gray-400); margin-top: 8px;">
+                                                                                                                <span>Hướng: ${property.direction || 'N/A'}</span>
+                                                                                                                <span>Diện tích: ${property.area} m²</span>
+                                                                                                            </div>
+                                                                                                            <a href="/bat-dong-san/${property.seo_url || property.id}" 
+                                                                                                               style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
+                                                                                                                      background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                                                                                                Xem chi tiết
+                                                                                                            </a>
+                                                                                                        </div>
                                                                                                     </div>
-                                                                                                    <a href="/bat-dong-san/${property.seo_url || property.id}" 
-                                                                                                       style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
-                                                                                                              background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                                                                                                        Xem chi tiết
-                                                                                                    </a>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        `;
+                                                                                                `;
 
             const infoWindow = new google.maps.InfoWindow({
                 content: infoContent,
