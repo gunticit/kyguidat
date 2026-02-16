@@ -13,6 +13,7 @@ import Settings from '@/views/settings/Settings.vue'
 import Support from '@/views/support/Support.vue'
 import Customers from '@/views/customers/Customers.vue'
 import ArticleList from '@/views/articles/List.vue'
+import LocationList from '@/views/locations/List.vue'
 
 const routes = [
     {
@@ -79,6 +80,12 @@ const routes = [
         path: '/articles',
         name: 'articles',
         component: ArticleList,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/locations',
+        name: 'locations',
+        component: LocationList,
         meta: { requiresAuth: true }
     }
 ]

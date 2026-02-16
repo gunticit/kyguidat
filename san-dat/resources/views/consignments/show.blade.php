@@ -298,17 +298,27 @@
                         {{ $consignment['province'] ?? '' }}
                     </p>
 
-                    <!-- Map Placeholder -->
-                    <div
-                        class="mt-4 bg-navy-700 rounded-lg h-48 flex items-center justify-center text-gray-500 border border-navy-600">
-                        <div class="text-center">
-                            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                            </svg>
-                            <span class="text-sm">Bản đồ vị trí</span>
+                    <!-- Map -->
+                    @if(!empty($consignment['latitude']) && !empty($consignment['longitude']))
+                        <div class="mt-4 rounded-lg overflow-hidden border border-navy-600">
+                            <iframe width="100%" height="300" style="border:0" loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                src="https://maps.google.com/maps?q={{ $consignment['latitude'] }},{{ $consignment['longitude'] }}&z=15&output=embed"
+                                allowfullscreen>
+                            </iframe>
                         </div>
-                    </div>
+                    @else
+                        <div
+                            class="mt-4 bg-navy-700 rounded-lg h-48 flex items-center justify-center text-gray-500 border border-navy-600">
+                            <div class="text-center">
+                                <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                                <span class="text-sm">Bản đồ vị trí</span>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 
