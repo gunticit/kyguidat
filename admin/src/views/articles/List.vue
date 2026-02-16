@@ -101,8 +101,13 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nội dung *</label>
-                <textarea v-model="form.content" rows="12" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono text-sm"></textarea>
-                <p class="text-xs text-gray-400 mt-1">Hỗ trợ HTML</p>
+                <QuillEditor 
+                  v-model:content="form.content" 
+                  contentType="html"
+                  theme="snow"
+                  :toolbar="toolbarOptions"
+                  style="min-height: 300px;"
+                />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh đại diện (URL)</label>
@@ -151,6 +156,24 @@ import { ref, onMounted } from 'vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Header from '@/components/layout/Header.vue'
 import { adminApi } from '@/services/api'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
+
+// Quill toolbar options
+const toolbarOptions = [
+  ['bold', 'italic', 'underline', 'strike'],
+  ['blockquote', 'code-block'],
+  [{ 'header': 1 }, { 'header': 2 }],
+  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+  [{ 'indent': '-1' }, { 'indent': '+1' }],
+  [{ 'size': ['small', false, 'large', 'huge'] }],
+  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+  [{ 'color': [] }, { 'background': [] }],
+  [{ 'font': [] }],
+  [{ 'align': [] }],
+  ['link', 'image', 'video'],
+  ['clean']
+]
 
 const articles = ref([])
 const loading = ref(false)
@@ -246,3 +269,22 @@ const formatDate = (d) => {
 
 onMounted(loadArticles)
 </script>
+
+<style>
+/* Override Quill editor styles for articles */
+.ql-container {
+  min-height: 250px;
+  font-size: 14px;
+}
+.ql-editor {
+  min-height: 250px;
+}
+.ql-toolbar.ql-snow {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+.ql-container.ql-snow {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+</style>
