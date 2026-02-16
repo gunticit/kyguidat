@@ -29,8 +29,12 @@ class AuthService
             'frozen_balance' => 0,
         ]);
 
-        // Send email verification
-        $user->sendEmailVerificationNotification();
+        // Send email verification (non-blocking — don't fail registration if mail is unavailable)
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            \Log::warning('Failed to send verification email: ' . $e->getMessage());
+        }
 
         return $user;
     }
