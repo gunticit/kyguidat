@@ -14,20 +14,24 @@ class AuthService
      */
     public function register(array $data): User
     {
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-            'phone' => $data['phone'] ?? null,
-            'free_posts_remaining' => 3,
-        ]);
+        $user = \DB::transaction(function () use ($data) {
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'phone' => $data['phone'] ?? null,
+                'free_posts_remaining' => 3,
+            ]);
 
-        // Create wallet for user
-        Wallet::create([
-            'user_id' => $user->id,
-            'balance' => 0,
-            'frozen_balance' => 0,
-        ]);
+            // Create wallet for user
+            Wallet::create([
+                'user_id' => $user->id,
+                'balance' => 0,
+                'frozen_balance' => 0,
+            ]);
+
+            return $user;
+        });
 
         // Send email verification (non-blocking — don't fail registration if mail is unavailable)
         try {
