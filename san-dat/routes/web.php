@@ -4,6 +4,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ConsignmentController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ArticleController;
 use Illuminate\Support\Facades\Route;
 
 // Home
@@ -15,6 +16,13 @@ Route::get('/bat-dong-san/{slug}', [ConsignmentController::class, 'show'])->name
 
 // Search
 Route::get('/tim-kiem', [SearchController::class, 'results'])->name('search.results');
+
+// Articles (Tin tức)
+Route::get('/tin-tuc', [ArticleController::class, 'index'])->name('articles.index');
+Route::get('/tin-tuc/{slug}', [ArticleController::class, 'show'])->name('articles.show');
+
+// Contact (Liên hệ)
+Route::get('/lien-he', [ArticleController::class, 'contact'])->name('contact');
 
 // Settings API
 Route::get('/api/settings', [SettingsController::class, 'index']);

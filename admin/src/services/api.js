@@ -82,5 +82,12 @@ export const adminApi = {
     // Reports
     getReportOverview: () => api.get('/admin/reports/overview'),
     exportReport: () => api.get('/admin/reports/export', { responseType: 'blob' }),
+
+    // Articles
+    getArticles: (params) => api.get('/admin/articles', { params }),
+    getArticle: (id) => api.get(`/admin/articles/${id}`),
+    createArticle: (data) => api.post('/admin/articles', data),
+    updateArticle: (id, data) => api.put(`/admin/articles/${id}`, data),
+    deleteArticle: (id) => api.delete(`/admin/articles/${id}`),
 }
 

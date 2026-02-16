@@ -69,6 +69,8 @@ func main() {
 	publicProxy := r.Group("/api/public")
 	{
 		publicProxy.GET("/consignments/by-slug/:slug", proxyHandler.ProxyRequest)
+		publicProxy.GET("/articles", proxyHandler.ProxyRequest)
+		publicProxy.GET("/articles/:slug", proxyHandler.ProxyRequest)
 	}
 
 	// Admin routes - proxy to Laravel backend
@@ -96,6 +98,13 @@ func main() {
 		admin.POST("/supports/:id/close", proxyHandler.ProxyRequest)
 
 		admin.GET("/transactions", proxyHandler.ProxyRequest)
+
+		// Articles
+		admin.GET("/articles", proxyHandler.ProxyRequest)
+		admin.GET("/articles/:id", proxyHandler.ProxyRequest)
+		admin.POST("/articles", proxyHandler.ProxyRequest)
+		admin.PUT("/articles/:id", proxyHandler.ProxyRequest)
+		admin.DELETE("/articles/:id", proxyHandler.ProxyRequest)
 
 		// Reports (handled directly by Go, not proxied)
 		admin.GET("/reports/overview", reportHandler.Overview)

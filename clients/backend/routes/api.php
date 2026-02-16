@@ -10,6 +10,7 @@ use App\Http\Controllers\ConsignmentWebhookController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\PostingPackageController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\IpnConfigController;
@@ -70,6 +71,12 @@ Route::prefix('payments')->middleware('throttle:30,1')->group(function () {
     Route::post('/momo/callback', [PaymentController::class, 'momoCallback']);
     Route::post('/momo/notify', [PaymentController::class, 'momoNotify']);
     Route::get('/bank-info', [PaymentController::class, 'getBankInfo']);
+});
+
+// Public articles (no auth required)
+Route::prefix('public')->group(function () {
+    Route::get('/articles', [ArticleController::class, 'publicIndex']);
+    Route::get('/articles/{slug}', [ArticleController::class, 'publicShow']);
 });
 
 // IPN Handler routes (public - called by payment gateways)
@@ -214,6 +221,13 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/supports/{id}/close', [App\Http\Controllers\AdminController::class, 'closeSupportTicket']);
 
         Route::get('/transactions', [App\Http\Controllers\AdminController::class, 'transactions']);
+
+        // Articles
+        Route::get('/articles', [ArticleController::class, 'index']);
+        Route::get('/articles/{id}', [ArticleController::class, 'show']);
+        Route::post('/articles', [ArticleController::class, 'store']);
+        Route::put('/articles/{id}', [ArticleController::class, 'update']);
+        Route::delete('/articles/{id}', [ArticleController::class, 'destroy']);
     });
 });
 

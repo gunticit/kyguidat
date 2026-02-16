@@ -29,7 +29,7 @@
                     <li><a href="{{ route('home') }}" class="hover:text-green-400 transition">Trang chủ</a></li>
                     <li><a href="{{ route('consignments.index') }}" class="hover:text-green-400 transition">Bất động
                             sản</a></li>
-                    <li><a href="#" class="hover:text-green-400 transition">Tin tức</a></li>
+                    <li><a href="{{ route('articles.index') }}" class="hover:text-green-400 transition">Tin tức</a></li>
                 </ul>
             </div>
 

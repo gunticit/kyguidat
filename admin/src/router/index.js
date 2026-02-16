@@ -12,6 +12,7 @@ import Reports from '@/views/reports/Index.vue'
 import Settings from '@/views/settings/Settings.vue'
 import Support from '@/views/support/Support.vue'
 import Customers from '@/views/customers/Customers.vue'
+import ArticleList from '@/views/articles/List.vue'
 
 const routes = [
     {
@@ -73,6 +74,12 @@ const routes = [
         name: 'settings',
         component: Settings,
         meta: { requiresAuth: true, allowIT: true }
+    },
+    {
+        path: '/articles',
+        name: 'articles',
+        component: ArticleList,
+        meta: { requiresAuth: true }
     }
 ]
 
