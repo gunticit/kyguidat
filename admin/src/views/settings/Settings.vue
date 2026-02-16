@@ -94,7 +94,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">Logo website</label>
               <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-500 transition-colors">
                 <div v-if="logoPreview || settings.logo" class="mb-4">
-                  <img :src="logoPreview || settings.logo" alt="Logo" class="max-h-24 mx-auto object-contain" />
+                  <img :src="logoPreview || resolveUrl(settings.logo)" alt="Logo" class="max-h-24 mx-auto object-contain" />
                 </div>
                 <div v-else class="mb-4">
                   <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -108,7 +108,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
               <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-500 transition-colors">
                 <div v-if="faviconPreview || settings.favicon" class="mb-4">
-                  <img :src="faviconPreview || settings.favicon" alt="Favicon" class="w-16 h-16 mx-auto object-contain border border-gray-200 rounded" />
+                  <img :src="faviconPreview || resolveUrl(settings.favicon)" alt="Favicon" class="w-16 h-16 mx-auto object-contain border border-gray-200 rounded" />
                 </div>
                 <div v-else class="mb-4">
                   <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -339,7 +339,17 @@ import axios from 'axios'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Header from '@/components/layout/Header.vue'
 
+const sandatBaseUrl = import.meta.env.VITE_SANDAT_API_URL?.replace(/\/api$/, '') || ''
 const apiUrl = import.meta.env.VITE_SANDAT_API_URL + '/settings'
+
+// Resolve relative storage URLs to the san-dat domain
+const resolveUrl = (url) => {
+  if (!url) return ''
+  // Already absolute URL
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) return url
+  // Relative path — prefix with san-dat base URL
+  return sandatBaseUrl + url
+}
 const activeTab = ref('contact')
 
 // Contact settings
