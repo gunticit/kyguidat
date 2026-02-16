@@ -11,7 +11,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Consignments
 Route::get('/bat-dong-san', [ConsignmentController::class, 'index'])->name('consignments.index');
-Route::get('/bat-dong-san/{id}', [ConsignmentController::class, 'show'])->name('consignments.show');
+Route::get('/bat-dong-san/{slug}', [ConsignmentController::class, 'show'])->name('consignments.show');
 
 // Search
 Route::get('/tim-kiem', [SearchController::class, 'results'])->name('search.results');

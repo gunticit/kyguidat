@@ -13,6 +13,7 @@ type Repository interface {
 	// Consignments
 	GetApprovedConsignments(page, limit int, search, province string, lat, lng float64) ([]models.Consignment, int64, error)
 	GetConsignmentByID(id uint) (*models.Consignment, error)
+	GetConsignmentBySlug(slug string) (*models.Consignment, error)
 	GetAllConsignments(page, limit int, status string) ([]models.Consignment, int64, error)
 	UpdateConsignmentStatus(id uint, status string) error
 
@@ -90,6 +91,16 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 func (r *MySQLRepository) GetConsignmentByID(id uint) (*models.Consignment, error) {
 	var consignment models.Consignment
 	err := r.db.Preload("User").First(&consignment, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &consignment, nil
+}
+
+// GetConsignmentBySlug returns single consignment by seo_url
+func (r *MySQLRepository) GetConsignmentBySlug(slug string) (*models.Consignment, error) {
+	var consignment models.Consignment
+	err := r.db.Preload("User").Where("seo_url = ? AND status = 'approved'", slug).First(&consignment).Error
 	if err != nil {
 		return nil, err
 	}

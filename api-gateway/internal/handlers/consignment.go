@@ -40,15 +40,37 @@ func (h *ConsignmentHandler) List(c *gin.Context) {
 	response.Paginated(c, consignments, total, page, limit)
 }
 
-// Show returns single consignment
+// Show returns single consignment by ID or slug
 func (h *ConsignmentHandler) Show(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		response.Error(c, http.StatusBadRequest, "Invalid ID")
+	param := c.Param("id")
+
+	// Try to parse as numeric ID first
+	id, err := strconv.ParseUint(param, 10, 32)
+	if err == nil {
+		// Numeric ID
+		consignment, err := h.repo.GetConsignmentByID(uint(id))
+		if err != nil {
+			response.Error(c, http.StatusNotFound, "Consignment not found")
+			return
+		}
+		response.Success(c, consignment)
 		return
 	}
 
-	consignment, err := h.repo.GetConsignmentByID(uint(id))
+	// Treat as slug (seo_url)
+	consignment, err := h.repo.GetConsignmentBySlug(param)
+	if err != nil {
+		response.Error(c, http.StatusNotFound, "Consignment not found")
+		return
+	}
+	response.Success(c, consignment)
+}
+
+// ShowBySlug returns single consignment by seo_url slug
+func (h *ConsignmentHandler) ShowBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+
+	consignment, err := h.repo.GetConsignmentBySlug(slug)
 	if err != nil {
 		response.Error(c, http.StatusNotFound, "Consignment not found")
 		return
