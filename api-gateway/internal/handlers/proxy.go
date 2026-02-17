@@ -36,8 +36,12 @@ func (h *ProxyHandler) ProxyRequest(c *gin.Context) {
 		}
 	}
 
-	// Execute request
-	client := &http.Client{}
+	// Execute request - do NOT follow redirects, forward them to the client
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "Backend connection failed"})
