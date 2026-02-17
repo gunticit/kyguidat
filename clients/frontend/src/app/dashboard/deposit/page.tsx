@@ -21,9 +21,9 @@ interface BankInfo {
 }
 
 const paymentMethods = [
-    { id: 'vnpay', name: 'VNPay', icon: FiCreditCard, description: 'Thanh toán qua ATM/Internet Banking' },
-    { id: 'momo', name: 'Momo', icon: FiSmartphone, description: 'Ví điện tử Momo' },
-    { id: 'bank', name: 'Chuyển khoản', icon: FiDollarSign, description: 'Chuyển khoản ngân hàng trực tiếp' },
+    { id: 'vnpay', name: 'VNPay', icon: FiCreditCard, description: 'Thanh toán qua ATM/Internet Banking', disabled: false },
+    { id: 'bank', name: 'Chuyển khoản', icon: FiDollarSign, description: 'Chuyển khoản ngân hàng trực tiếp', disabled: false },
+    { id: 'momo', name: 'Momo', icon: FiSmartphone, description: 'Ví điện tử Momo (Sắp ra mắt)', disabled: true },
 ];
 
 const quickAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000];
@@ -189,9 +189,13 @@ export default function DepositPage() {
                                     type="button"
                                     className={`${styles.methodCard} ${selectedMethod === method.id ? styles.methodActive : ''}`}
                                     onClick={() => {
-                                        setSelectedMethod(method.id);
-                                        setError(null);
+                                        if (!method.disabled) {
+                                            setSelectedMethod(method.id);
+                                            setError(null);
+                                        }
                                     }}
+                                    style={method.disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                    disabled={method.disabled}
                                 >
                                     <method.icon size={28} />
                                     <div>
