@@ -8,7 +8,7 @@
             $firstImage = null;
             if (!empty($images)) {
                 foreach ($images as $img) {
-                    if (!empty($img) && !str_starts_with($img, 'data:')) {
+                    if (!empty($img)) {
                         $firstImage = $img;
                         break;
                     }
@@ -16,7 +16,7 @@
             }
             if (!$firstImage) {
                 $fi = data_get($consignment, 'featured_image', '');
-                if (!empty($fi) && !str_starts_with($fi, 'data:')) {
+                if (!empty($fi)) {
                     $firstImage = $fi;
                 }
             }
