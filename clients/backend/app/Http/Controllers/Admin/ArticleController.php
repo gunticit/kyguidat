@@ -58,36 +58,50 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:articles,slug',
-            'excerpt' => 'nullable|string|max:500',
-            'content' => 'required|string',
-            'featured_image' => 'nullable|string',
-            'status' => 'in:draft,published',
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'slug' => 'nullable|string|max:255|unique:articles,slug',
+                'excerpt' => 'nullable|string|max:500',
+                'content' => 'required|string',
+                'featured_image' => 'nullable|string',
+                'status' => 'in:draft,published',
+            ]);
 
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['title']);
-            $count = Article::where('slug', 'like', $validated['slug'] . '%')->count();
-            if ($count > 0) {
-                $validated['slug'] .= '-' . ($count + 1);
+            if (empty($validated['slug'])) {
+                $validated['slug'] = Str::slug($validated['title']);
+                $count = Article::where('slug', 'like', $validated['slug'] . '%')->count();
+                if ($count > 0) {
+                    $validated['slug'] .= '-' . ($count + 1);
+                }
             }
+
+            $validated['author_id'] = $request->user()?->id ?? 1;
+
+            if (($validated['status'] ?? '') === 'published') {
+                $validated['published_at'] = now();
+            }
+
+            $article = Article::create($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tạo bài viết thành công',
+                'data' => $article->load('author:id,name'),
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server Error',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $validated['author_id'] = $request->user()->id;
-
-        if (($validated['status'] ?? '') === 'published') {
-            $validated['published_at'] = now();
-        }
-
-        $article = Article::create($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Tạo bài viết thành công',
-            'data' => $article->load('author:id,name'),
-        ], 201);
     }
 
     /**
