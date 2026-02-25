@@ -244,7 +244,7 @@ services:
     restart: always
     ports:
       - "127.0.0.1:9000:9000"
-      - "127.0.0.1:9001:9001"
+      - "127.0.0.1:9002:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-khodat_minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-khodat_minio_secret}
