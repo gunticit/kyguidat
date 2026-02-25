@@ -124,29 +124,50 @@
               <div class="border-b pb-4">
                 <h3 class="text-lg font-semibold mb-4 text-indigo-700">Hình ảnh</h3>
                 
-                <!-- User uploaded images gallery -->
-                <div v-if="form.images && form.images.length > 0" class="mb-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Ảnh do người dùng tải lên ({{ form.images.length }} ảnh)</label>
-                  <div class="flex flex-wrap gap-2">
+                <!-- Gallery images with management -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Bộ sưu tập ảnh ({{ (form.images || []).length }} ảnh)
+                  </label>
+                  <div class="flex flex-wrap gap-2 mb-3" v-if="form.images && form.images.length > 0">
                     <div v-for="(img, index) in form.images" :key="index" class="w-32 h-24 border rounded overflow-hidden relative group">
                       <img :src="img" class="w-full h-full object-cover" :alt="'Ảnh ' + (index + 1)"
                            @error="$event.target.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%2296%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22128%22 height=%2296%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2212%22%3ELỗi ảnh%3C/text%3E%3C/svg%3E'">
                       <span class="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">{{ index + 1 }}</span>
+                      <!-- Delete button -->
+                      <button type="button" @click="removeGalleryImage(index)"
+                              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Xóa ảnh">✕</button>
+                      <!-- Set as featured button -->
+                      <button type="button" @click="setAsFeatured(index)"
+                              class="absolute bottom-1 right-1 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Đặt làm ảnh đại diện">★</button>
                     </div>
+                  </div>
+                  <!-- Multi-image upload -->
+                  <div class="flex items-center gap-2">
+                    <label class="cursor-pointer bg-indigo-50 border-2 border-dashed border-indigo-300 rounded-lg px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-100 transition-colors">
+                      <span v-if="!uploadingGallery">+ Thêm ảnh (tối đa 20)</span>
+                      <span v-else class="animate-pulse">Đang tải lên...</span>
+                      <input type="file" @change="handleGalleryUpload" accept="image/*" multiple class="hidden" :disabled="uploadingGallery">
+                    </label>
                   </div>
                 </div>
 
+                <!-- Featured image -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Hình ảnh đại diện sản phẩm</label>
                   <div class="flex items-center gap-4">
-                    <div v-if="form.featured_image" class="w-32 h-24 border rounded overflow-hidden">
+                    <div v-if="form.featured_image" class="w-32 h-24 border-2 border-yellow-400 rounded overflow-hidden relative">
                       <img :src="form.featured_image" class="w-full h-full object-cover" alt="Featured">
+                      <span class="absolute top-1 left-1 bg-yellow-500 text-white text-xs px-1 rounded">★ Đại diện</span>
                     </div>
                     <div class="flex items-center gap-2">
                       <input type="file" @change="handleImageUpload" accept="image/*" class="px-4 py-2 border rounded-lg" :disabled="uploadingImage">
                       <span v-if="uploadingImage" class="text-sm text-indigo-600 animate-pulse">Đang tải lên...</span>
                     </div>
                   </div>
+                  <p class="text-xs text-gray-500 mt-1">Hoặc hover ảnh gallery và bấm ★ để đặt làm đại diện</p>
                 </div>
               </div>
 
@@ -641,6 +662,7 @@ const defaultForm = {
 const form = ref({ ...defaultForm })
 
 const uploadingImage = ref(false)
+const uploadingGallery = ref(false)
 
 const handleImageUpload = async (event) => {
   const file = event.target.files[0]
@@ -662,6 +684,59 @@ const handleImageUpload = async (event) => {
   } finally {
     uploadingImage.value = false
   }
+}
+
+const handleGalleryUpload = async (event) => {
+  const files = Array.from(event.target.files || [])
+  if (files.length === 0) return
+
+  // Ensure images array exists
+  if (!form.value.images) form.value.images = []
+
+  // Limit total images to 20
+  const remaining = 20 - form.value.images.length
+  if (remaining <= 0) {
+    alert('Đã đạt tối đa 20 ảnh')
+    return
+  }
+  const filesToUpload = files.slice(0, remaining)
+
+  uploadingGallery.value = true
+  try {
+    const { adminApi } = await import('@/services/api.js')
+    const response = await adminApi.uploadMultipleOptimizedImages(filesToUpload, 'consignments/gallery')
+    if (response.data?.success && response.data?.data) {
+      const urls = response.data.data.map(item => item.url)
+      form.value.images = [...form.value.images, ...urls]
+      // Auto-set featured if none
+      if (!form.value.featured_image && urls.length > 0) {
+        form.value.featured_image = urls[0]
+      }
+    } else {
+      alert('Upload ảnh thất bại: ' + (response.data?.message || 'Unknown error'))
+    }
+  } catch (err) {
+    console.error('Gallery upload error:', err)
+    alert('Upload ảnh thất bại: ' + (err.response?.data?.message || err.message))
+  } finally {
+    uploadingGallery.value = false
+    event.target.value = '' // Reset input
+  }
+}
+
+const removeGalleryImage = (index) => {
+  if (!form.value.images) return
+  const removedUrl = form.value.images[index]
+  form.value.images = form.value.images.filter((_, i) => i !== index)
+  // If removed image was featured, clear it
+  if (form.value.featured_image === removedUrl) {
+    form.value.featured_image = form.value.images.length > 0 ? form.value.images[0] : ''
+  }
+}
+
+const setAsFeatured = (index) => {
+  if (!form.value.images || !form.value.images[index]) return
+  form.value.featured_image = form.value.images[index]
 }
 
 const fetchData = async () => {
