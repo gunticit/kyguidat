@@ -86,6 +86,47 @@ func main() {
 		publicProxy.GET("/provinces/:slug/wards", proxyHandler.ProxyRequest)
 	}
 
+	// Upload routes - proxy to Laravel backend (authenticated)
+	uploadProxy := r.Group("/api/upload")
+	{
+		uploadProxy.POST("", proxyHandler.ProxyRequest)
+		uploadProxy.POST("/multiple", proxyHandler.ProxyRequest)
+		uploadProxy.POST("/image", proxyHandler.ProxyRequest)
+		uploadProxy.POST("/image-optimized", proxyHandler.ProxyRequest)
+		uploadProxy.POST("/images-optimized", proxyHandler.ProxyRequest)
+		uploadProxy.POST("/base64", proxyHandler.ProxyRequest)
+		uploadProxy.DELETE("", proxyHandler.ProxyRequest)
+		uploadProxy.GET("/info", proxyHandler.ProxyRequest)
+	}
+
+	// Authenticated user routes - proxy to Laravel backend
+	userProxy := r.Group("/api")
+	{
+		// User profile
+		userProxy.GET("/user", proxyHandler.ProxyRequest)
+		userProxy.PUT("/user/profile", proxyHandler.ProxyRequest)
+		userProxy.PUT("/user/password", proxyHandler.ProxyRequest)
+		userProxy.POST("/auth/logout", proxyHandler.ProxyRequest)
+		userProxy.POST("/auth/register", proxyHandler.ProxyRequest)
+
+		// User consignments (POST/PUT/DELETE - GET already registered in public group)
+		userProxy.POST("/consignments", proxyHandler.ProxyRequest)
+		userProxy.PUT("/consignments/:id", proxyHandler.ProxyRequest)
+		userProxy.DELETE("/consignments/:id", proxyHandler.ProxyRequest)
+		userProxy.POST("/consignments/:id/cancel", proxyHandler.ProxyRequest)
+
+		// Support tickets
+		userProxy.GET("/supports", proxyHandler.ProxyRequest)
+		userProxy.GET("/supports/:id", proxyHandler.ProxyRequest)
+		userProxy.POST("/supports", proxyHandler.ProxyRequest)
+		userProxy.POST("/supports/:id/reply", proxyHandler.ProxyRequest)
+
+		// Packages & transactions
+		userProxy.GET("/packages", proxyHandler.ProxyRequest)
+		userProxy.POST("/packages/:id/subscribe", proxyHandler.ProxyRequest)
+		userProxy.GET("/transactions", proxyHandler.ProxyRequest)
+	}
+
 	// Admin routes - proxy to Laravel backend
 	admin := r.Group("/api/admin")
 	{
