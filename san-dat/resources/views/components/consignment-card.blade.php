@@ -3,21 +3,21 @@
     <!-- Image -->
     <div class="aspect-video bg-navy-800 relative overflow-hidden">
         @php
-            $_imgs = data_get($consignment, 'images', []);
-            $images = is_string($_imgs) ? (json_decode($_imgs, true) ?? []) : (is_array($_imgs) ? $_imgs : []);
             $firstImage = null;
-            if (!empty($images)) {
+            // Priority 1: featured_image (hình đại diện)
+            $fi = data_get($consignment, 'featured_image', '');
+            if (!empty($fi)) {
+                $firstImage = $fi;
+            }
+            // Priority 2: first image from images array
+            if (!$firstImage) {
+                $_imgs = data_get($consignment, 'images', []);
+                $images = is_string($_imgs) ? (json_decode($_imgs, true) ?? []) : (is_array($_imgs) ? $_imgs : []);
                 foreach ($images as $img) {
                     if (!empty($img)) {
                         $firstImage = $img;
                         break;
                     }
-                }
-            }
-            if (!$firstImage) {
-                $fi = data_get($consignment, 'featured_image', '');
-                if (!empty($fi)) {
-                    $firstImage = $fi;
                 }
             }
         @endphp

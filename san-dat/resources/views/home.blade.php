@@ -404,7 +404,7 @@
         function renderPropertyCard(item) {
             const price = formatPrice(item.price);
             const images = Array.isArray(item.images) ? item.images : (typeof item.images === 'string' ? (JSON.parse(item.images || '[]') || []) : []);
-            const firstImage = images.find(i => i) || item.featured_image || '';
+            const firstImage = item.featured_image || images.find(i => i) || '';
             const slug = item.seo_url || item.id;
 
             // Parse land_types
@@ -430,27 +430,27 @@
             if (item.has_house) details += `<p><span class="text-gray-500">Tình trạng:</span> ${item.has_house === 'yes' ? 'Có nhà' : 'Đất trống'}</p>`;
 
             return `
-                    <a href="/bat-dong-san/${slug}" class="block bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
-                        <div class="aspect-video bg-navy-800 relative overflow-hidden">
-                            ${imgHtml}
-                            ${typeLabel ? `<span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full font-medium">${typeLabel}</span>` : ''}
-                        </div>
-                        <div class="p-4">
-                            ${item.order_number ? `<p class="text-xs text-gray-400 mb-1">STT: ${item.order_number}</p>` : ''}
-                            <h3 class="font-semibold text-gray-100 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
-                            <div class="space-y-1 text-sm text-gray-400">
-                                ${details}
+                        <a href="/bat-dong-san/${slug}" class="block bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
+                            <div class="aspect-video bg-navy-800 relative overflow-hidden">
+                                ${imgHtml}
+                                ${typeLabel ? `<span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full font-medium">${typeLabel}</span>` : ''}
                             </div>
-                            <p class="text-green-400 font-bold text-lg mt-2">${price}</p>
-                        </div>
-                    </a>
-                `;
+                            <div class="p-4">
+                                ${item.order_number ? `<p class="text-xs text-gray-400 mb-1">STT: ${item.order_number}</p>` : ''}
+                                <h3 class="font-semibold text-gray-100 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
+                                <div class="space-y-1 text-sm text-gray-400">
+                                    ${details}
+                                </div>
+                                <p class="text-green-400 font-bold text-lg mt-2">${price}</p>
+                            </div>
+                        </a>
+                    `;
         }
 
         function renderPropertyListCard(item) {
             const price = formatPrice(item.price);
             const images = Array.isArray(item.images) ? item.images : (typeof item.images === 'string' ? (JSON.parse(item.images || '[]') || []) : []);
-            const firstImage = images.find(i => i) || item.featured_image || '';
+            const firstImage = item.featured_image || images.find(i => i) || '';
             const slug = item.seo_url || item.id;
 
             let landTypes = item.land_types;
@@ -473,23 +473,23 @@
             if (item.road) details += `<span><span class="text-gray-500">Đường:</span> ${item.road}</span>`;
 
             return `
-                    <a href="/bat-dong-san/${slug}" class="flex bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
-                        <div class="w-48 md:w-64 flex-shrink-0 bg-navy-800 relative overflow-hidden">
-                            ${imgHtml}
-                            ${typeLabel ? `<span class="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full font-medium">${typeLabel}</span>` : ''}
-                        </div>
-                        <div class="flex-1 p-4 flex flex-col justify-between">
-                            <div>
-                                ${item.order_number ? `<p class="text-xs text-gray-400 mb-1">STT: ${item.order_number}</p>` : ''}
-                                <h3 class="font-semibold text-gray-100 text-lg mb-2">${item.title || 'Bất động sản'}</h3>
-                                <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-400 mb-2">
-                                    ${details}
-                                </div>
+                        <a href="/bat-dong-san/${slug}" class="flex bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
+                            <div class="w-48 md:w-64 flex-shrink-0 bg-navy-800 relative overflow-hidden">
+                                ${imgHtml}
+                                ${typeLabel ? `<span class="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full font-medium">${typeLabel}</span>` : ''}
                             </div>
-                            <p class="text-green-400 font-bold text-lg">${price}</p>
-                        </div>
-                    </a>
-                `;
+                            <div class="flex-1 p-4 flex flex-col justify-between">
+                                <div>
+                                    ${item.order_number ? `<p class="text-xs text-gray-400 mb-1">STT: ${item.order_number}</p>` : ''}
+                                    <h3 class="font-semibold text-gray-100 text-lg mb-2">${item.title || 'Bất động sản'}</h3>
+                                    <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-400 mb-2">
+                                        ${details}
+                                    </div>
+                                </div>
+                                <p class="text-green-400 font-bold text-lg">${price}</p>
+                            </div>
+                        </a>
+                    `;
         }
 
         function setHomeView(mode) {
@@ -520,9 +520,9 @@
             if (total <= 1) { container.innerHTML = ''; return; }
 
             let html = `<button onclick="loadAllProperties(${current - 1})" ${current === 1 ? 'disabled' : ''} 
-                                                                                                                                                class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
-                                                                                                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                                                                                                                                            </button>`;
+                                                                                                                                                    class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
+                                                                                                                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                                                                                                                                </button>`;
 
             const pages = [];
             if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i); }
@@ -540,9 +540,9 @@
             });
 
             html += `<button onclick="loadAllProperties(${current + 1})" ${current === total ? 'disabled' : ''} 
-                                                                                                                                                class="px-3 py-2 rounded-lg ${current === total ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
-                                                                                                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                                                                                                                            </button>`;
+                                                                                                                                                    class="px-3 py-2 rounded-lg ${current === total ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
+                                                                                                                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                                                                                                                                </button>`;
 
             container.innerHTML = html;
             if (current !== 1) document.getElementById('all-properties-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -659,34 +659,34 @@
 
             // Create info window content
             const infoContent = `
-                                                                                                                                                                    <div style="width: 280px; font-family: Arial, sans-serif; background: var(--navy-800); border-radius: 12px; overflow:hidden;">
-                                                                                                                                                                        <img src="${property.image}" alt="${property.title}" 
-                                                                                                                                                                             style="width: 100%; height: 140px; object-fit: cover;"
-                                                                                                                                                                             onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22140%22%3E%3Crect fill=%22%23334155%22 width=%22280%22 height=%22140%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                                                                                                                                                                        <div style="padding: 12px;">
-                                                                                                                                                                            <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
-                                                                                                                                                                            <p style="font-weight: bold; color: var(--gray-100); font-size: 13px; margin: 0 0 8px 0; 
-                                                                                                                                                                               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                                                                                                                                                                ${property.title}
-                                                                                                                                                                            </p>
-                                                                                                                                                                            <p style="color: #22c55e; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
-                                                                                                                                                                                ${property.priceFormatted}
-                                                                                                                                                                            </p>
-                                                                                                                                                                            <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">
-                                                                                                                                                                                Địa chỉ: ${property.address || property.district + ', ' + property.province}
-                                                                                                                                                                            </p>
-                                                                                                                                                                            <div style="display: flex; gap: 15px; font-size: 12px; color: var(--gray-400); margin-top: 8px;">
-                                                                                                                                                                                <span>Hướng: ${property.direction || 'N/A'}</span>
-                                                                                                                                                                                <span>Diện tích: ${property.area} m²</span>
+                                                                                                                                                                        <div style="width: 280px; font-family: Arial, sans-serif; background: var(--navy-800); border-radius: 12px; overflow:hidden;">
+                                                                                                                                                                            <img src="${property.image}" alt="${property.title}" 
+                                                                                                                                                                                 style="width: 100%; height: 140px; object-fit: cover;"
+                                                                                                                                                                                 onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22140%22%3E%3Crect fill=%22%23334155%22 width=%22280%22 height=%22140%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                                                                                                                                                                            <div style="padding: 12px;">
+                                                                                                                                                                                <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
+                                                                                                                                                                                <p style="font-weight: bold; color: var(--gray-100); font-size: 13px; margin: 0 0 8px 0; 
+                                                                                                                                                                                   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                                                                                                                                                                    ${property.title}
+                                                                                                                                                                                </p>
+                                                                                                                                                                                <p style="color: #22c55e; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
+                                                                                                                                                                                    ${property.priceFormatted}
+                                                                                                                                                                                </p>
+                                                                                                                                                                                <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">
+                                                                                                                                                                                    Địa chỉ: ${property.address || property.district + ', ' + property.province}
+                                                                                                                                                                                </p>
+                                                                                                                                                                                <div style="display: flex; gap: 15px; font-size: 12px; color: var(--gray-400); margin-top: 8px;">
+                                                                                                                                                                                    <span>Hướng: ${property.direction || 'N/A'}</span>
+                                                                                                                                                                                    <span>Diện tích: ${property.area} m²</span>
+                                                                                                                                                                                </div>
+                                                                                                                                                                                <a href="/bat-dong-san/${property.seo_url || property.id}" 
+                                                                                                                                                                                   style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
+                                                                                                                                                                                          background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                                                                                                                                                                    Xem chi tiết
+                                                                                                                                                                                </a>
                                                                                                                                                                             </div>
-                                                                                                                                                                            <a href="/bat-dong-san/${property.seo_url || property.id}" 
-                                                                                                                                                                               style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
-                                                                                                                                                                                      background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                                                                                                                                                                                Xem chi tiết
-                                                                                                                                                                            </a>
                                                                                                                                                                         </div>
-                                                                                                                                                                    </div>
-                                                                                                                                                                `;
+                                                                                                                                                                    `;
 
             const infoWindow = new google.maps.InfoWindow({
                 content: infoContent,
