@@ -24,7 +24,8 @@
 
         @if($firstImage)
             <img src="{{ $firstImage }}" alt="{{ data_get($consignment, 'title', '') }}"
-                class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+                class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy"
+                onerror="this.onerror=null;this.style.display='none';this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-gray-500 text-sm\' style=\'background:#1e293b\'>No Image</div>'">
         @else
             <div class="w-full h-full flex items-center justify-center text-gray-500 text-sm">No Image</div>
         @endif

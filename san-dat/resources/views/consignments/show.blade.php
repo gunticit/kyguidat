@@ -56,7 +56,8 @@
                     <div class="bg-navy-700 rounded-xl overflow-hidden aspect-video mb-3 shadow-lg border border-navy-600">
                         @if(count($images) > 0)
                             <img id="mainImage" src="{{ $images[0] }}" alt="{{ $consignment['title'] }}"
-                                class="w-full h-full object-cover transition-all duration-300">
+                                class="w-full h-full object-cover transition-all duration-300"
+                                onerror="this.onerror=null;this.style.display='none';this.parentElement.innerHTML='<div class=\'w-full h-full flex flex-col items-center justify-center text-gray-500 bg-gradient-to-br from-navy-700 to-navy-800\'><svg class=\'w-20 h-20 mb-2\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/></svg><span class=\'text-sm\'>Chưa có hình ảnh</span></div>'">
                         @else
                             <div
                                 class="w-full h-full flex flex-col items-center justify-center text-gray-500 bg-gradient-to-br from-navy-700 to-navy-800">
@@ -75,7 +76,8 @@
                             @foreach($images as $index => $img)
                                 <img src="{{ $img }}" alt="Ảnh {{ $index + 1 }}"
                                     onclick="document.getElementById('mainImage').src='{{ $img }}'"
-                                    class="w-20 h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-green-500 transition flex-shrink-0">
+                                    class="w-20 h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-green-500 transition flex-shrink-0"
+                                    onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Crect fill=%22%23334155%22 width=%2280%22 height=%2280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2210%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                             @endforeach
                         </div>
                     @endif
