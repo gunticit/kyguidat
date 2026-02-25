@@ -60,8 +60,8 @@
 
         <div class="flex items-start justify-between gap-2">
             <div class="flex-1 min-w-0">
-                @if(data_get($consignment, 'code'))
-                    <p class="text-xs text-gray-400 mb-1">Mã: {{ data_get($consignment, 'code') }}</p>
+                @if(data_get($consignment, 'order_number'))
+                    <p class="text-xs text-gray-400 mb-1">STT: {{ data_get($consignment, 'order_number') }}</p>
                 @endif
             </div>
             @if($distance !== null)
