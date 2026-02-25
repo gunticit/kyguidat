@@ -265,85 +265,15 @@
             form.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
         });
     </script>
-
-
-    <!-- Featured Listings -->
-    <section class="py-16">
+    <!-- Map Section -->
+    <section class="py-16 bg-navy-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-100 mb-8">Bất động sản nổi bật</h2>
+            <h2 class="text-3xl font-bold text-gray-100 mb-8">Bản đồ Bất động sản</h2>
 
-            <!-- Skeleton Loading Grid -->
-            <div id="skeletonGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                @for($i = 0; $i < 8; $i++)
-                    @include('components.skeleton-card')
-                @endfor
-            </div>
-
-            <!-- Actual Products Grid (hidden initially) -->
-            <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 hidden">
-                @forelse($consignments as $item)
-                    @include('components.consignment-card', ['consignment' => $item])
-                @empty
-                    <p class="col-span-full text-center text-gray-500 py-8">
-                        Chưa có bất động sản nào
-                    </p>
-                @endforelse
-            </div>
-
-            <div class="text-center mt-8">
-                <a href="{{ route('consignments.index') }}"
-                    class="inline-flex items-center px-6 py-3 border border-green-500 text-green-400 rounded-lg hover:bg-green-500 hover:text-white transition font-semibold">
-                    Xem tất cả
-                </a>
+            <div id="property-map" class="w-full h-[500px] rounded-lg shadow-lg overflow-hidden border border-navy-600">
             </div>
         </div>
     </section>
-
-    <!-- Skeleton to Products Transition Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const skeletonGrid = document.getElementById('skeletonGrid');
-            const productsGrid = document.getElementById('productsGrid');
-
-            // Simulate loading time (or use when data actually loads)
-            setTimeout(function () {
-                // Fade out skeleton
-                skeletonGrid.style.opacity = '0';
-                skeletonGrid.style.transition = 'opacity 0.3s ease-out';
-
-                setTimeout(function () {
-                    skeletonGrid.classList.add('hidden');
-                    productsGrid.classList.remove('hidden');
-                    productsGrid.style.opacity = '0';
-
-                    // Fade in products
-                    requestAnimationFrame(function () {
-                        productsGrid.style.transition = 'opacity 0.3s ease-in';
-                        productsGrid.style.opacity = '1';
-                    });
-                }, 300);
-            }, 800); // Show skeleton for 800ms
-        });
-    </script>
-
-    <!-- Locations -->
-    @if(count($locations) > 0)
-        <section class="py-16 bg-navy-800">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-gray-100 mb-8">Khu vực nổi bật</h2>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    @foreach($locations as $location)
-                        <a href="{{ route('consignments.index', ['province' => $location['province']]) }}"
-                            class="p-4 bg-navy-700 rounded-lg hover:bg-navy-600 hover:border-green-500/50 border border-navy-600 transition text-center">
-                            <p class="font-medium text-gray-100">{{ $location['province'] }}</p>
-                            <p class="text-sm text-gray-400">{{ $location['count'] }} tin</p>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-    @endif
 
     <!-- CTA Section -->
     <section class="py-16 bg-gradient-to-r from-green-600 to-green-700">
@@ -358,15 +288,6 @@
                 class="inline-flex items-center px-8 py-4 bg-white text-green-700 rounded-lg hover:bg-gray-100 transition font-semibold shadow-xl">
                 Đăng tin ngay
             </a>
-        </div>
-    </section>
-    <!-- Map Section -->
-    <section class="py-16 bg-navy-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-100 mb-8">Bản đồ Bất động sản</h2>
-
-            <div id="property-map" class="w-full h-[500px] rounded-lg shadow-lg overflow-hidden border border-navy-600">
-            </div>
         </div>
     </section>
 
@@ -450,44 +371,44 @@
             const slug = item.seo_url || item.id;
 
             return `
-                                    <a href="/bat-dong-san/${slug}" class="bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
-                                        <div class="relative h-48 overflow-hidden">
-                                            <img src="${image}" alt="${item.title || 'BĐS'}" 
-                                                class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                                onerror="this.src='/images/placeholder.jpg'">
-                                            <span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded font-medium">
-                                                ${item.property_type || 'Đất nền'}
-                                            </span>
-                                        </div>
-                                        <div class="p-4">
-                                            <h3 class="font-semibold text-gray-100 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
-                                            <p class="text-green-400 font-bold mb-2">${price}</p>
-                                            <div class="flex items-center text-sm text-gray-400 gap-3">
-                                                <span class="flex items-center gap-1">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                                                    </svg>
-                                                    ${item.area || 0}m²
-                                                </span>
-                                                <span class="flex items-center gap-1 truncate">
-                                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                                    </svg>
-                                                    ${location}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                `;
+                                                <a href="/bat-dong-san/${slug}" class="bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
+                                                    <div class="relative h-48 overflow-hidden">
+                                                        <img src="${image}" alt="${item.title || 'BĐS'}" 
+                                                            class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                                            onerror="this.src='/images/placeholder.jpg'">
+                                                        <span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded font-medium">
+                                                            ${item.property_type || 'Đất nền'}
+                                                        </span>
+                                                    </div>
+                                                    <div class="p-4">
+                                                        <h3 class="font-semibold text-gray-100 line-clamp-2 mb-2">${item.title || 'Bất động sản'}</h3>
+                                                        <p class="text-green-400 font-bold mb-2">${price}</p>
+                                                        <div class="flex items-center text-sm text-gray-400 gap-3">
+                                                            <span class="flex items-center gap-1">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                                                </svg>
+                                                                ${item.area || 0}m²
+                                                            </span>
+                                                            <span class="flex items-center gap-1 truncate">
+                                                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                                </svg>
+                                                                ${location}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            `;
         }
 
         function renderPagination(current, total, container) {
             if (total <= 1) { container.innerHTML = ''; return; }
 
             let html = `<button onclick="loadAllProperties(${current - 1})" ${current === 1 ? 'disabled' : ''} 
-                                                                                                                class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
-                                                                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                                                                                                            </button>`;
+                                                                                                                            class="px-3 py-2 rounded-lg ${current === 1 ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
+                                                                                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                                                                                                        </button>`;
 
             const pages = [];
             if (total <= 7) { for (let i = 1; i <= total; i++) pages.push(i); }
@@ -505,9 +426,9 @@
             });
 
             html += `<button onclick="loadAllProperties(${current + 1})" ${current === total ? 'disabled' : ''} 
-                                                                                                                class="px-3 py-2 rounded-lg ${current === total ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
-                                                                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                                                                                            </button>`;
+                                                                                                                            class="px-3 py-2 rounded-lg ${current === total ? 'bg-navy-700 text-gray-600 cursor-not-allowed' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600'}">
+                                                                                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                                                                                                        </button>`;
 
             container.innerHTML = html;
             if (current !== 1) document.getElementById('all-properties-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -624,34 +545,34 @@
 
             // Create info window content
             const infoContent = `
-                                                                                                                                    <div style="width: 280px; font-family: Arial, sans-serif; background: var(--navy-800); border-radius: 12px; overflow:hidden;">
-                                                                                                                                        <img src="${property.image}" alt="${property.title}" 
-                                                                                                                                             style="width: 100%; height: 140px; object-fit: cover;"
-                                                                                                                                             onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
-                                                                                                                                        <div style="padding: 12px;">
-                                                                                                                                            <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
-                                                                                                                                            <p style="font-weight: bold; color: var(--gray-100); font-size: 13px; margin: 0 0 8px 0; 
-                                                                                                                                               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                                                                                                                                ${property.title}
-                                                                                                                                            </p>
-                                                                                                                                            <p style="color: #22c55e; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
-                                                                                                                                                ${property.priceFormatted}
-                                                                                                                                            </p>
-                                                                                                                                            <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">
-                                                                                                                                                Địa chỉ: ${property.address || property.district + ', ' + property.province}
-                                                                                                                                            </p>
-                                                                                                                                            <div style="display: flex; gap: 15px; font-size: 12px; color: var(--gray-400); margin-top: 8px;">
-                                                                                                                                                <span>Hướng: ${property.direction || 'N/A'}</span>
-                                                                                                                                                <span>Diện tích: ${property.area} m²</span>
-                                                                                                                                            </div>
-                                                                                                                                            <a href="/bat-dong-san/${property.seo_url || property.id}" 
-                                                                                                                                               style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
-                                                                                                                                                      background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                                                                                                                                                Xem chi tiết
-                                                                                                                                            </a>
-                                                                                                                                        </div>
-                                                                                                                                    </div>
-                                                                                                                                `;
+                                                                                                                                                <div style="width: 280px; font-family: Arial, sans-serif; background: var(--navy-800); border-radius: 12px; overflow:hidden;">
+                                                                                                                                                    <img src="${property.image}" alt="${property.title}" 
+                                                                                                                                                         style="width: 100%; height: 140px; object-fit: cover;"
+                                                                                                                                                         onerror="this.src='https://via.placeholder.com/280x140?text=No+Image'">
+                                                                                                                                                    <div style="padding: 12px;">
+                                                                                                                                                        <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">Mã số: ${property.id}</p>
+                                                                                                                                                        <p style="font-weight: bold; color: var(--gray-100); font-size: 13px; margin: 0 0 8px 0; 
+                                                                                                                                                           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                                                                                                                                            ${property.title}
+                                                                                                                                                        </p>
+                                                                                                                                                        <p style="color: #22c55e; font-weight: bold; font-size: 16px; margin: 0 0 8px 0;">
+                                                                                                                                                            ${property.priceFormatted}
+                                                                                                                                                        </p>
+                                                                                                                                                        <p style="color: var(--gray-400); font-size: 12px; margin: 0 0 5px 0;">
+                                                                                                                                                            Địa chỉ: ${property.address || property.district + ', ' + property.province}
+                                                                                                                                                        </p>
+                                                                                                                                                        <div style="display: flex; gap: 15px; font-size: 12px; color: var(--gray-400); margin-top: 8px;">
+                                                                                                                                                            <span>Hướng: ${property.direction || 'N/A'}</span>
+                                                                                                                                                            <span>Diện tích: ${property.area} m²</span>
+                                                                                                                                                        </div>
+                                                                                                                                                        <a href="/bat-dong-san/${property.seo_url || property.id}" 
+                                                                                                                                                           style="display: block; text-align: center; margin-top: 10px; padding: 8px; 
+                                                                                                                                                                  background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                                                                                                                                            Xem chi tiết
+                                                                                                                                                        </a>
+                                                                                                                                                    </div>
+                                                                                                                                                </div>
+                                                                                                                                            `;
 
             const infoWindow = new google.maps.InfoWindow({
                 content: infoContent,
