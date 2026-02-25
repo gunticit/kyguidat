@@ -44,9 +44,38 @@
 
     <!-- Content -->
     <div class="p-4">
-        @if(data_get($consignment, 'code'))
-            <p class="text-xs text-gray-400 mb-1">Mã: {{ data_get($consignment, 'code') }}</p>
-        @endif
+        @php
+            // Calculate distance if user location is available
+            $distance = null;
+            $cLat = data_get($consignment, 'lat') ?: data_get($consignment, 'latitude');
+            $cLng = data_get($consignment, 'lng') ?: data_get($consignment, 'longitude');
+            if (!empty($userLat) && !empty($userLng) && !empty($cLat) && !empty($cLng)) {
+                $R = 6371; // Earth radius in km
+                $dLat = deg2rad((float) $cLat - (float) $userLat);
+                $dLng = deg2rad((float) $cLng - (float) $userLng);
+                $a = sin($dLat / 2) * sin($dLat / 2) + cos(deg2rad((float) $userLat)) * cos(deg2rad((float) $cLat)) * sin($dLng / 2) * sin($dLng / 2);
+                $distance = $R * 2 * atan2(sqrt($a), sqrt(1 - $a));
+            }
+        @endphp
+
+        <div class="flex items-start justify-between gap-2">
+            <div class="flex-1 min-w-0">
+                @if(data_get($consignment, 'code'))
+                    <p class="text-xs text-gray-400 mb-1">Mã: {{ data_get($consignment, 'code') }}</p>
+                @endif
+            </div>
+            @if($distance !== null)
+                <span
+                    class="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded-full font-medium"
+                    title="Khoảng cách từ vị trí của bạn">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    {{ $distance < 1 ? number_format($distance * 1000, 0) . ' m' : number_format($distance, 1) . ' km' }}
+                </span>
+            @endif
+        </div>
 
         <h3 class="font-semibold text-gray-100 line-clamp-2 mb-2">
             {{ data_get($consignment, 'title', '') }}
