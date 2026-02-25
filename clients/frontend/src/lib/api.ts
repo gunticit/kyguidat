@@ -173,17 +173,17 @@ export const postingPackageApi = {
 export const uploadApi = {
     uploadMultiple: (files: File[], directory = 'consignments') => {
         const formData = new FormData();
-        files.forEach(file => formData.append('files[]', file));
+        files.forEach(file => formData.append('images[]', file));
         formData.append('directory', directory);
-        return api.post('/upload/multiple', formData, {
+        return api.post('/upload/images-optimized', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
     },
     uploadSingle: (file: File, directory = 'uploads') => {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('image', file);
         formData.append('directory', directory);
-        return api.post('/upload', formData, {
+        return api.post('/upload/image-optimized', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
     },
