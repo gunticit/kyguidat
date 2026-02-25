@@ -116,8 +116,8 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
     && chown -R $user:$user storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Cache routes and config for production performance
-RUN php artisan route:cache && php artisan config:cache
+# Cache routes for production performance (do NOT cache config - it depends on runtime env vars)
+RUN php artisan route:cache
 
 USER $user
 
