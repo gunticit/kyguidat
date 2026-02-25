@@ -167,7 +167,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'category_id' => 'nullable|integer',
-            'order_number' => 'nullable|integer',
+            'order_number' => 'nullable|integer|unique:consignments,order_number',
             'notification_date' => 'nullable|date',
             'description' => 'nullable|string',
             'featured_image' => 'nullable|string',
@@ -215,6 +215,12 @@ class AdminController extends Controller
             }
         }
 
+        // Auto-assign order_number if not provided
+        if (empty($validated['order_number'])) {
+            $maxOrder = Consignment::max('order_number') ?? 0;
+            $validated['order_number'] = $maxOrder + 1;
+        }
+
         $validated['code'] = 'KG' . str_pad(Consignment::max('id') + 1, 6, '0', STR_PAD_LEFT);
         $validated['user_id'] = $request->user()->id;
         $validated['status'] = $validated['status'] ?? 'pending';
@@ -242,7 +248,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'category_id' => 'nullable|integer',
-            'order_number' => 'nullable|integer',
+            'order_number' => 'nullable|integer|unique:consignments,order_number,' . $id,
             'notification_date' => 'nullable|date',
             'description' => 'nullable|string',
             'featured_image' => 'nullable|string',

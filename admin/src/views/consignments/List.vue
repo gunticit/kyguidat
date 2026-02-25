@@ -26,7 +26,7 @@
           <table class="w-full">
             <thead class="bg-gray-50 text-left text-sm text-gray-500">
               <tr>
-                <th class="px-6 py-4">Mã</th>
+                <th class="px-6 py-4">STT</th>
                 <th class="px-6 py-4">Tiêu đề</th>
                 <th class="px-6 py-4">Người đăng</th>
                 <th class="px-6 py-4">Giá</th>
@@ -42,7 +42,7 @@
                 <td colspan="6" class="px-6 py-8 text-center text-gray-500">Chưa có dữ liệu</td>
               </tr>
               <tr v-else v-for="item in consignments" :key="item.id" class="border-t hover:bg-gray-50">
-                <td class="px-6 py-4 text-sm">{{ item.code }}</td>
+                <td class="px-6 py-4 text-sm font-semibold text-indigo-600">{{ item.order_number || '—' }}</td>
                 <td class="px-6 py-4">{{ item.title }}</td>
                 <td class="px-6 py-4 text-sm">{{ item.user?.name || 'N/A' }}</td>
                 <td class="px-6 py-4">{{ formatCurrency(item.price) }}</td>
