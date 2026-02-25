@@ -37,7 +37,7 @@ docker compose ps
 - Sàn đất: http://localhost:8088
 - Admin: http://localhost:8089
 - User Dashboard: http://localhost:3015
-- MinIO Console: http://localhost:9001
+- MinIO Console: http://localhost:9002
 - phpMyAdmin: http://localhost:8095
 
 ## Production (VPS)

@@ -262,8 +262,9 @@ docker exec khodat-minio mc mb local/khodat --ignore-existing
 docker exec khodat-minio mc anonymous set public local/khodat
 
 # Cách 2: Dùng MinIO Console
-# Vào https://storage.kyguidatvuon.com:9001 hoặc ssh tunnel:
-ssh -L 9001:127.0.0.1:9001 user@vps
+# Dùng ssh tunnel để truy cập MinIO Console:
+ssh -L 9002:127.0.0.1:9002 user@vps
+# Mở http://localhost:9002
 # Tạo bucket 'khodat' và set policy = public
 ```
 

@@ -298,7 +298,7 @@ clients/frontend/
 | admin | khodat-admin | 80 | 8089 |
 | clients-backend | khodat-backend | 8000 | 8015 |
 | clients-frontend | khodat-frontend | 3000 | 3015 |
-| minio | khodat-minio | 9000/9001 | 9000/9001 |
+| minio | khodat-minio | 9000/9001 | 9000/9002 |
 | socket | khodat-socket | 3020 | 3020 |
 | mysql | khodat-mysql | 3306 | 3321 |
 | redis | khodat-redis | 6379 | 6394 |
@@ -315,4 +315,4 @@ Hình ảnh được tải lên qua `UploadController` → `ImageOptimizer` conv
 | `ImageOptimizer.php` | Convert ảnh sang WebP bằng GD, resize, tạo thumbnail |
 | `HasFileUpload.php` | Trait xử lý upload file lên S3/local |
 | `MigrateBase64Images.php` | Command migrate base64 cũ → MinIO WebP |
-| MinIO Console | `http://localhost:9001` — Login: `khodat_minio` / `khodat_minio_secret` |
+| MinIO Console | `http://localhost:9002` — Login: `khodat_minio` / `khodat_minio_secret` |

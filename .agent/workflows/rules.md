@@ -56,3 +56,19 @@ description: Quy tắc và cấu trúc code cho dự án Khodat
 
 - Dev: `docker-compose.yml` — ports expose ra host
 - Prod: `docker-compose.prod.yml` — ports bind `127.0.0.1` only, Nginx proxy phía trước
+
+## ⚠️ Cập nhật Documentation
+
+**Mỗi khi thay đổi code, PHẢI kiểm tra và cập nhật các file .md nếu liên quan:**
+
+| Khi thay đổi | Cập nhật file |
+|---|---|
+| Thêm/xóa/đổi port service | `README.md` (bảng Services + URLs), `PROJECT_STRUCTURE.md` (Docker table), `DEPLOYMENT.md` (architecture), `.agent/workflows/deploy.md` |
+| Thêm API endpoint mới | `README.md` (API Endpoints section) |
+| Thêm env variable mới | `README.md` (Config section), `DEPLOYMENT.md` (.env.prod), `.env.prod.example`, `clients/backend/.env.example` |
+| Thêm service Docker mới | `docker-compose.yml`, `docker-compose.prod.yml`, `README.md`, `PROJECT_STRUCTURE.md`, `DEPLOYMENT.md` |
+| Thêm controller/service/command | `PROJECT_STRUCTURE.md` (cây thư mục) |
+| Thêm artisan command mới | `README.md` (Artisan Commands), `.agent/workflows/dev.md` |
+| Fix bug hoặc đổi config | `DEPLOYMENT.md` (Troubleshooting nếu cần) |
+| Thay đổi flow quan trọng | `.agent/workflows/rules.md` (coding rules) |
+
