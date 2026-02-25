@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiArrowLeft, FiEdit, FiTrash2, FiMapPin, FiPhone, FiCalendar, FiDollarSign, FiExternalLink, FiFile, FiImage } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit, FiTrash2, FiMapPin, FiPhone, FiCalendar, FiDollarSign, FiExternalLink, FiFile, FiImage, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
 import { consignmentApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/formatCurrency';
 import styles from './detail.module.css';
@@ -52,6 +52,32 @@ export default function ConsignmentDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+    const openLightbox = (index: number) => setLightboxIndex(index);
+    const closeLightbox = () => setLightboxIndex(null);
+
+    const goToPrev = useCallback(() => {
+        if (lightboxIndex === null || !consignment?.images) return;
+        setLightboxIndex(lightboxIndex === 0 ? consignment.images.length - 1 : lightboxIndex - 1);
+    }, [lightboxIndex, consignment?.images]);
+
+    const goToNext = useCallback(() => {
+        if (lightboxIndex === null || !consignment?.images) return;
+        setLightboxIndex(lightboxIndex === consignment.images.length - 1 ? 0 : lightboxIndex + 1);
+    }, [lightboxIndex, consignment?.images]);
+
+    // Keyboard navigation
+    useEffect(() => {
+        if (lightboxIndex === null) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') goToPrev();
+            if (e.key === 'ArrowRight') goToNext();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [lightboxIndex, goToPrev, goToNext]);
 
     useEffect(() => {
         const fetchConsignment = async () => {
@@ -198,7 +224,7 @@ export default function ConsignmentDetailPage() {
                                 </h3>
                                 <div className={styles.imageGrid}>
                                     {consignment.images.map((img, index) => (
-                                        <div key={index} className={styles.imageItem}>
+                                        <div key={index} className={styles.imageItem} onClick={() => openLightbox(index)} style={{ cursor: 'pointer' }}>
                                             <img src={img} alt={`Ảnh ${index + 1}`} />
                                         </div>
                                     ))}
@@ -323,6 +349,40 @@ export default function ConsignmentDetailPage() {
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Image Lightbox */}
+            {lightboxIndex !== null && consignment.images && (
+                <div className={styles.lightboxOverlay} onClick={closeLightbox}>
+                    <button className={styles.lightboxClose} onClick={closeLightbox}>
+                        <FiX />
+                    </button>
+
+                    <button
+                        className={`${styles.lightboxNav} ${styles.lightboxPrev}`}
+                        onClick={(e) => { e.stopPropagation(); goToPrev(); }}
+                    >
+                        <FiChevronLeft />
+                    </button>
+
+                    <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
+                        <img
+                            src={consignment.images[lightboxIndex]}
+                            alt={`Ảnh ${lightboxIndex + 1}`}
+                            className={styles.lightboxImage}
+                        />
+                        <div className={styles.lightboxCounter}>
+                            {lightboxIndex + 1} / {consignment.images.length}
+                        </div>
+                    </div>
+
+                    <button
+                        className={`${styles.lightboxNav} ${styles.lightboxNext}`}
+                        onClick={(e) => { e.stopPropagation(); goToNext(); }}
+                    >
+                        <FiChevronRight />
+                    </button>
                 </div>
             )}
         </div>
