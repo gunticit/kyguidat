@@ -52,6 +52,8 @@ Hệ thống quản lý ký gửi bất động sản với kiến trúc microse
 | **Sàn đất** | Laravel | 8088 | Trang công khai hiển thị bài đăng BĐS |
 | **Golang API** | Go + Gin | 8080 | API cho Sàn đất và Admin |
 | **Vue Admin** | Vue 3 | 8089 | Trang quản trị tổng |
+| **MinIO** | S3-Compatible | 9000/9001 | Object Storage (hình ảnh WebP) |
+| **Socket.IO** | Node.js | 3020 | Real-time support chat |
 | **MySQL** | MySQL 8.0 | 3321 | Database chung |
 | **Redis** | Redis | 6394 | Cache & Sessions |
 | **phpMyAdmin** | - | 8095 | Quản lý database |
@@ -92,6 +94,7 @@ docker-compose exec san-dat php artisan key:generate
 | **User Dashboard** | http://localhost:3015 |
 | **User API** | http://localhost:8015/api |
 | **Golang API** | http://localhost:8080/api |
+| **MinIO Console** | http://localhost:9001 |
 | **phpMyAdmin** | http://localhost:8095 |
 
 ## ✨ Tính năng
@@ -236,6 +239,21 @@ VITE_API_URL=http://localhost:8080/api
 NEXT_PUBLIC_API_URL=http://localhost:8015/api
 ```
 
+### MinIO Storage
+```env
+# Trong clients/backend/.env
+AWS_ACCESS_KEY_ID=khodat_minio
+AWS_SECRET_ACCESS_KEY=khodat_minio_secret
+AWS_BUCKET=khodat
+AWS_URL=http://localhost:9000/khodat
+AWS_ENDPOINT=http://minio:9000
+AWS_USE_PATH_STYLE_ENDPOINT=true
+IMAGE_QUALITY=80
+IMAGE_FORMAT=webp
+```
+> MinIO Console: `http://localhost:9001` — Login: `khodat_minio` / `khodat_minio_secret`
+> Cần tạo bucket `khodat` với Access Policy = `public` trước khi dùng.
+
 ## 📝 API Endpoints
 
 ### Golang API (Port 8080)
@@ -279,6 +297,20 @@ DELETE /api/consignments/:id
 POST   /api/payments/vnpay/create
 GET    /api/posting-packages
 POST   /api/posting-packages/purchase
+```
+
+**Upload (Protected):**
+```
+POST   /api/upload/image-optimized     # Upload ảnh → WebP → MinIO
+POST   /api/upload/images-optimized    # Upload nhiều ảnh → WebP → MinIO
+POST   /api/upload/image               # Upload ảnh không optimize
+POST   /api/upload/base64              # Upload từ base64
+```
+
+**Artisan Commands:**
+```bash
+php artisan images:migrate-base64           # Migrate base64 → MinIO WebP
+php artisan images:migrate-base64 --dry-run # Xem trước (không thay đổi data)
 ```
 
 ## 🔒 Bảo mật

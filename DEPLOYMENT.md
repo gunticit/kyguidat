@@ -21,6 +21,7 @@ Internet → Nginx (Host) → Docker Containers
     │  app.kyguidatvuon.com → :3015   │  frontend (Next.js)
     │  backend.kyguidatvuon.com → :8015│  backend-nginx → backend
     │  socket.kyguidatvuon.com → :3020 │  socket (Node.js)
+    │  storage.kyguidatvuon.com → :9000│  minio (S3 Object Storage)
     └───────────────────────────────────┘
               ↓              ↓
           MySQL:3316    Redis (internal)
@@ -72,6 +73,7 @@ Tại nhà cung cấp domain, tạo các bản ghi DNS:
 | A | app | IP_VPS |
 | A | backend | IP_VPS |
 | A | socket | IP_VPS |
+| A | storage | IP_VPS |
 
 ⏰ Chờ DNS propagate (5-30 phút). Kiểm tra:
 
@@ -126,6 +128,12 @@ MAIL_PASSWORD=xxxx-xxxx-xxxx-xxxx     # Gmail App Password
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=noreply@kyguidatvuon.com
 MAIL_FROM_NAME="Ky Gui Dat Vuon"
+
+# --- MinIO / S3 Storage ---
+MINIO_ROOT_USER=khodat_minio
+MINIO_ROOT_PASSWORD=MatKhauMinIoManh2026!
+MINIO_BUCKET=khodat
+MINIO_PUBLIC_URL=https://storage.kyguidatvuon.com/khodat
 ```
 
 ### Cách tạo Gmail App Password:
@@ -240,9 +248,34 @@ khodat-admin          Up
 khodat-backend        Up
 khodat-backend-nginx  Up
 khodat-frontend       Up
+khodat-minio          Up (healthy)
 khodat-mysql          Up (healthy)
 khodat-redis          Up
 khodat-socket         Up
+```
+
+### Setup MinIO bucket:
+```bash
+# Cách 1: Dùng mc CLI
+docker exec khodat-minio mc alias set local http://localhost:9000 khodat_minio 'MatKhauMinIoManh2026!'
+docker exec khodat-minio mc mb local/khodat --ignore-existing
+docker exec khodat-minio mc anonymous set public local/khodat
+
+# Cách 2: Dùng MinIO Console
+# Vào https://storage.kyguidatvuon.com:9001 hoặc ssh tunnel:
+ssh -L 9001:127.0.0.1:9001 user@vps
+# Tạo bucket 'khodat' và set policy = public
+```
+
+### Migrate dữ liệu hình ảnh cũ (base64 → MinIO WebP):
+```bash
+# Xem trước (không thay đổi data)
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+  php artisan images:migrate-base64 --dry-run
+
+# Thực hiện migrate
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+  php artisan images:migrate-base64
 ```
 
 ### Kiểm tra website:
@@ -278,6 +311,7 @@ sudo tail -f /var/log/nginx/error.log
 | `docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f backend` | Xem log backend |
 | `docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan migrate` | Chạy migration |
 | `docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan tinker` | Laravel tinker |
+| `docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan images:migrate-base64` | Migrate base64 → WebP |
 | `docker compose -f docker-compose.prod.yml --env-file .env.prod restart backend backend-nginx` | Restart backend |
 | `sudo certbot renew` | Gia hạn SSL |
 | `sudo nginx -t && sudo systemctl reload nginx` | Test & reload Nginx |

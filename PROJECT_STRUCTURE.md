@@ -228,7 +228,8 @@ clients/backend/
 │   │   │   ├── ConsignmentController.php
 │   │   │   ├── DashboardController.php
 │   │   │   ├── PaymentController.php
-│   │   │   └── PostingPackageController.php
+│   │   │   ├── PostingPackageController.php
+│   │   │   └── UploadController.php          # Image upload + WebP optimization
 │   │   │
 │   │   └── Middleware/
 │   │
@@ -238,7 +239,14 @@ clients/backend/
 │   │   ├── Transaction.php
 │   │   └── PostingPackage.php
 │   │
-│   └── Services/
+│   ├── Services/
+│   │   └── ImageOptimizer.php              # WebP conversion + MinIO upload
+│   │
+│   ├── Traits/
+│   │   └── HasFileUpload.php               # S3/Local file upload trait
+│   │
+│   └── Console/Commands/
+│       └── MigrateBase64Images.php         # Migrate base64 → MinIO WebP
 │
 ├── database/
 │   ├── migrations/
@@ -290,6 +298,21 @@ clients/frontend/
 | admin | khodat-admin | 80 | 8089 |
 | clients-backend | khodat-backend | 8000 | 8015 |
 | clients-frontend | khodat-frontend | 3000 | 3015 |
+| minio | khodat-minio | 9000/9001 | 9000/9001 |
+| socket | khodat-socket | 3020 | 3020 |
 | mysql | khodat-mysql | 3306 | 3321 |
 | redis | khodat-redis | 6379 | 6394 |
 | phpmyadmin | khodat-phpmyadmin | 80 | 8095 |
+
+---
+
+## Image Storage (MinIO)
+
+Hình ảnh được tải lên qua `UploadController` → `ImageOptimizer` convert sang **WebP** → lưu vào **MinIO**.
+
+| Service | Mô tả |
+|---------|--------|
+| `ImageOptimizer.php` | Convert ảnh sang WebP bằng GD, resize, tạo thumbnail |
+| `HasFileUpload.php` | Trait xử lý upload file lên S3/local |
+| `MigrateBase64Images.php` | Command migrate base64 cũ → MinIO WebP |
+| MinIO Console | `http://localhost:9001` — Login: `khodat_minio` / `khodat_minio_secret` |
