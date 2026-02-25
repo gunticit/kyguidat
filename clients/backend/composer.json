@@ -2,7 +2,11 @@
     "name": "khodat/backend",
     "type": "project",
     "description": "Khodat Backend API",
-    "keywords": ["laravel", "api", "khodat"],
+    "keywords": [
+        "laravel",
+        "api",
+        "khodat"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
@@ -10,7 +14,8 @@
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.10",
         "socialiteproviders/zalo": "^4.0",
-        "guzzlehttp/guzzle": "^7.8"
+        "guzzlehttp/guzzle": "^7.8",
+        "league/flysystem-aws-s3-v3": "^3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
