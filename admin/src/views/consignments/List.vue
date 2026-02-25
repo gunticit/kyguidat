@@ -123,6 +123,19 @@
               <!-- Section 3: Hình ảnh -->
               <div class="border-b pb-4">
                 <h3 class="text-lg font-semibold mb-4 text-indigo-700">Hình ảnh</h3>
+                
+                <!-- User uploaded images gallery -->
+                <div v-if="form.images && form.images.length > 0" class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Ảnh do người dùng tải lên ({{ form.images.length }} ảnh)</label>
+                  <div class="flex flex-wrap gap-2">
+                    <div v-for="(img, index) in form.images" :key="index" class="w-32 h-24 border rounded overflow-hidden relative group">
+                      <img :src="img" class="w-full h-full object-cover" :alt="'Ảnh ' + (index + 1)"
+                           @error="$event.target.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%2296%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22128%22 height=%2296%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2212%22%3ELỗi ảnh%3C/text%3E%3C/svg%3E'">
+                      <span class="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">{{ index + 1 }}</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Hình ảnh đại diện sản phẩm</label>
                   <div class="flex items-center gap-4">
@@ -561,6 +574,16 @@ const canDelete = (item) => {
   return false
 }
 
+// Parse images field (may come as JSON string or array)
+const parseImages = (images) => {
+  if (!images) return []
+  if (Array.isArray(images)) return images
+  if (typeof images === 'string') {
+    try { return JSON.parse(images) } catch { return [] }
+  }
+  return []
+}
+
 // Modal states
 const showModal = ref(false)
 const showDeleteModal = ref(false)
@@ -581,6 +604,7 @@ const defaultForm = {
   notification_date: '',
   description: '',
   featured_image: '',
+  images: [],
   notes: '',
   internal_note: '',
   type: '',
@@ -670,6 +694,7 @@ const openEditModal = async (item) => {
   notification_date: data.notification_date ? data.notification_date.substring(0, 10) : '',
     description: data.description || '',
     featured_image: data.featured_image || '',
+    images: parseImages(data.images),
     notes: data.notes || '',
     internal_note: data.internal_note || '',
     type: data.type || '',

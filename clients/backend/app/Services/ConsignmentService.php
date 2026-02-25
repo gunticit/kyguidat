@@ -129,6 +129,10 @@ class ConsignmentService
             throw new \Exception('Bạn đã hết lượt đăng bài. Vui lòng mua gói để tiếp tục đăng.');
         }
 
+        $images = $data['images'] ?? [];
+        // Auto-set featured_image from first image if not provided
+        $featuredImage = !empty($images) ? $images[0] : null;
+
         $consignment = $user->consignments()->create([
             'code' => $this->generateCode(),
             'title' => $data['title'],
@@ -138,7 +142,8 @@ class ConsignmentService
             'price' => $data['price'],
             'min_price' => $data['min_price'] ?? null,
             'seller_phone' => $data['seller_phone'],
-            'images' => $data['images'] ?? [],
+            'images' => $images,
+            'featured_image' => $featuredImage,
             'description_files' => $data['description_files'] ?? [],
             'note_to_admin' => $data['note_to_admin'] ?? null,
             'status' => Consignment::STATUS_PENDING,
@@ -207,6 +212,10 @@ class ConsignmentService
             return null;
         }
 
+        $images = $data['images'] ?? $consignment->images;
+        // Auto-update featured_image from first image if images changed
+        $featuredImage = !empty($images) ? (is_array($images) ? $images[0] : $consignment->featured_image) : $consignment->featured_image;
+
         $consignment->update([
             'title' => $data['title'] ?? $consignment->title,
             'description' => $data['description'] ?? $consignment->description,
@@ -215,7 +224,8 @@ class ConsignmentService
             'price' => $data['price'] ?? $consignment->price,
             'min_price' => $data['min_price'] ?? $consignment->min_price,
             'seller_phone' => $data['seller_phone'] ?? $consignment->seller_phone,
-            'images' => $data['images'] ?? $consignment->images,
+            'images' => $images,
+            'featured_image' => $featuredImage,
             'description_files' => $data['description_files'] ?? $consignment->description_files,
             'note_to_admin' => $data['note_to_admin'] ?? $consignment->note_to_admin,
         ]);
