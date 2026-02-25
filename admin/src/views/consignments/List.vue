@@ -72,8 +72,8 @@
         </div>
 
         <!-- Create/Edit Modal -->
-        <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[95vh] overflow-y-auto">
+        <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="closeModal">
+          <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[95vh] overflow-y-auto" @click.stop>
             <div class="p-6 border-b sticky top-0 bg-white z-10">
               <h2 class="text-xl font-bold">{{ editingId ? 'Cập nhật Ký gửi' : 'Thêm Ký gửi mới' }}</h2>
             </div>
