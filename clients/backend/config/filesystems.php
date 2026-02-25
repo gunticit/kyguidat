@@ -49,10 +49,10 @@ return [
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION', 'ap-southeast-1'),
-            'bucket' => env('AWS_BUCKET'),
+            'bucket' => env('AWS_BUCKET', 'khodat'),
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
             'throw' => false,
             'visibility' => 'public',
         ],
@@ -100,5 +100,9 @@ return [
         'medium' => ['width' => 400, 'height' => 400],
         'large' => ['width' => 800, 'height' => 800],
     ],
+
+    // Image optimization
+    'image_quality' => env('IMAGE_QUALITY', 80),
+    'image_format' => env('IMAGE_FORMAT', 'webp'),
 
 ];

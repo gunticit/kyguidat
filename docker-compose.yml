@@ -175,6 +175,30 @@ services:
     command: npx nodemon server.js
 
   # ===========================================
+  # MINIO (S3-Compatible Object Storage)
+  # ===========================================
+  minio:
+    image: minio/minio:latest
+    container_name: khodat-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: khodat_minio
+      MINIO_ROOT_PASSWORD: khodat_minio_secret
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - khodat-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
   # TOOLS & UTILITIES
   # ===========================================
   phpmyadmin:
@@ -201,5 +225,6 @@ networks:
 volumes:
   mysql-data:
   redis-data:
+  minio-data:
   backend-vendor:
   sandat-vendor:

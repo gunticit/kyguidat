@@ -142,7 +142,10 @@
                     <div v-if="form.featured_image" class="w-32 h-24 border rounded overflow-hidden">
                       <img :src="form.featured_image" class="w-full h-full object-cover" alt="Featured">
                     </div>
-                    <input type="file" @change="handleImageUpload" accept="image/*" class="px-4 py-2 border rounded-lg">
+                    <div class="flex items-center gap-2">
+                      <input type="file" @change="handleImageUpload" accept="image/*" class="px-4 py-2 border rounded-lg" :disabled="uploadingImage">
+                      <span v-if="uploadingImage" class="text-sm text-indigo-600 animate-pulse">Đang tải lên...</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -637,14 +640,27 @@ const defaultForm = {
 }
 const form = ref({ ...defaultForm })
 
-const handleImageUpload = (event) => {
+const uploadingImage = ref(false)
+
+const handleImageUpload = async (event) => {
   const file = event.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      form.value.featured_image = e.target.result
+  if (!file) return
+  
+  uploadingImage.value = true
+  try {
+    const { adminApi } = await import('@/services/api.js')
+    const response = await adminApi.uploadOptimizedImage(file, 'consignments/featured')
+    if (response.data?.success && response.data?.data?.url) {
+      form.value.featured_image = response.data.data.url
+    } else {
+      console.error('Upload failed:', response.data?.message)
+      alert('Upload ảnh thất bại: ' + (response.data?.message || 'Unknown error'))
     }
-    reader.readAsDataURL(file)
+  } catch (err) {
+    console.error('Upload error:', err)
+    alert('Upload ảnh thất bại: ' + (err.response?.data?.message || err.message))
+  } finally {
+    uploadingImage.value = false
   }
 }
 

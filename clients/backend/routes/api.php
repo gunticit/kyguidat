@@ -167,6 +167,8 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/multiple', [UploadController::class, 'uploadMultiple']);
         Route::post('/image', [UploadController::class, 'uploadImageHandler']);
         Route::post('/base64', [UploadController::class, 'uploadBase64']);
+        Route::post('/image-optimized', [UploadController::class, 'uploadOptimized']);
+        Route::post('/images-optimized', [UploadController::class, 'uploadMultipleOptimized']);
         Route::delete('/', [UploadController::class, 'delete']);
         Route::get('/info', [UploadController::class, 'info']);
     });

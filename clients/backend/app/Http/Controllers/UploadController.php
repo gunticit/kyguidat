@@ -117,7 +117,7 @@ class UploadController extends Controller
         try {
             $directory = $request->input('directory', 'uploads');
             $extension = $request->input('extension');
-            
+
             $result = $this->uploadFromBase64($request->input('base64'), $directory, $extension);
 
             return response()->json([
@@ -180,4 +180,75 @@ class UploadController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Upload a single image with WebP optimization
+     */
+    public function uploadOptimized(Request $request): JsonResponse
+    {
+        $request->validate([
+            'image' => 'required|image|max:' . ($this->getMaxUploadSize() / 1024),
+            'directory' => 'nullable|string|max:100',
+            'quality' => 'nullable|integer|min:10|max:100',
+        ]);
+
+        try {
+            $optimizer = new \App\Services\ImageOptimizer();
+            $directory = $request->input('directory', 'images');
+            $options = array_filter([
+                'quality' => $request->input('quality'),
+            ]);
+
+            $result = $optimizer->optimizeAndUpload($request->file('image'), $directory, $options);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Upload và tối ưu ảnh thành công',
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload thất bại: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Upload multiple images with WebP optimization
+     */
+    public function uploadMultipleOptimized(Request $request): JsonResponse
+    {
+        $request->validate([
+            'images' => 'required|array|max:20',
+            'images.*' => 'image|max:' . ($this->getMaxUploadSize() / 1024),
+            'directory' => 'nullable|string|max:100',
+            'quality' => 'nullable|integer|min:10|max:100',
+        ]);
+
+        try {
+            $optimizer = new \App\Services\ImageOptimizer();
+            $directory = $request->input('directory', 'images');
+            $options = array_filter([
+                'quality' => $request->input('quality'),
+            ]);
+
+            $results = [];
+            foreach ($request->file('images') as $image) {
+                $results[] = $optimizer->optimizeAndUpload($image, $directory, $options);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Upload thành công ' . count($results) . ' ảnh',
+                'data' => $results,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload thất bại: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }
+

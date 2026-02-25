@@ -101,5 +101,24 @@ export const adminApi = {
     createWard: (data) => api.post('/admin/wards', data),
     updateWard: (id, data) => api.put(`/admin/wards/${id}`, data),
     deleteWard: (id) => api.delete(`/admin/wards/${id}`),
+
+    // Upload - Optimized Image (WebP conversion)
+    uploadOptimizedImage: (file, directory = 'consignments') => {
+        const formData = new FormData()
+        formData.append('image', file)
+        formData.append('directory', directory)
+        return api.post('/upload/image-optimized', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+    },
+
+    uploadMultipleOptimizedImages: (files, directory = 'consignments') => {
+        const formData = new FormData()
+        files.forEach(file => formData.append('images[]', file))
+        formData.append('directory', directory)
+        return api.post('/upload/images-optimized', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+    },
 }
 
