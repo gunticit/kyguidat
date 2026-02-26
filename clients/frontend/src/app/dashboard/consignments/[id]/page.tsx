@@ -19,7 +19,7 @@ interface Consignment {
     min_price?: number;
     seller_phone: string;
     status: string;
-    rejection_reason?: string;
+    reject_reason?: string;
     created_at: string;
     updated_at: string;
     images?: string[];
@@ -200,9 +200,9 @@ export default function ConsignmentDetailPage() {
                         <span className={styles.code}>{consignment.code}</span>
                         <span className={`badge ${status.class}`}>{status.label}</span>
                     </div>
-                    {consignment.status === 'rejected' && consignment.rejection_reason && (
+                    {consignment.status === 'rejected' && consignment.reject_reason && (
                         <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', borderRadius: '6px', borderLeft: '3px solid #ef4444' }}>
-                            <strong>Lý do từ chối:</strong> {consignment.rejection_reason}
+                            <strong>Lý do từ chối:</strong> {consignment.reject_reason}
                         </div>
                     )}
                     <h1 className={styles.title}>{consignment.title}</h1>

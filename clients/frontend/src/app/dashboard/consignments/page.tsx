@@ -18,7 +18,7 @@ interface Consignment {
     min_price?: number;
     seller_phone: string;
     status: string;
-    rejection_reason?: string;
+    reject_reason?: string;
     created_at: string;
     images?: string[];
     description_files?: string[];
@@ -229,9 +229,9 @@ export default function ConsignmentsPage() {
                                         <td className={styles.priceCell}>{formatCurrency(item.price, { showBillion: true })}</td>
                                         <td>
                                             <span className={`badge ${status.class}`}>{status.label}</span>
-                                            {item.status === 'rejected' && item.rejection_reason && (
+                                            {item.status === 'rejected' && item.reject_reason && (
                                                 <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
-                                                    Lý do: {item.rejection_reason}
+                                                    Lý do: {item.reject_reason}
                                                 </div>
                                             )}
                                         </td>
