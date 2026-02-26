@@ -116,26 +116,38 @@ class AuthController extends Controller
     }
 
     /**
-     * Delete user account (required by Apple App Store & Google Play Store)
+     * Delete user account
      */
     public function deleteAccount(Request $request): JsonResponse
     {
-        $request->validate([
-            'password' => 'required|string',
-        ]);
-
         $user = $request->user();
 
-        // Verify password
-        if (!\Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Mật khẩu không đúng'
-            ], 422);
+        // Social login users (no password) - require confirmation text
+        // Regular users - require password
+        if ($user->password) {
+            $request->validate([
+                'password' => 'required|string',
+            ]);
+
+            if (!\Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mật khẩu không đúng'
+                ], 422);
+            }
+        } else {
+            $request->validate([
+                'confirm' => 'required|in:DELETE,XOA',
+            ]);
         }
 
         // Revoke all tokens
         $user->tokens()->delete();
+
+        // Delete user's wallet
+        if (method_exists($user, 'wallet') && $user->wallet) {
+            $user->wallet()->delete();
+        }
 
         // Delete user's consignments
         if (method_exists($user, 'consignments')) {

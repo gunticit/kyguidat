@@ -33,6 +33,10 @@ Route::get('/dieu-khoan-su-dung', function () {
     return view('pages.terms');
 })->name('terms');
 
+Route::get('/xoa-tai-khoan', function () {
+    return view('pages.delete-account');
+})->name('delete-account');
+
 // Settings API
 Route::get('/api/settings', [SettingsController::class, 'index']);
 Route::post('/api/settings', [SettingsController::class, 'store']);
