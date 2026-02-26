@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\SocialAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
@@ -37,6 +38,7 @@ class SocialAuthController extends Controller
                 config('app.frontend_url') . '/auth/callback?token=' . $result['token']
             );
         } catch (\Exception $e) {
+            Log::error('Google auth failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->to(
                 config('app.frontend_url') . '/login?error=google_auth_failed'
             );
@@ -64,6 +66,7 @@ class SocialAuthController extends Controller
                 config('app.frontend_url') . '/auth/callback?token=' . $result['token']
             );
         } catch (\Exception $e) {
+            Log::error('Facebook auth failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->to(
                 config('app.frontend_url') . '/login?error=facebook_auth_failed'
             );
@@ -91,6 +94,7 @@ class SocialAuthController extends Controller
                 config('app.frontend_url') . '/auth/callback?token=' . $result['token']
             );
         } catch (\Exception $e) {
+            Log::error('Zalo auth failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->to(
                 config('app.frontend_url') . '/login?error=zalo_auth_failed'
             );
@@ -118,6 +122,7 @@ class SocialAuthController extends Controller
                 config('app.frontend_url') . '/auth/callback?token=' . $result['token']
             );
         } catch (\Exception $e) {
+            Log::error('GitHub auth failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->to(
                 config('app.frontend_url') . '/login?error=github_auth_failed'
             );
