@@ -74,20 +74,92 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Redirect to Zalo OAuth
+     * Redirect to Zalo OAuth v4
      */
     public function redirectToZalo(): RedirectResponse
     {
-        return Socialite::driver('zalo')->stateless()->redirect();
+        $appId = config('services.zalo.client_id');
+        $redirectUri = config('services.zalo.redirect');
+
+        // Generate code verifier and challenge for PKCE
+        $codeVerifier = bin2hex(random_bytes(32));
+        $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+
+        // Store code_verifier in cache (keyed by a random state)
+        $state = bin2hex(random_bytes(16));
+        cache()->put('zalo_cv_' . $state, $codeVerifier, 600);
+
+        $params = http_build_query([
+            'app_id' => $appId,
+            'redirect_uri' => $redirectUri,
+            'code_challenge' => $codeChallenge,
+            'state' => $state,
+        ]);
+
+        return redirect()->to("https://oauth.zaloapp.com/v4/permission?{$params}");
     }
 
     /**
-     * Handle Zalo OAuth callback
+     * Handle Zalo OAuth v4 callback
      */
     public function handleZaloCallback(): RedirectResponse
     {
         try {
-            $zaloUser = Socialite::driver('zalo')->stateless()->user();
+            $code = request()->get('code');
+            $state = request()->get('state');
+
+            if (!$code) {
+                throw new \Exception('No authorization code received from Zalo');
+            }
+
+            // Retrieve code_verifier from cache
+            $codeVerifier = cache()->pull('zalo_cv_' . $state);
+            if (!$codeVerifier) {
+                throw new \Exception('Code verifier expired or not found');
+            }
+
+            $appId = config('services.zalo.client_id');
+            $appSecret = config('services.zalo.client_secret');
+            $redirectUri = config('services.zalo.redirect');
+
+            // Exchange code for access token (Zalo v4)
+            $tokenResponse = \Http::asForm()
+                ->withHeaders(['secret_key' => $appSecret])
+                ->post('https://oauth.zaloapp.com/v4/access_token', [
+                    'code' => $code,
+                    'app_id' => $appId,
+                    'grant_type' => 'authorization_code',
+                    'code_verifier' => $codeVerifier,
+                ]);
+
+            $tokenData = $tokenResponse->json();
+
+            if (!isset($tokenData['access_token'])) {
+                throw new \Exception('Failed to get Zalo access token: ' . json_encode($tokenData));
+            }
+
+            $accessToken = $tokenData['access_token'];
+
+            // Get user info from Zalo
+            $userResponse = \Http::withHeaders([
+                'access_token' => $accessToken,
+            ])->get('https://graph.zalo.me/v2.0/me', [
+                        'fields' => 'id,name,picture',
+                    ]);
+
+            $userData = $userResponse->json();
+
+            if (!isset($userData['id'])) {
+                throw new \Exception('Failed to get Zalo user info: ' . json_encode($userData));
+            }
+
+            // Create a simple user object for SocialAuthService
+            $zaloUser = new \Laravel\Socialite\Two\User();
+            $zaloUser->id = $userData['id'];
+            $zaloUser->name = $userData['name'] ?? 'Zalo User';
+            $zaloUser->email = null; // Zalo doesn't provide email
+            $zaloUser->avatar = $userData['picture']['data']['url'] ?? null;
+
             $result = $this->socialAuthService->handleSocialLogin('zalo', $zaloUser);
 
             return redirect()->to(

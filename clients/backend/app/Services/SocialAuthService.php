@@ -19,9 +19,10 @@ class SocialAuthService
             ->first();
 
         if (!$user) {
-            // Check if email already exists
-            $existingUser = User::where('email', $socialUser->getEmail())->first();
-            
+            // Check if email already exists (only if email is provided)
+            $email = $socialUser->getEmail();
+            $existingUser = $email ? User::where('email', $email)->first() : null;
+
             if ($existingUser) {
                 // Link social account to existing user
                 $existingUser->update([
@@ -32,9 +33,10 @@ class SocialAuthService
                 $user = $existingUser;
             } else {
                 // Create new user
+                $userEmail = $email ?? ($provider . '_' . $socialUser->getId() . '@noreply.local');
                 $user = User::create([
                     'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? 'User',
-                    'email' => $socialUser->getEmail(),
+                    'email' => $userEmail,
                     'provider' => $provider,
                     'provider_id' => $socialUser->getId(),
                     'avatar' => $socialUser->getAvatar(),
