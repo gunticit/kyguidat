@@ -42,8 +42,6 @@
                 Trang chủ
             </a>
             <span class="mx-2 text-gray-600">/</span>
-            <a href="{{ route('consignments.index') }}" class="text-gray-400 hover:text-green-400">Bất động sản</a>
-            <span class="mx-2 text-gray-600">/</span>
             <span class="text-gray-200 font-medium">{{ Str::limit($consignment['title'], 40) }}</span>
         </nav>
 
