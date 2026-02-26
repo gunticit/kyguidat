@@ -18,6 +18,7 @@ interface Consignment {
     min_price?: number;
     seller_phone: string;
     status: string;
+    rejection_reason?: string;
     created_at: string;
     images?: string[];
     description_files?: string[];
@@ -35,6 +36,7 @@ const statusOptions = [
     { value: '', label: 'Tất cả' },
     { value: 'pending', label: 'Chờ duyệt' },
     { value: 'approved', label: 'Đã duyệt' },
+    { value: 'rejected', label: 'Từ chối' },
     { value: 'selling', label: 'Đang bán' },
     { value: 'sold', label: 'Đã bán' },
     { value: 'cancelled', label: 'Đã hủy' },
@@ -45,6 +47,7 @@ const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; class: string }> = {
         pending: { label: 'Chờ duyệt', class: 'badge-pending' },
         approved: { label: 'Đã duyệt', class: 'badge-info' },
+        rejected: { label: 'Từ chối', class: 'badge-error' },
         selling: { label: 'Đang bán', class: 'badge-success' },
         sold: { label: 'Đã bán', class: 'badge-success' },
         cancelled: { label: 'Đã hủy', class: 'badge-error' },
@@ -224,7 +227,14 @@ export default function ConsignmentsPage() {
                                         <td className={styles.titleCell}>{item.title}</td>
                                         <td className={styles.addressCell}>{item.address}</td>
                                         <td className={styles.priceCell}>{formatCurrency(item.price, { showBillion: true })}</td>
-                                        <td><span className={`badge ${status.class}`}>{status.label}</span></td>
+                                        <td>
+                                            <span className={`badge ${status.class}`}>{status.label}</span>
+                                            {item.status === 'rejected' && item.rejection_reason && (
+                                                <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                                                    Lý do: {item.rejection_reason}
+                                                </div>
+                                            )}
+                                        </td>
                                         <td>{formatDate(item.created_at)}</td>
                                         <td>
                                             <div className={styles.actions}>
