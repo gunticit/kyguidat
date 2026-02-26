@@ -33,3 +33,10 @@ Route::post('/api/settings/seo', [SettingsController::class, 'storeSeo']);
 
 // API Consignments (for AJAX pagination)
 Route::get('/api/consignments', [ConsignmentController::class, 'apiIndex']);
+
+// API Provinces (proxy to API gateway for JS fetch)
+Route::get('/api/public/provinces', function () {
+    $apiService = app(\App\Services\GolangApiService::class);
+    $provinces = $apiService->getProvinces();
+    return response()->json(['data' => $provinces]);
+});
