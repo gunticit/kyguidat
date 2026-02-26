@@ -119,9 +119,8 @@
                     <p><span class="text-gray-500">Tình trạng:</span>
                         {{ data_get($consignment, 'has_house') === 'yes' ? 'Có nhà' : 'Đất trống' }}</p>
                 @endif
+                <p class="text-green-400 font-bold text-lg">{{ $formatted }}</p>
             </div>
         </div>
-
-        <p class="text-green-400 font-bold text-lg mt-2">{{ $formatted }}</p>
     </div>
 </a>
