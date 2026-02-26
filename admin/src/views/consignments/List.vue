@@ -476,6 +476,7 @@ import Sidebar from '@/components/layout/Sidebar.vue'
 import Header from '@/components/layout/Header.vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import { adminApi } from '@/services/api'
 
 const store = useConsignmentStore()
 const authStore = useAuthStore()
