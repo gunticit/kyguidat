@@ -43,7 +43,7 @@
     </div>
 
     <!-- Content -->
-    <div class="flex-1 p-4 flex flex-col justify-between">
+    <div class="flex-1 p-3 md:p-4 flex flex-col justify-between">
         <div>
             @php
                 $distance = null;
@@ -77,11 +77,12 @@
                 @endif
             </div>
 
-            <h3 class="font-semibold text-gray-100 text-lg mb-2">
+            <h3 class="font-semibold text-gray-100 text-sm md:text-lg mb-1 md:mb-2 line-clamp-2">
                 {{ data_get($consignment, 'title', '') }}
             </h3>
 
-            <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-400 mb-2">
+            <div
+                class="flex flex-wrap gap-x-4 md:gap-x-6 gap-y-0.5 md:gap-y-1 text-xs md:text-sm text-gray-400 mb-1 md:mb-2">
                 @if(data_get($consignment, 'address'))
                     <p><span class="text-gray-500">Địa chỉ:</span> {{ data_get($consignment, 'address') }}</p>
                 @endif
@@ -116,6 +117,6 @@
                 $formatted = number_format($price) . ' đ';
             }
         @endphp
-        <p class="text-green-400 font-bold text-lg">{{ $formatted }}</p>
+        <p class="text-green-400 font-bold text-base md:text-lg">{{ $formatted }}</p>
     </div>
 </a>
