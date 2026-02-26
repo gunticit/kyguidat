@@ -11,7 +11,7 @@ import (
 // Repository interface for database operations
 type Repository interface {
 	// Consignments
-	GetApprovedConsignments(page, limit int, search, province string, lat, lng, maxDistance float64) ([]models.Consignment, int64, error)
+	GetApprovedConsignments(page, limit int, search, province, phone string, lat, lng, maxDistance float64) ([]models.Consignment, int64, error)
 	GetConsignmentByID(id uint) (*models.Consignment, error)
 	GetConsignmentBySlug(slug string) (*models.Consignment, error)
 	GetAllConsignments(page, limit int, status string) ([]models.Consignment, int64, error)
@@ -44,17 +44,20 @@ func NewMySQLRepository(db *gorm.DB) *MySQLRepository {
 // GetApprovedConsignments returns approved consignments with pagination
 // When lat/lng are provided (non-zero), sorts by distance using Haversine formula
 // When maxDistance > 0, filters to only show properties within that distance (km)
-func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, province string, lat, lng, maxDistance float64) ([]models.Consignment, int64, error) {
+func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, province, phone string, lat, lng, maxDistance float64) ([]models.Consignment, int64, error) {
 	var consignments []models.Consignment
 	var total int64
 
 	query := r.db.Model(&models.Consignment{}).Where("status = ?", "approved")
 
 	if search != "" {
-		query = query.Where("title LIKE ? OR address LIKE ?", "%"+search+"%", "%"+search+"%")
+		query = query.Where("title LIKE ? OR address LIKE ? OR code LIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
 	if province != "" {
 		query = query.Where("province = ?", province)
+	}
+	if phone != "" {
+		query = query.Where("CAST(order_number AS CHAR) LIKE ? OR seller_phone LIKE ? OR consigner_phone LIKE ?", "%"+phone+"%", "%"+phone+"%", "%"+phone+"%")
 	}
 
 	offset := (page - 1) * limit
