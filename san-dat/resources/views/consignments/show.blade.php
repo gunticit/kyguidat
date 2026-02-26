@@ -121,6 +121,8 @@
                         $residentialArea = $consignment['residential_area'] ?? null;
                         $_directions = $consignment['land_directions'] ?? null;
                         $directions = is_string($_directions) ? (json_decode($_directions, true) ?? []) : (is_array($_directions) ? $_directions : []);
+                        $dirMap = ['dong' => 'Đông', 'tay' => 'Tây', 'nam' => 'Nam', 'bac' => 'Bắc', 'dong-nam' => 'Đông Nam', 'dong_nam' => 'Đông Nam', 'dong-bac' => 'Đông Bắc', 'dong_bac' => 'Đông Bắc', 'tay-nam' => 'Tây Nam', 'tay_nam' => 'Tây Nam', 'tay-bac' => 'Tây Bắc', 'tay_bac' => 'Tây Bắc'];
+                        $directions = array_map(fn($d) => $dirMap[$d] ?? $d, $directions);
                         $directionStr = !empty($directions) ? implode(', ', $directions) : null;
                         $roadType = $consignment['road'] ?? null;
                     @endphp

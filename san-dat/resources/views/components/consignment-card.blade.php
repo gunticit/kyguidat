@@ -105,6 +105,8 @@
             @php
                 $_ld = data_get($consignment, 'land_directions', null);
                 $directions = is_string($_ld) ? (json_decode($_ld, true) ?? []) : (is_array($_ld) ? $_ld : []);
+                $dirMap = ['dong' => 'Đông', 'tay' => 'Tây', 'nam' => 'Nam', 'bac' => 'Bắc', 'dong-nam' => 'Đông Nam', 'dong_nam' => 'Đông Nam', 'dong-bac' => 'Đông Bắc', 'dong_bac' => 'Đông Bắc', 'tay-nam' => 'Tây Nam', 'tay_nam' => 'Tây Nam', 'tay-bac' => 'Tây Bắc', 'tay_bac' => 'Tây Bắc'];
+                $directions = array_map(fn($d) => $dirMap[$d] ?? $d, $directions);
             @endphp
             @if(!empty($directions))
                 <p><span class="text-gray-500">Hướng:</span> {{ implode(', ', $directions) }}</p>
