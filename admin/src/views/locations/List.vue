@@ -1,6 +1,10 @@
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold text-white mb-6">Quản lý Địa giới hành chính</h1>
+  <div class="flex h-screen">
+    <Sidebar />
+    <div class="flex-1 overflow-auto">
+      <Header />
+      <main class="p-6">
+    <h1 class="text-2xl font-bold mb-6">Quản lý Địa giới hành chính</h1>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Provinces Panel -->
@@ -170,11 +174,15 @@
         </div>
       </div>
     </div>
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import Sidebar from '@/components/layout/Sidebar.vue'
+import Header from '@/components/layout/Header.vue'
 import { adminApi } from '@/services/api'
 
 const provinces = ref([])
