@@ -19,6 +19,7 @@ interface Consignment {
     min_price?: number;
     seller_phone: string;
     status: string;
+    rejection_reason?: string;
     created_at: string;
     updated_at: string;
     images?: string[];
@@ -29,6 +30,7 @@ interface Consignment {
 const statusConfig: Record<string, { label: string; class: string }> = {
     pending: { label: 'Chờ duyệt', class: 'badge-pending' },
     approved: { label: 'Đã duyệt', class: 'badge-info' },
+    rejected: { label: 'Từ chối', class: 'badge-error' },
     selling: { label: 'Đang bán', class: 'badge-success' },
     sold: { label: 'Đã bán', class: 'badge-success' },
     cancelled: { label: 'Đã hủy', class: 'badge-error' },
@@ -198,6 +200,11 @@ export default function ConsignmentDetailPage() {
                         <span className={styles.code}>{consignment.code}</span>
                         <span className={`badge ${status.class}`}>{status.label}</span>
                     </div>
+                    {consignment.status === 'rejected' && consignment.rejection_reason && (
+                        <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', borderRadius: '6px', borderLeft: '3px solid #ef4444' }}>
+                            <strong>Lý do từ chối:</strong> {consignment.rejection_reason}
+                        </div>
+                    )}
                     <h1 className={styles.title}>{consignment.title}</h1>
                     <div className={styles.meta}>
                         <span><FiCalendar /> Tạo ngày: {formatDate(consignment.created_at)}</span>
