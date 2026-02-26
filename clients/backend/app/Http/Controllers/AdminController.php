@@ -102,11 +102,9 @@ class AdminController extends Controller
 
         $user->update($data);
 
-        // Sync roles if provided
+        // Sync roles if provided (frontend sends role IDs)
         if ($request->has('roles')) {
-            $roleNames = $request->input('roles', []);
-            $roleIds = \App\Models\Role::whereIn('name', $roleNames)->pluck('id')->toArray();
-            $user->roles()->sync($roleIds);
+            $user->roles()->sync($request->input('roles', []));
         }
 
         return response()->json([
