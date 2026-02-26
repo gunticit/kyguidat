@@ -26,6 +26,7 @@ class ConsignmentController extends Controller
             'province' => $request->get('province'),
             'lat' => $request->get('lat'),
             'lng' => $request->get('lng'),
+            'max_distance' => $request->get('max_distance'),
         ];
 
         $response = $this->apiService->getConsignments(array_filter($params));
@@ -76,6 +77,7 @@ class ConsignmentController extends Controller
             'province' => $request->get('province'),
             'lat' => $request->get('lat'),
             'lng' => $request->get('lng'),
+            'max_distance' => $request->get('max_distance'),
         ];
 
         $response = $this->apiService->getConsignments(array_filter($params));

@@ -242,6 +242,7 @@
                     const url = new URL(window.location.href);
                     url.searchParams.set('lat', lat.toFixed(6));
                     url.searchParams.set('lng', lng.toFixed(6));
+                    url.searchParams.set('max_distance', '15');
                     url.searchParams.set('page', '1');
                     window.location.href = url.toString();
                 },

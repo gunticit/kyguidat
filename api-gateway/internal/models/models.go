@@ -41,8 +41,8 @@ type Consignment struct {
 	UpdatedAt     time.Time       `json:"updated_at"`
 	DeletedAt     gorm.DeletedAt  `json:"-" gorm:"index"`
 
-	// Computed field (not stored in DB)
-	Distance float64 `json:"distance,omitempty" gorm:"-"`
+	// Computed field (not stored in DB, read-only from SELECT)
+	Distance float64 `json:"distance,omitempty" gorm:"->"`
 
 	User User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
