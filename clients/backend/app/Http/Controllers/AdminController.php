@@ -81,6 +81,40 @@ class AdminController extends Controller
     }
 
     /**
+     * Update a user
+     */
+    public function updateUser(Request $request, $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy người dùng',
+            ], 404);
+        }
+
+        $data = $request->only(['name', 'email', 'phone']);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->input('password'));
+        }
+
+        $user->update($data);
+
+        // Sync roles if provided
+        if ($request->has('roles')) {
+            $user->syncRoles($request->input('roles', []));
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật người dùng thành công',
+            'data' => $user->load('roles'),
+        ]);
+    }
+
+    /**
      * List customers (users registered from frontend, without admin roles)
      */
     public function customers(Request $request): JsonResponse
