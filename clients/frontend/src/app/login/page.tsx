@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc';
-import { FaFacebook, FaGithub } from 'react-icons/fa';
+import { FaFacebook } from 'react-icons/fa';
 import { SiZalo } from 'react-icons/si';
 import { authApi } from '@/lib/api';
 import styles from './login.module.css';
@@ -95,12 +95,11 @@ export default function LoginPage() {
     };
 
 
-    const handleSocialLogin = (provider: 'google' | 'facebook' | 'zalo' | 'github') => {
+    const handleSocialLogin = (provider: 'google' | 'facebook' | 'zalo') => {
         const urls = {
             google: process.env.NEXT_PUBLIC_GOOGLE_LOGIN_URL,
             facebook: process.env.NEXT_PUBLIC_FACEBOOK_LOGIN_URL,
             zalo: process.env.NEXT_PUBLIC_ZALO_LOGIN_URL,
-            github: process.env.NEXT_PUBLIC_GITHUB_LOGIN_URL,
         };
         window.location.href = urls[provider] || '#';
     };
@@ -127,9 +126,6 @@ export default function LoginPage() {
                         type="button"
                         className={styles.socialBtn}
                         onClick={() => handleSocialLogin('facebook')}
-                        disabled
-                        style={{ opacity: 0.5, cursor: 'not-allowed' }}
-                        title="Tính năng đang phát triển"
                     >
                         <FaFacebook size={20} color="#1877F2" />
                         <span>Facebook</span>
@@ -138,20 +134,9 @@ export default function LoginPage() {
                         type="button"
                         className={styles.socialBtn}
                         onClick={() => handleSocialLogin('zalo')}
-                        disabled
-                        style={{ opacity: 0.5, cursor: 'not-allowed' }}
-                        title="Tính năng đang phát triển"
                     >
                         <SiZalo size={20} color="#0068FF" />
                         <span>Zalo</span>
-                    </button>
-                    <button
-                        type="button"
-                        className={styles.socialBtn}
-                        onClick={() => handleSocialLogin('github')}
-                    >
-                        <FaGithub size={20} />
-                        <span>GitHub</span>
                     </button>
                 </div>
 
