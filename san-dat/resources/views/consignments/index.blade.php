@@ -115,7 +115,7 @@
         </div>
 
         <!-- Skeleton Loading Grid -->
-        <div id="skeleton-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div id="skeleton-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
             @for($s = 0; $s < 8; $s++)
                 <div class="bg-navy-700 rounded-lg shadow-md overflow-hidden border border-navy-600">
                     <!-- Skeleton Image -->
@@ -137,7 +137,7 @@
         <!-- Real Content (hidden initially) -->
         <div id="real-content">
             <!-- Grid View -->
-            <div id="view-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div id="view-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @forelse($consignments as $item)
                     @include('components.consignment-card', ['consignment' => $item])
                 @empty
