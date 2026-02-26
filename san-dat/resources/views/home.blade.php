@@ -266,6 +266,27 @@
             form.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
             form.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
         });
+
+        // If no search/filter values, go to homepage instead of search results
+        document.getElementById('searchForm').addEventListener('submit', function (e) {
+            const form = this;
+            let hasValue = false;
+
+            // Check text inputs
+            form.querySelectorAll('input[type="text"]').forEach(input => {
+                if (input.value.trim()) hasValue = true;
+            });
+
+            // Check selects
+            form.querySelectorAll('select').forEach(select => {
+                if (select.value) hasValue = true;
+            });
+
+            if (!hasValue) {
+                e.preventDefault();
+                window.location.href = '/';
+            }
+        });
     </script>
     <!-- Map Section -->
     <section class="py-16 bg-navy-800">
