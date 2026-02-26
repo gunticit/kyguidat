@@ -14,20 +14,33 @@
                         <input type="text" name="q" placeholder="Tìm theo mã số hoặc số điện thoại"
                             class="w-full px-4 py-3 bg-navy-700 border-2 border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-100 placeholder-gray-500">
                     </div>
-                    <button type="submit"
-                        class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition whitespace-nowrap shadow-lg shadow-green-500/25">
-                        Tìm Kiếm
-                    </button>
-                </div>
-                <div>
                     <button type="button" id="toggleFilters"
-                        class="w-full md:w-auto px-6 py-3 bg-navy-600 text-gray-200 font-semibold rounded-lg hover:bg-navy-500 border border-green-500/30 transition flex items-center justify-center gap-2">
+                        class="hidden md:flex px-4 py-3 bg-navy-600 text-gray-200 font-semibold rounded-lg hover:bg-navy-500 border border-green-500/30 transition items-center gap-2 whitespace-nowrap">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         Bộ lọc chi tiết
                         <svg class="w-4 h-4 transition-transform" id="filterArrow" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition whitespace-nowrap shadow-lg shadow-green-500/25">
+                        Tìm Kiếm
+                    </button>
+                </div>
+                <!-- Mobile filter button -->
+                <div class="md:hidden">
+                    <button type="button" id="toggleFiltersMobile"
+                        class="w-full px-6 py-3 bg-navy-600 text-gray-200 font-semibold rounded-lg hover:bg-navy-500 border border-green-500/30 transition flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        Bộ lọc chi tiết
+                        <svg class="w-4 h-4 transition-transform" id="filterArrowMobile" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -254,12 +267,16 @@
 
     <!-- Toggle Filter Script -->
     <script>
-        document.getElementById('toggleFilters').addEventListener('click', function () {
+        function toggleFilterPanel() {
             const filters = document.getElementById('advancedFilters');
             const arrow = document.getElementById('filterArrow');
+            const arrowMobile = document.getElementById('filterArrowMobile');
             filters.classList.toggle('hidden');
-            arrow.classList.toggle('rotate-180');
-        });
+            if (arrow) arrow.classList.toggle('rotate-180');
+            if (arrowMobile) arrowMobile.classList.toggle('rotate-180');
+        }
+        document.getElementById('toggleFilters').addEventListener('click', toggleFilterPanel);
+        document.getElementById('toggleFiltersMobile')?.addEventListener('click', toggleFilterPanel);
 
         document.getElementById('resetFilters').addEventListener('click', function () {
             const form = document.getElementById('searchForm');
