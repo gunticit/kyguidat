@@ -56,11 +56,25 @@ class GolangApiService
     }
 
     /**
-     * Get locations
+     * Get locations (legacy - from consignments table)
      */
     public function getLocations(): array
     {
         $response = Http::get("{$this->baseUrl}/api/locations");
+
+        if ($response->successful()) {
+            return $response->json()['data'] ?? [];
+        }
+
+        return [];
+    }
+
+    /**
+     * Get provinces from admin-managed locations
+     */
+    public function getProvinces(): array
+    {
+        $response = Http::get("{$this->baseUrl}/api/provinces");
 
         if ($response->successful()) {
             return $response->json()['data'] ?? [];

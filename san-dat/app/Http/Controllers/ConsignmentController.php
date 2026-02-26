@@ -33,12 +33,12 @@ class ConsignmentController extends Controller
         $consignments = $response['data'] ?? [];
         $meta = $response['meta'] ?? null;
         $categories = $this->apiService->getCategories();
-        $locations = $this->apiService->getLocations();
+        $provinces = $this->apiService->getProvinces();
 
         $userLat = $request->get('lat');
         $userLng = $request->get('lng');
 
-        return view('consignments.index', compact('consignments', 'meta', 'categories', 'locations', 'userLat', 'userLng'));
+        return view('consignments.index', compact('consignments', 'meta', 'categories', 'provinces', 'userLat', 'userLng'));
     }
 
     /**

@@ -3,27 +3,36 @@
 @section('title', 'Bất động sản - Sàn Đất')
 
 @push('styles')
-<style>
-    @keyframes skeleton-shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-    .skeleton-pulse {
-        background: linear-gradient(90deg, var(--navy-700) 25%, var(--navy-600) 50%, var(--navy-700) 75%);
-        background-size: 200% 100%;
-        animation: skeleton-shimmer 1.5s ease-in-out infinite;
-    }
-    #skeleton-grid {
-        transition: opacity 0.3s ease;
-    }
-    #real-content {
-        opacity: 0;
-        transition: opacity 0.4s ease;
-    }
-    #real-content.loaded {
-        opacity: 1;
-    }
-</style>
+    <style>
+        @keyframes skeleton-shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .skeleton-pulse {
+            background: linear-gradient(90deg, var(--navy-700) 25%, var(--navy-600) 50%, var(--navy-700) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s ease-in-out infinite;
+        }
+
+        #skeleton-grid {
+            transition: opacity 0.3s ease;
+        }
+
+        #real-content {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        #real-content.loaded {
+            opacity: 1;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -37,17 +46,22 @@
                     @if($userLat && $userLng)
                         <span class="inline-flex items-center text-green-400">
                             <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                <path fill-rule="evenodd"
+                                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                    clip-rule="evenodd" />
                             </svg>
                             Đang hiển thị theo vị trí gần bạn
                         </span>
                         <a href="{{ route('consignments.index', request()->except(['lat', 'lng'])) }}"
                             class="ml-3 text-gray-400 hover:text-gray-200 underline text-xs">Bỏ lọc vị trí</a>
                     @else
-                        <button onclick="requestLocation()" class="inline-flex items-center text-gray-400 hover:text-green-400 transition cursor-pointer">
+                        <button onclick="requestLocation()"
+                            class="inline-flex items-center text-gray-400 hover:text-green-400 transition cursor-pointer">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             Hiển thị theo vị trí gần tôi
                         </button>
@@ -68,29 +82,30 @@
                 <select name="province"
                     class="px-4 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-200">
                     <option value="">Tất cả khu vực</option>
-                    @foreach($locations as $location)
-                        <option value="{{ $location['province'] }}" {{ request('province') == $location['province'] ? 'selected' : '' }}>
-                            {{ $location['province'] }}
+                    @foreach($provinces as $province)
+                        <option value="{{ $province['name'] }}" {{ request('province') == $province['name'] ? 'selected' : '' }}>
+                            {{ $province['name'] }}
                         </option>
                     @endforeach
                 </select>
 
-            <button type="submit" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold shadow-lg shadow-green-500/25">
+                <button type="submit"
+                    class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold shadow-lg shadow-green-500/25">
                     Lọc
                 </button>
             </form>
 
             <!-- View Toggle -->
             <div class="flex gap-1 mt-4 md:mt-0 ml-0 md:ml-4">
-                <button onclick="setView('grid')" id="btn-grid"
-                    class="p-2 rounded-lg border border-navy-600 transition" title="Dạng lưới">
+                <button onclick="setView('grid')" id="btn-grid" class="p-2 rounded-lg border border-navy-600 transition"
+                    title="Dạng lưới">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                 </button>
-                <button onclick="setView('list')" id="btn-list"
-                    class="p-2 rounded-lg border border-navy-600 transition" title="Dạng danh sách">
+                <button onclick="setView('list')" id="btn-list" class="p-2 rounded-lg border border-navy-600 transition"
+                    title="Dạng danh sách">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -168,77 +183,77 @@
     </div>
 
     <script>
-    // View toggle
-    function setView(mode) {
-        const grid = document.getElementById('view-grid');
-        const list = document.getElementById('view-list');
-        const btnGrid = document.getElementById('btn-grid');
-        const btnList = document.getElementById('btn-list');
+        // View toggle
+        function setView(mode) {
+            const grid = document.getElementById('view-grid');
+            const list = document.getElementById('view-list');
+            const btnGrid = document.getElementById('btn-grid');
+            const btnList = document.getElementById('btn-list');
 
-        if (mode === 'list') {
-            grid.classList.add('hidden');
-            list.classList.remove('hidden');
-            btnGrid.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500');
-            btnGrid.classList.add('text-gray-400');
-            btnList.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500');
-            btnList.classList.remove('text-gray-400');
-        } else {
-            list.classList.add('hidden');
-            grid.classList.remove('hidden');
-            btnList.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500');
-            btnList.classList.add('text-gray-400');
-            btnGrid.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500');
-            btnGrid.classList.remove('text-gray-400');
-        }
-        localStorage.setItem('viewMode', mode);
-    }
-
-    // Reveal real content when page fully loads
-    document.addEventListener('DOMContentLoaded', function() {
-        // Restore saved view mode
-        var savedView = localStorage.getItem('viewMode') || 'grid';
-        setView(savedView);
-
-        var skeleton = document.getElementById('skeleton-grid');
-        var content = document.getElementById('real-content');
-
-        // Small delay for smooth transition
-        setTimeout(function() {
-            skeleton.style.opacity = '0';
-            content.classList.add('loaded');
-
-            // Remove skeleton from DOM after animation
-            setTimeout(function() {
-                skeleton.style.display = 'none';
-            }, 300);
-        }, 400);
-    });
-
-    function requestLocation() {
-        if (!navigator.geolocation) {
-            alert('Trình duyệt của bạn không hỗ trợ định vị.');
-            return;
+            if (mode === 'list') {
+                grid.classList.add('hidden');
+                list.classList.remove('hidden');
+                btnGrid.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500');
+                btnGrid.classList.add('text-gray-400');
+                btnList.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500');
+                btnList.classList.remove('text-gray-400');
+            } else {
+                list.classList.add('hidden');
+                grid.classList.remove('hidden');
+                btnList.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500');
+                btnList.classList.add('text-gray-400');
+                btnGrid.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500');
+                btnGrid.classList.remove('text-gray-400');
+            }
+            localStorage.setItem('viewMode', mode);
         }
 
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const url = new URL(window.location.href);
-                url.searchParams.set('lat', lat.toFixed(6));
-                url.searchParams.set('lng', lng.toFixed(6));
-                url.searchParams.set('page', '1');
-                window.location.href = url.toString();
-            },
-            function(error) {
-                if (error.code === error.PERMISSION_DENIED) {
-                    alert('Bạn đã từ chối quyền truy cập vị trí. Vui lòng cho phép trong cài đặt trình duyệt.');
-                } else {
-                    alert('Không thể lấy vị trí. Vui lòng thử lại.');
-                }
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
-    }
+        // Reveal real content when page fully loads
+        document.addEventListener('DOMContentLoaded', function () {
+            // Restore saved view mode
+            var savedView = localStorage.getItem('viewMode') || 'grid';
+            setView(savedView);
+
+            var skeleton = document.getElementById('skeleton-grid');
+            var content = document.getElementById('real-content');
+
+            // Small delay for smooth transition
+            setTimeout(function () {
+                skeleton.style.opacity = '0';
+                content.classList.add('loaded');
+
+                // Remove skeleton from DOM after animation
+                setTimeout(function () {
+                    skeleton.style.display = 'none';
+                }, 300);
+            }, 400);
+        });
+
+        function requestLocation() {
+            if (!navigator.geolocation) {
+                alert('Trình duyệt của bạn không hỗ trợ định vị.');
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('lat', lat.toFixed(6));
+                    url.searchParams.set('lng', lng.toFixed(6));
+                    url.searchParams.set('page', '1');
+                    window.location.href = url.toString();
+                },
+                function (error) {
+                    if (error.code === error.PERMISSION_DENIED) {
+                        alert('Bạn đã từ chối quyền truy cập vị trí. Vui lòng cho phép trong cài đặt trình duyệt.');
+                    } else {
+                        alert('Không thể lấy vị trí. Vui lòng thử lại.');
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
     </script>
 @endsection

@@ -247,16 +247,16 @@
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành phố</label>
-                    <select v-model="form.province" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <select v-model="form.province" @change="onProvinceChange" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                       <option value="">-- Chọn tỉnh/TP --</option>
-                      <option v-for="prov in provinces" :key="prov" :value="prov">{{ prov }}</option>
+                      <option v-for="prov in provinces" :key="prov.id" :value="prov.name">{{ prov.name }}</option>
                     </select>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Xã/Phường</label>
                     <select v-model="form.ward" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                       <option value="">-- Chọn xã/phường --</option>
-                      <option v-for="w in wards" :key="w" :value="w">{{ w }}</option>
+                      <option v-for="w in wards" :key="w.id" :value="w.name">{{ w.name }}</option>
                     </select>
                   </div>
                 </div>
@@ -541,21 +541,44 @@ const categories = ref([
   { id: 5, name: 'Căn hộ/Chung cư' }
 ])
 
-// Provinces
-const provinces = ref([
-  'Đồng Nai (Đồng Nai + Bình P...)',
-  'Hồ Chí Minh',
-  'Bình Dương',
-  'Bà Rịa - Vũng Tàu',
-  'Bình Phước'
-])
+// Provinces & Wards — loaded from admin locations API
+const provinces = ref([])
+const wards = ref([])
 
-const wards = ref([
-  'Đông Xoài',
-  'Phường 1',
-  'Phường 2',
-  'Xã Tân Thành'
-])
+async function loadProvinces() {
+  try {
+    const { data } = await adminApi.getProvinces()
+    provinces.value = data.data || []
+  } catch (e) {
+    console.error('Failed to load provinces:', e)
+  }
+}
+
+async function onProvinceChange() {
+  form.value.ward = ''
+  wards.value = []
+  const selected = provinces.value.find(p => p.name === form.value.province)
+  if (selected) {
+    try {
+      const { data } = await adminApi.getWards({ province_id: selected.id })
+      wards.value = data.data || []
+    } catch (e) {
+      console.error('Failed to load wards:', e)
+    }
+  }
+}
+
+async function loadWardsForEdit(provinceName) {
+  const selected = provinces.value.find(p => p.name === provinceName)
+  if (selected) {
+    try {
+      const { data } = await adminApi.getWards({ province_id: selected.id })
+      wards.value = data.data || []
+    } catch (e) {
+      console.error('Failed to load wards for edit:', e)
+    }
+  }
+}
 
 // Land directions
 const landDirections = [
@@ -819,6 +842,11 @@ const openEditModal = async (item) => {
   
   console.log('Form after assignment:', form.value) // Debug log
   
+  // Preload wards for existing province
+  if (form.value.province) {
+    await loadWardsForEdit(form.value.province)
+  }
+  
   loading.value = false
   showModal.value = true
 }
@@ -910,7 +938,9 @@ const statusClass = (s) => ({
   rejected: 'bg-red-100 text-red-800'
 }[s] || 'bg-gray-100')
 
-onMounted(fetchData)
+onMounted(async () => {
+  await Promise.all([fetchData(), loadProvinces()])
+})
 </script>
 
 <style>
