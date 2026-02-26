@@ -24,6 +24,15 @@ Route::get('/tin-tuc/{slug}', [ArticleController::class, 'show'])->name('article
 // Contact (Liên hệ)
 Route::get('/lien-he', [ArticleController::class, 'contact'])->name('contact');
 
+// Policy pages
+Route::get('/chinh-sach-bao-mat', function () {
+    return view('pages.privacy-policy');
+})->name('privacy-policy');
+
+Route::get('/dieu-khoan-su-dung', function () {
+    return view('pages.terms');
+})->name('terms');
+
 // Settings API
 Route::get('/api/settings', [SettingsController::class, 'index']);
 Route::post('/api/settings', [SettingsController::class, 'store']);

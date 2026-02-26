@@ -70,6 +70,11 @@
         </div>
 
         <div class="border-t border-navy-600 mt-10 pt-6 text-center text-gray-500 text-sm">
+            <div class="flex flex-wrap justify-center gap-4 mb-3">
+                <a href="{{ route('privacy-policy') }}" class="hover:text-green-400 transition">Chính sách bảo mật</a>
+                <span class="hidden md:inline">|</span>
+                <a href="{{ route('terms') }}" class="hover:text-green-400 transition">Điều khoản sử dụng</a>
+            </div>
             <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
         </div>
     </div>
