@@ -92,32 +92,34 @@
             }
         @endphp
 
-        <div class="space-y-1 text-sm text-gray-400">
+        <div class="text-sm text-gray-400">
             @if(data_get($consignment, 'address'))
-                <p><span class="text-gray-500">Địa chỉ:</span> {{ data_get($consignment, 'address') }}</p>
+                <p class="mb-1"><span class="text-gray-500">Địa chỉ:</span> {{ data_get($consignment, 'address') }}</p>
             @endif
-            @if(data_get($consignment, 'area_dimensions'))
-                <p><span class="text-gray-500">Diện tích:</span> {{ data_get($consignment, 'area_dimensions') }}</p>
-            @endif
-            @if(data_get($consignment, 'residential_area'))
-                <p><span class="text-gray-500">Thổ cư:</span> {{ data_get($consignment, 'residential_area') }} m²</p>
-            @endif
-            @php
-                $_ld = data_get($consignment, 'land_directions', null);
-                $directions = is_string($_ld) ? (json_decode($_ld, true) ?? []) : (is_array($_ld) ? $_ld : []);
-                $dirMap = ['dong' => 'Đông', 'tay' => 'Tây', 'nam' => 'Nam', 'bac' => 'Bắc', 'dong-nam' => 'Đông Nam', 'dong_nam' => 'Đông Nam', 'dong-bac' => 'Đông Bắc', 'dong_bac' => 'Đông Bắc', 'tay-nam' => 'Tây Nam', 'tay_nam' => 'Tây Nam', 'tay-bac' => 'Tây Bắc', 'tay_bac' => 'Tây Bắc'];
-                $directions = array_map(fn($d) => $dirMap[$d] ?? $d, $directions);
-            @endphp
-            @if(!empty($directions))
-                <p><span class="text-gray-500">Hướng:</span> {{ implode(', ', $directions) }}</p>
-            @endif
-            @if(data_get($consignment, 'road'))
-                <p><span class="text-gray-500">Loại đường:</span> {{ data_get($consignment, 'road') }}</p>
-            @endif
-            @if(data_get($consignment, 'has_house'))
-                <p><span class="text-gray-500">Tình trạng:</span>
-                    {{ data_get($consignment, 'has_house') === 'yes' ? 'Có nhà' : 'Đất trống' }}</p>
-            @endif
+            <div class="grid grid-cols-2 gap-x-2 gap-y-0.5">
+                @if(data_get($consignment, 'area_dimensions'))
+                    <p><span class="text-gray-500">Diện tích:</span> {{ data_get($consignment, 'area_dimensions') }}</p>
+                @endif
+                @if(data_get($consignment, 'residential_area'))
+                    <p><span class="text-gray-500">Thổ cư:</span> {{ data_get($consignment, 'residential_area') }} m²</p>
+                @endif
+                @php
+                    $_ld = data_get($consignment, 'land_directions', null);
+                    $directions = is_string($_ld) ? (json_decode($_ld, true) ?? []) : (is_array($_ld) ? $_ld : []);
+                    $dirMap = ['dong' => 'Đông', 'tay' => 'Tây', 'nam' => 'Nam', 'bac' => 'Bắc', 'dong-nam' => 'Đông Nam', 'dong_nam' => 'Đông Nam', 'dong-bac' => 'Đông Bắc', 'dong_bac' => 'Đông Bắc', 'tay-nam' => 'Tây Nam', 'tay_nam' => 'Tây Nam', 'tay-bac' => 'Tây Bắc', 'tay_bac' => 'Tây Bắc'];
+                    $directions = array_map(fn($d) => $dirMap[$d] ?? $d, $directions);
+                @endphp
+                @if(!empty($directions))
+                    <p><span class="text-gray-500">Hướng:</span> {{ implode(', ', $directions) }}</p>
+                @endif
+                @if(data_get($consignment, 'road'))
+                    <p><span class="text-gray-500">Loại đường:</span> {{ data_get($consignment, 'road') }}</p>
+                @endif
+                @if(data_get($consignment, 'has_house'))
+                    <p><span class="text-gray-500">Tình trạng:</span>
+                        {{ data_get($consignment, 'has_house') === 'yes' ? 'Có nhà' : 'Đất trống' }}</p>
+                @endif
+            </div>
         </div>
 
         <p class="text-green-400 font-bold text-lg mt-2">{{ $formatted }}</p>
