@@ -14,9 +14,9 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
             <!-- Brand -->
-            <div>
+            <div class="text-center md:text-left">
                 @if($logo)
-                    <img src="{{ $logo }}" alt="{{ $siteName }}" class="h-12 w-auto object-contain mb-3">
+                    <img src="{{ $logo }}" alt="{{ $siteName }}" class="h-12 w-auto object-contain mb-3 mx-auto md:mx-0">
                 @endif
                 <h3 class="text-xl font-bold text-green-400">{{ $siteName }}</h3>
                 <p class="mt-3 text-gray-400 text-sm leading-relaxed">Nền tảng ký gửi bất động sản uy tín hàng đầu Việt
@@ -24,7 +24,7 @@
             </div>
 
             <!-- Navigation -->
-            <div>
+            <div class="hidden md:block">
                 <h4 class="font-semibold mb-4 text-gray-200">Liên kết</h4>
                 <ul class="space-y-2 text-sm text-gray-400">
                     <li><a href="{{ route('home') }}" class="hover:text-green-400 transition">Trang chủ</a></li>
@@ -36,10 +36,10 @@
             </div>
 
             <!-- Contact -->
-            <div>
+            <div class="text-center md:text-left">
                 <h4 class="font-semibold mb-4 text-gray-200">Liên hệ</h4>
                 <ul class="space-y-3 text-sm text-gray-400">
-                    <li class="flex items-start gap-2">
+                    <li class="flex items-start gap-2 justify-center md:justify-start">
                         <svg class="w-4 h-4 mt-0.5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -47,7 +47,7 @@
                         </svg>
                         {{ $email }}
                     </li>
-                    <li class="flex items-start gap-2">
+                    <li class="flex items-start gap-2 justify-center md:justify-start">
                         <svg class="w-4 h-4 mt-0.5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -55,7 +55,7 @@
                         </svg>
                         {{ $phone }}
                     </li>
-                    <li class="flex items-start gap-2">
+                    <li class="flex items-start gap-2 justify-center md:justify-start">
                         <svg class="w-4 h-4 mt-0.5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

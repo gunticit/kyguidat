@@ -1,5 +1,5 @@
 <a href="{{ route('consignments.show', !empty(data_get($consignment, 'seo_url')) ? data_get($consignment, 'seo_url') : data_get($consignment, 'id')) }}"
-    class="flex bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group border border-gray-200">
+    class="flex bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group">
     <!-- Image (left side) -->
     <div class="w-40 md:w-48 flex-shrink-0 bg-gray-100 relative overflow-hidden">
         @php
@@ -55,7 +55,7 @@
                 <p class="text-xs text-gray-500 mb-1 font-medium">Mã Số: {{ data_get($consignment, 'order_number') }}</p>
             @endif
 
-            <h3 class="font-bold text-blue-700 uppercase text-sm md:text-base mb-2 line-clamp-2">
+            <h3 class="font-bold uppercase text-sm md:text-base mb-2 line-clamp-2">
                 {{ data_get($consignment, 'title', '') }}
             </h3>
 
@@ -107,16 +107,6 @@
                     <p><span class="text-orange-500 font-bold">Giá: {{ $formatted }}</span></p>
                 </div>
             </div>
-        </div>
-
-        <div class="mt-2 flex justify-start">
-            <span
-                class="inline-flex items-center gap-1 text-xs md:text-sm font-medium text-green-600 hover:text-green-700">
-                Xem ngay
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </span>
         </div>
     </div>
 </a>
