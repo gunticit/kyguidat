@@ -11,7 +11,7 @@ import (
 // Repository interface for database operations
 type Repository interface {
 	// Consignments
-	GetApprovedConsignments(page, limit int, search, province string, lat, lng float64) ([]models.Consignment, int64, error)
+	GetApprovedConsignments(page, limit int, search, province string, lat, lng, maxDistance float64) ([]models.Consignment, int64, error)
 	GetConsignmentByID(id uint) (*models.Consignment, error)
 	GetConsignmentBySlug(slug string) (*models.Consignment, error)
 	GetAllConsignments(page, limit int, status string) ([]models.Consignment, int64, error)
@@ -43,7 +43,8 @@ func NewMySQLRepository(db *gorm.DB) *MySQLRepository {
 
 // GetApprovedConsignments returns approved consignments with pagination
 // When lat/lng are provided (non-zero), sorts by distance using Haversine formula
-func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, province string, lat, lng float64) ([]models.Consignment, int64, error) {
+// When maxDistance > 0, filters to only show properties within that distance (km)
+func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, province string, lat, lng, maxDistance float64) ([]models.Consignment, int64, error) {
 	var consignments []models.Consignment
 	var total int64
 
@@ -56,8 +57,6 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 		query = query.Where("province = ?", province)
 	}
 
-	query.Count(&total)
-
 	offset := (page - 1) * limit
 
 	// If user location is provided, sort by distance (Haversine formula)
@@ -67,16 +66,28 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 			lat, lng, lat,
 		)
 
-		err := query.
+		geoQuery := query.
 			Select(fmt.Sprintf("*, %s AS distance", distanceExpr)).
+			Where("latitude IS NOT NULL AND latitude != '' AND longitude IS NOT NULL AND longitude != ''")
+
+		// Filter by max distance if specified
+		if maxDistance > 0 {
+			geoQuery = geoQuery.Where(fmt.Sprintf("%s <= %f", distanceExpr, maxDistance))
+		}
+
+		// Count matching records for pagination
+		geoQuery.Count(&total)
+
+		err := geoQuery.
 			Preload("User").
-			Where("latitude IS NOT NULL AND latitude != '' AND longitude IS NOT NULL AND longitude != ''").
 			Offset(offset).Limit(limit).
 			Order("distance ASC").
 			Find(&consignments).Error
 
 		return consignments, total, err
 	}
+
+	query.Count(&total)
 
 	// Default: sort by created_at
 	err := query.Preload("User").

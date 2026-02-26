@@ -30,8 +30,9 @@ func (h *ConsignmentHandler) List(c *gin.Context) {
 	// Parse user location for proximity sorting
 	lat, _ := strconv.ParseFloat(c.Query("lat"), 64)
 	lng, _ := strconv.ParseFloat(c.Query("lng"), 64)
+	maxDistance, _ := strconv.ParseFloat(c.Query("max_distance"), 64)
 
-	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, lat, lng)
+	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, lat, lng, maxDistance)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch consignments")
 		return
