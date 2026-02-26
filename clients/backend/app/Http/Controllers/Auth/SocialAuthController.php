@@ -22,7 +22,7 @@ class SocialAuthController extends Controller
      */
     public function redirectToGoogle(): RedirectResponse
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')->stateless()->redirect();
     }
 
     /**
@@ -31,7 +31,7 @@ class SocialAuthController extends Controller
     public function handleGoogleCallback(): RedirectResponse
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')->stateless()->user();
             $result = $this->socialAuthService->handleSocialLogin('google', $googleUser);
 
             return redirect()->to(
@@ -50,7 +50,7 @@ class SocialAuthController extends Controller
      */
     public function redirectToFacebook(): RedirectResponse
     {
-        return Socialite::driver('facebook')->redirect();
+        return Socialite::driver('facebook')->stateless()->redirect();
     }
 
     /**
@@ -59,7 +59,7 @@ class SocialAuthController extends Controller
     public function handleFacebookCallback(): RedirectResponse
     {
         try {
-            $facebookUser = Socialite::driver('facebook')->user();
+            $facebookUser = Socialite::driver('facebook')->stateless()->user();
             $result = $this->socialAuthService->handleSocialLogin('facebook', $facebookUser);
 
             return redirect()->to(
@@ -78,7 +78,7 @@ class SocialAuthController extends Controller
      */
     public function redirectToZalo(): RedirectResponse
     {
-        return Socialite::driver('zalo')->redirect();
+        return Socialite::driver('zalo')->stateless()->redirect();
     }
 
     /**
@@ -87,7 +87,7 @@ class SocialAuthController extends Controller
     public function handleZaloCallback(): RedirectResponse
     {
         try {
-            $zaloUser = Socialite::driver('zalo')->user();
+            $zaloUser = Socialite::driver('zalo')->stateless()->user();
             $result = $this->socialAuthService->handleSocialLogin('zalo', $zaloUser);
 
             return redirect()->to(
@@ -106,7 +106,7 @@ class SocialAuthController extends Controller
      */
     public function redirectToGithub(): RedirectResponse
     {
-        return Socialite::driver('github')->scopes(['user:email'])->redirect();
+        return Socialite::driver('github')->stateless()->scopes(['user:email'])->redirect();
     }
 
     /**
@@ -115,7 +115,7 @@ class SocialAuthController extends Controller
     public function handleGithubCallback(): RedirectResponse
     {
         try {
-            $githubUser = Socialite::driver('github')->user();
+            $githubUser = Socialite::driver('github')->stateless()->user();
             $result = $this->socialAuthService->handleSocialLogin('github', $githubUser);
 
             return redirect()->to(
