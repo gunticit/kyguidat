@@ -114,6 +114,64 @@
                             {{ $consignment['province'] ?? 'Chưa xác định' }}
                         </span>
                     </div>
+
+                    <!-- Quick Info Summary Bar -->
+                    @php
+                        $areaDimensions = $consignment['area_dimensions'] ?? null;
+                        $residentialArea = $consignment['residential_area'] ?? null;
+                        $_directions = $consignment['land_directions'] ?? null;
+                        $directions = is_string($_directions) ? (json_decode($_directions, true) ?? []) : (is_array($_directions) ? $_directions : []);
+                        $directionStr = !empty($directions) ? implode(', ', $directions) : null;
+                        $roadType = $consignment['road'] ?? null;
+                    @endphp
+                    @if($areaDimensions || $residentialArea || $directionStr || $roadType)
+                        <div
+                            class="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-300 bg-navy-700/50 rounded-lg px-4 py-3 border border-navy-600">
+                            @if($areaDimensions)
+                                <div class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z" />
+                                    </svg>
+                                    <span class="text-gray-500">Diện tích:</span>
+                                    <span class="font-medium text-gray-200">{{ $areaDimensions }}</span>
+                                </div>
+                                <span class="text-navy-500">|</span>
+                            @endif
+                            @if($residentialArea)
+                                <div class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                    </svg>
+                                    <span class="text-gray-500">Thổ cư:</span>
+                                    <span class="font-medium text-gray-200">{{ $residentialArea }} m²</span>
+                                </div>
+                                <span class="text-navy-500">|</span>
+                            @endif
+                            @if($directionStr)
+                                <div class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                                    </svg>
+                                    <span class="text-gray-500">Hướng:</span>
+                                    <span class="font-medium text-gray-200">{{ $directionStr }}</span>
+                                </div>
+                                <span class="text-navy-500">|</span>
+                            @endif
+                            @if($roadType)
+                                <div class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                    </svg>
+                                    <span class="text-gray-500">Đường:</span>
+                                    <span class="font-medium text-gray-200">{{ $roadType }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Price Highlight -->
@@ -497,7 +555,13 @@
         </div>
 
         <!-- Related Properties -->
-        @if(isset($relatedConsignments) && is_array($relatedConsignments) && count($relatedConsignments) > 0)
+        @php
+            $filteredRelated = [];
+            if (isset($relatedConsignments) && is_array($relatedConsignments)) {
+                $filteredRelated = array_filter($relatedConsignments, fn($item) => $item['id'] != $consignment['id']);
+            }
+        @endphp
+        @if(count($filteredRelated) > 0)
             <div class="mt-16">
                 <h2 class="text-2xl font-bold text-gray-100 mb-6 flex items-center">
                     <svg class="w-7 h-7 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -507,10 +571,8 @@
                     Bất động sản tương tự
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @foreach($relatedConsignments as $item)
-                        @if($item['id'] != $consignment['id'])
-                            @include('components.consignment-card', ['consignment' => $item])
-                        @endif
+                    @foreach($filteredRelated as $item)
+                        @include('components.consignment-card', ['consignment' => $item])
                     @endforeach
                 </div>
             </div>

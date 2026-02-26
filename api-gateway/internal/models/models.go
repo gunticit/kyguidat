@@ -22,25 +22,31 @@ type User struct {
 
 // Consignment represents consignment/property model
 type Consignment struct {
-	ID            uint            `json:"id" gorm:"primaryKey"`
-	UserID        uint            `json:"user_id"`
-	Code          string          `json:"code" gorm:"uniqueIndex"`
-	Title         string          `json:"title"`
-	Description   string          `json:"description" gorm:"type:text"`
-	FeaturedImage string          `json:"featured_image"`
-	Price         float64         `json:"price"`
-	Address       string          `json:"address"`
-	Province      string          `json:"province"`
-	Ward          string          `json:"ward"`
-	Latitude      string          `json:"latitude"`
-	Longitude     string          `json:"longitude"`
-	SeoUrl        string          `json:"seo_url"`
-	Status        string          `json:"status" gorm:"default:pending"` // pending, approved, rejected, sold
-	OrderNumber   int             `json:"order_number"`
-	Images        json.RawMessage `json:"images" gorm:"type:json"`
-	CreatedAt     time.Time       `json:"created_at"`
-	UpdatedAt     time.Time       `json:"updated_at"`
-	DeletedAt     gorm.DeletedAt  `json:"-" gorm:"index"`
+	ID              uint            `json:"id" gorm:"primaryKey"`
+	UserID          uint            `json:"user_id"`
+	Code            string          `json:"code" gorm:"uniqueIndex"`
+	Title           string          `json:"title"`
+	Description     string          `json:"description" gorm:"type:text"`
+	FeaturedImage   string          `json:"featured_image"`
+	Price           float64         `json:"price"`
+	Address         string          `json:"address"`
+	Province        string          `json:"province"`
+	Ward            string          `json:"ward"`
+	AreaDimensions  string          `json:"area_dimensions"`
+	ResidentialArea string          `json:"residential_area"`
+	LandDirections  json.RawMessage `json:"land_directions" gorm:"type:json"`
+	Road            string          `json:"road"`
+	HasHouse        string          `json:"has_house"`
+	FrontageActual  string          `json:"frontage_actual"`
+	Latitude        string          `json:"latitude"`
+	Longitude       string          `json:"longitude"`
+	SeoUrl          string          `json:"seo_url"`
+	Status          string          `json:"status" gorm:"default:pending"` // pending, approved, rejected, sold
+	OrderNumber     int             `json:"order_number"`
+	Images          json.RawMessage `json:"images" gorm:"type:json"`
+	CreatedAt       time.Time       `json:"created_at"`
+	UpdatedAt       time.Time       `json:"updated_at"`
+	DeletedAt       gorm.DeletedAt  `json:"-" gorm:"index"`
 
 	// Computed field (not stored in DB, read-only from SELECT)
 	Distance float64 `json:"distance,omitempty" gorm:"->"`
