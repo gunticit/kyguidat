@@ -1,7 +1,8 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
     FiHome, FiPackage, FiDollarSign, FiMessageSquare,
@@ -22,6 +23,28 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [user, setUser] = useState<{ name?: string; email?: string; avatar?: string } | null>(null);
+
+    useEffect(() => {
+        try {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
+        } catch (e) {
+            console.error('Failed to load user from localStorage', e);
+        }
+
+        // Listen for storage changes (profile updates)
+        const handleStorageChange = () => {
+            try {
+                const storedUser = localStorage.getItem('user');
+                if (storedUser) setUser(JSON.parse(storedUser));
+            } catch (e) { }
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -54,6 +77,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             Ký Gửi Kho Đất
                         </span>
                     </Link>
+                </div>
+
+                {/* User Info */}
+                <div className={styles.userInfo}>
+                    <div className={styles.userAvatar}>
+                        {user?.avatar ? (
+                            <Image
+                                src={user.avatar}
+                                alt={user.name || 'Avatar'}
+                                width={40}
+                                height={40}
+                                className={styles.avatarImg}
+                            />
+                        ) : (
+                            <div className={styles.avatarFallback}>
+                                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </div>
+                        )}
+                    </div>
+                    <div className={styles.userDetails}>
+                        <p className={styles.userName}>{user?.name || 'Người dùng'}</p>
+                        <p className={styles.userEmail}>{user?.email || ''}</p>
+                    </div>
                 </div>
 
                 <nav className={styles.nav}>

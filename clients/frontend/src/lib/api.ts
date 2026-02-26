@@ -49,6 +49,8 @@ export const authApi = {
         api.post('/auth/forgot-password', { email }),
     resetPassword: (data: { email: string; token: string; password: string; password_confirmation: string }) =>
         api.post('/auth/reset-password', data),
+    deleteAccount: (data: { password?: string; confirm?: string }) =>
+        api.delete('/auth/account', { data }),
 };
 
 // User APIs
