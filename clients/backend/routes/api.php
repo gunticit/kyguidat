@@ -64,6 +64,9 @@ Route::prefix('auth')->middleware('api.session')->group(function () {
 
     Route::get('/zalo', [SocialAuthController::class, 'redirectToZalo']);
     Route::get('/zalo/callback', [SocialAuthController::class, 'handleZaloCallback']);
+
+    Route::get('/github', [SocialAuthController::class, 'redirectToGithub']);
+    Route::get('/github/callback', [SocialAuthController::class, 'handleGithubCallback']);
 });
 
 // Payment callbacks (public, rate limited)

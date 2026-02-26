@@ -13,7 +13,8 @@ class SocialAuthController extends Controller
 {
     public function __construct(
         private SocialAuthService $socialAuthService
-    ) {}
+    ) {
+    }
 
     /**
      * Redirect to Google OAuth
@@ -31,7 +32,7 @@ class SocialAuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
             $result = $this->socialAuthService->handleSocialLogin('google', $googleUser);
-            
+
             return redirect()->to(
                 config('app.frontend_url') . '/auth/callback?token=' . $result['token']
             );
@@ -58,7 +59,7 @@ class SocialAuthController extends Controller
         try {
             $facebookUser = Socialite::driver('facebook')->user();
             $result = $this->socialAuthService->handleSocialLogin('facebook', $facebookUser);
-            
+
             return redirect()->to(
                 config('app.frontend_url') . '/auth/callback?token=' . $result['token']
             );
@@ -85,13 +86,40 @@ class SocialAuthController extends Controller
         try {
             $zaloUser = Socialite::driver('zalo')->user();
             $result = $this->socialAuthService->handleSocialLogin('zalo', $zaloUser);
-            
+
             return redirect()->to(
                 config('app.frontend_url') . '/auth/callback?token=' . $result['token']
             );
         } catch (\Exception $e) {
             return redirect()->to(
                 config('app.frontend_url') . '/login?error=zalo_auth_failed'
+            );
+        }
+    }
+
+    /**
+     * Redirect to GitHub OAuth
+     */
+    public function redirectToGithub(): RedirectResponse
+    {
+        return Socialite::driver('github')->scopes(['user:email'])->redirect();
+    }
+
+    /**
+     * Handle GitHub OAuth callback
+     */
+    public function handleGithubCallback(): RedirectResponse
+    {
+        try {
+            $githubUser = Socialite::driver('github')->user();
+            $result = $this->socialAuthService->handleSocialLogin('github', $githubUser);
+
+            return redirect()->to(
+                config('app.frontend_url') . '/auth/callback?token=' . $result['token']
+            );
+        } catch (\Exception $e) {
+            return redirect()->to(
+                config('app.frontend_url') . '/login?error=github_auth_failed'
             );
         }
     }
