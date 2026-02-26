@@ -1,7 +1,7 @@
 <a href="{{ route('consignments.show', !empty(data_get($consignment, 'seo_url')) ? data_get($consignment, 'seo_url') : data_get($consignment, 'id')) }}"
-    class="flex bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group">
-    <!-- Image (left side) -->
-    <div class="w-40 md:w-48 flex-shrink-0 bg-gray-100 relative overflow-hidden">
+    class="flex flex-col md:flex-row bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group">
+    <!-- Image -->
+    <div class="w-full md:w-48 flex-shrink-0 bg-gray-100 relative overflow-hidden aspect-video md:aspect-auto">
         @php
             $firstImage = null;
             $fi = data_get($consignment, 'featured_image', '');
