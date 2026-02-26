@@ -127,6 +127,23 @@ class AdminController extends Controller
             $query->where('status', $status);
         }
 
+        if ($province = $request->input('province')) {
+            $query->where('province', $province);
+        }
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('code', 'like', '%' . $search . '%')
+                    ->orWhere('address', 'like', '%' . $search . '%')
+                    ->orWhere('consigner_phone', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($consignerName = $request->input('consigner_name')) {
+            $query->where('consigner_name', 'like', '%' . $consignerName . '%');
+        }
+
         $perPage = $request->input('per_page', 15);
         $consignments = $query->orderBy('created_at', 'desc')->paginate($perPage);
 

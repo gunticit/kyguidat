@@ -12,13 +12,26 @@
         </div>
         
         <!-- Filters -->
-        <div class="bg-white rounded-lg shadow p-4 mb-6 flex gap-4">
-          <select v-model="filters.status" @change="fetchData" class="px-4 py-2 border rounded-lg">
+        <div class="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap gap-3 items-center">
+          <select v-model="filters.status" @change="fetchData" class="px-3 py-2 border rounded-lg text-sm">
             <option value="">Tất cả trạng thái</option>
             <option value="pending">Chờ duyệt</option>
             <option value="approved">Đã duyệt</option>
             <option value="rejected">Từ chối</option>
           </select>
+
+          <select v-model="filters.province" @change="fetchData" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="">Tỉnh / TP</option>
+            <option v-for="prov in provinces" :key="prov.id" :value="prov.name">{{ prov.name }}</option>
+          </select>
+
+          <select v-model="filters.consigner_name" @change="fetchData" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="">Người đăng</option>
+            <option v-for="name in uniqueConsigners" :key="name" :value="name">{{ name }}</option>
+          </select>
+
+          <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Từ khóa tìm kiếm..."
+                 class="flex-1 min-w-[200px] px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
         </div>
         
         <!-- Table -->
@@ -467,7 +480,27 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 const store = useConsignmentStore()
 const authStore = useAuthStore()
 const consignments = ref([])
-const filters = ref({ status: '', page: 1 })
+const filters = ref({ status: '', province: '', consigner_name: '', search: '', page: 1 })
+
+// Unique consigner names from loaded data
+const uniqueConsigners = computed(() => {
+  const names = new Set()
+  consignments.value.forEach(c => {
+    if (c.consigner_name) names.add(c.consigner_name)
+    if (c.user?.name) names.add(c.user.name)
+  })
+  return [...names].sort()
+})
+
+// Debounced search
+let searchTimer = null
+const debouncedSearch = () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    filters.value.page = 1
+    fetchData()
+  }, 400)
+}
 const loading = ref(false)
 const error = ref('')
 const seoUrlManuallyEdited = ref(false)
