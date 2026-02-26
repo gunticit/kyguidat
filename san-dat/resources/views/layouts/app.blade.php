@@ -206,6 +206,55 @@
         }, 60000);
     </script>
 
+    <!-- Mobile Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white dark:bg-navy-800 border-t border-gray-200 dark:border-navy-600 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]"
+        style="background: #fff; border-top: 1px solid #e5e7eb;">
+        <div class="flex items-center justify-around h-16 max-w-md mx-auto px-4">
+            <!-- Chính sách -->
+            <a href="{{ url('/chinh-sach') }}"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
+                style="color: #6b7280;">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span class="text-xs font-medium">Chính sách</span>
+            </a>
+
+            <!-- Trang chủ (highlighted) -->
+            <a href="{{ url('/') }}" class="flex flex-col items-center -mt-6">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+                    style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </div>
+                <span class="text-xs font-medium mt-1" style="color: #f59e0b;">Trang chủ</span>
+            </a>
+
+            <!-- Ký gửi -->
+            <a href="{{ env('APP_URL_SANDAT', '#') }}"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
+                style="color: #6b7280;">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span class="text-xs font-medium">Ký gửi</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Spacer for mobile bottom nav -->
+    <style>
+        @media (max-width: 767px) {
+            body {
+                padding-bottom: 64px;
+            }
+        }
+    </style>
+
     @stack('scripts')
 </body>
 
