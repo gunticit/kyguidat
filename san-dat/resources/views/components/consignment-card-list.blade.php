@@ -1,4 +1,4 @@
-<a href="{{ route('consignments.show', data_get($consignment, 'seo_url', data_get($consignment, 'id'))) }}"
+<a href="{{ route('consignments.show', !empty(data_get($consignment, 'seo_url')) ? data_get($consignment, 'seo_url') : data_get($consignment, 'id')) }}"
     class="flex bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:shadow-green-500/10 transition group border border-navy-600">
     <!-- Image -->
     <div class="w-48 md:w-64 h-40 flex-shrink-0 bg-navy-800 relative overflow-hidden">
