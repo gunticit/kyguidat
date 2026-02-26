@@ -36,6 +36,7 @@ type Consignment struct {
 	Longitude     string          `json:"longitude"`
 	SeoUrl        string          `json:"seo_url"`
 	Status        string          `json:"status" gorm:"default:pending"` // pending, approved, rejected, sold
+	OrderNumber   int             `json:"order_number"`
 	Images        json.RawMessage `json:"images" gorm:"type:json"`
 	CreatedAt     time.Time       `json:"created_at"`
 	UpdatedAt     time.Time       `json:"updated_at"`

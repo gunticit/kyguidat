@@ -245,7 +245,7 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-400">Quận/Huyện</p>
-                                    <p class="font-bold text-gray-100">{{ $consignment['district'] ?? 'N/A' }}</p>
+                                    <p class="font-bold text-gray-100">{{ $consignment['ward'] ?? 'N/A' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -261,9 +261,9 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-400">Mã tin</p>
+                                    <p class="text-xs text-gray-400">Số thứ tự</p>
                                     <p class="font-bold text-gray-100">
-                                        {{ $consignment['code'] ?? 'BDS-' . $consignment['id'] }}
+                                        {{ $consignment['order_number'] ?? 'N/A' }}
                                     </p>
                                 </div>
                             </div>
@@ -284,23 +284,97 @@
                         {!! $consignment['description'] ?? 'Chưa có mô tả chi tiết cho bất động sản này.' !!}
                     </div>
                     <style>
-                        .description-content { font-size: 15px; line-height: 1.8; }
-                        .description-content p { margin-bottom: 12px; }
-                        .description-content h1, .description-content h2, .description-content h3 { color: var(--gray-100); font-weight: 700; margin: 16px 0 8px; }
-                        .description-content h1 { font-size: 1.5em; }
-                        .description-content h2 { font-size: 1.3em; }
-                        .description-content h3 { font-size: 1.15em; }
-                        .description-content ul, .description-content ol { padding-left: 24px; margin-bottom: 12px; }
-                        .description-content ul { list-style: disc; }
-                        .description-content ol { list-style: decimal; }
-                        .description-content li { margin-bottom: 4px; }
-                        .description-content a { color: #4ade80; text-decoration: underline; }
-                        .description-content strong, .description-content b { color: var(--gray-100); font-weight: 600; }
-                        .description-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0; }
-                        .description-content blockquote { border-left: 3px solid #4ade80; padding-left: 16px; margin: 12px 0; color: var(--gray-400); font-style: italic; }
-                        .description-content table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-                        .description-content th, .description-content td { border: 1px solid var(--navy-600); padding: 8px 12px; text-align: left; }
-                        .description-content th { background: var(--navy-700); color: var(--gray-100); font-weight: 600; }
+                        .description-content {
+                            font-size: 15px;
+                            line-height: 1.8;
+                        }
+
+                        .description-content p {
+                            margin-bottom: 12px;
+                        }
+
+                        .description-content h1,
+                        .description-content h2,
+                        .description-content h3 {
+                            color: var(--gray-100);
+                            font-weight: 700;
+                            margin: 16px 0 8px;
+                        }
+
+                        .description-content h1 {
+                            font-size: 1.5em;
+                        }
+
+                        .description-content h2 {
+                            font-size: 1.3em;
+                        }
+
+                        .description-content h3 {
+                            font-size: 1.15em;
+                        }
+
+                        .description-content ul,
+                        .description-content ol {
+                            padding-left: 24px;
+                            margin-bottom: 12px;
+                        }
+
+                        .description-content ul {
+                            list-style: disc;
+                        }
+
+                        .description-content ol {
+                            list-style: decimal;
+                        }
+
+                        .description-content li {
+                            margin-bottom: 4px;
+                        }
+
+                        .description-content a {
+                            color: #4ade80;
+                            text-decoration: underline;
+                        }
+
+                        .description-content strong,
+                        .description-content b {
+                            color: var(--gray-100);
+                            font-weight: 600;
+                        }
+
+                        .description-content img {
+                            max-width: 100%;
+                            height: auto;
+                            border-radius: 8px;
+                            margin: 12px 0;
+                        }
+
+                        .description-content blockquote {
+                            border-left: 3px solid #4ade80;
+                            padding-left: 16px;
+                            margin: 12px 0;
+                            color: var(--gray-400);
+                            font-style: italic;
+                        }
+
+                        .description-content table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 12px 0;
+                        }
+
+                        .description-content th,
+                        .description-content td {
+                            border: 1px solid var(--navy-600);
+                            padding: 8px 12px;
+                            text-align: left;
+                        }
+
+                        .description-content th {
+                            background: var(--navy-700);
+                            color: var(--gray-100);
+                            font-weight: 600;
+                        }
                     </style>
                 </div>
 
