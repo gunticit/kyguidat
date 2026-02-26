@@ -74,7 +74,7 @@ class GolangApiService
      */
     public function getProvinces(): array
     {
-        $response = Http::get("{$this->baseUrl}/api/provinces");
+        $response = Http::get("{$this->baseUrl}/api/public/provinces");
 
         if ($response->successful()) {
             return $response->json()['data'] ?? [];
