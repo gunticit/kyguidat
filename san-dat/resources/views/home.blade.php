@@ -285,24 +285,30 @@
         });
 
         // If no search/filter values, go to homepage instead of search results
+        // Otherwise, strip empty params from the URL
         document.getElementById('searchForm').addEventListener('submit', function (e) {
             const form = this;
             let hasValue = false;
 
-            // Check text inputs
-            form.querySelectorAll('input[type="text"]').forEach(input => {
-                if (input.value.trim()) hasValue = true;
-            });
-
-            // Check selects
-            form.querySelectorAll('select').forEach(select => {
-                if (select.value) hasValue = true;
+            // Check all inputs and selects for values
+            form.querySelectorAll('input[type="text"], select').forEach(el => {
+                if (el.value.trim()) {
+                    hasValue = true;
+                } else {
+                    el.disabled = true; // Disable empty fields so they don't appear in URL
+                }
             });
 
             if (!hasValue) {
                 e.preventDefault();
                 window.location.href = '/';
+                return;
             }
+
+            // Re-enable after a short delay (for browser back button)
+            setTimeout(() => {
+                form.querySelectorAll('[disabled]').forEach(el => el.disabled = false);
+            }, 100);
         });
     </script>
     <!-- Map Section -->
