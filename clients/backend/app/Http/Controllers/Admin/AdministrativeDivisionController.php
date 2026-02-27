@@ -145,11 +145,13 @@ class AdministrativeDivisionController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        $slug = $this->generateUniqueWardSlug($request->name, $request->province_id);
+
         $ward = Ward::create([
             'province_id' => $request->province_id,
             'name' => $request->name,
             'type' => $request->type,
-            'slug' => Str::slug($request->name),
+            'slug' => $slug,
             'sort_order' => $request->sort_order ?? 0,
             'is_active' => $request->is_active ?? true,
         ]);
@@ -169,16 +171,42 @@ class AdministrativeDivisionController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        $slug = $this->generateUniqueWardSlug($request->name, $request->province_id, $ward->id);
+
         $ward->update([
             'province_id' => $request->province_id,
             'name' => $request->name,
             'type' => $request->type,
-            'slug' => Str::slug($request->name),
+            'slug' => $slug,
             'sort_order' => $request->sort_order ?? $ward->sort_order,
             'is_active' => $request->has('is_active') ? $request->is_active : $ward->is_active,
         ]);
 
         return response()->json(['data' => $ward->load('province'), 'message' => 'Cập nhật thành công']);
+    }
+
+    /**
+     * Generate a unique ward slug within a province.
+     */
+    private function generateUniqueWardSlug(string $name, int $provinceId, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 2;
+
+        while (true) {
+            $query = Ward::where('province_id', $provinceId)->where('slug', $slug);
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+            if (!$query->exists()) {
+                break;
+            }
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     public function wardDestroy($id)
