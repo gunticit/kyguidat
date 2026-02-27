@@ -574,7 +574,7 @@
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     @foreach($filteredRelated as $item)
-                        @include('components.consignment-card', ['consignment' => $item])
+                        @include('components.consignment-card', ['consignment' => $item, 'vertical' => true])
                     @endforeach
                 </div>
             </div>

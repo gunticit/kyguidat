@@ -1,7 +1,9 @@
+@php $isVertical = !empty($vertical); @endphp
 <a href="{{ route('consignments.show', !empty(data_get($consignment, 'seo_url')) ? data_get($consignment, 'seo_url') : data_get($consignment, 'id')) }}"
-    class="flex flex-col md:flex-row bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group">
+    class="flex {{ $isVertical ? 'flex-col' : 'flex-col md:flex-row' }} bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group">
     <!-- Image -->
-    <div class="w-full md:w-48 flex-shrink-0 bg-gray-100 relative overflow-hidden aspect-video md:aspect-auto">
+    <div
+        class="w-full {{ $isVertical ? 'aspect-video' : 'md:w-48 flex-shrink-0 aspect-video md:aspect-auto' }} bg-gray-100 relative overflow-hidden">
         @php
             $firstImage = null;
             $fi = data_get($consignment, 'featured_image', '');
