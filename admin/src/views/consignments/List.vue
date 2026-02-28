@@ -1060,6 +1060,18 @@ const saveConsignment = async () => {
   saving.value = true
   error.value = ''
   
+  // Sync Quill editor HTML into form.description before saving
+  // v-model:content may not capture programmatic changes (like insertEmbed for images)
+  if (descriptionEditor.value) {
+    const quill = descriptionEditor.value?.getQuill?.() || descriptionEditor.value?.__quill
+    if (quill) {
+      const html = quill.root.innerHTML
+      // Don't save empty editor content (just <p><br></p>)
+      form.value.description = (html === '<p><br></p>' || html === '<p></p>') ? '' : html
+      console.log('[Save] Description HTML synced:', form.value.description?.substring(0, 200))
+    }
+  }
+  
   try {
     if (editingId.value) {
       const result = await store.updateConsignment(editingId.value, form.value)
