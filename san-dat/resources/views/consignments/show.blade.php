@@ -225,7 +225,7 @@
                         Thông tin chi tiết
                     </h2>
 
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
                         <!-- Area -->
                         @if(!empty($consignment['area']))
                             <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">

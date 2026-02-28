@@ -147,7 +147,7 @@ export default function ConsignmentBySlugPage() {
                                 <li><span>Diện tích:</span> <strong>{data.area_dimensions}</strong></li>
                             )}
                             {data.frontage_actual && (
-                                <li><span>Mặt tiền:</span> <strong>{data.frontage_actual}m</strong></li>
+                                <li><span>Mặt tiền:</span> <strong>{parseFloat(String(data.frontage_actual))} m</strong></li>
                             )}
                             {data.road && (
                                 <li><span>Đường:</span> <strong>{data.road}</strong></li>
