@@ -121,7 +121,7 @@
               <!-- Section 2: Mô tả sản phẩm (Quill Editor) -->
               <div class="border-b pb-4">
                 <h3 class="text-lg font-semibold mb-4 text-indigo-700">Mô tả sản phẩm</h3>
-                <div class="mb-4">
+                <div class="mb-4" id="description-editor-wrapper">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả sản phẩm</label>
                   <QuillEditor 
                     ref="descriptionEditor"
@@ -1062,14 +1062,14 @@ const saveConsignment = async () => {
   
   // Sync Quill editor HTML into form.description before saving
   // v-model:content may not capture programmatic changes (like insertEmbed for images)
-  if (descriptionEditor.value) {
-    const quill = descriptionEditor.value?.getQuill?.() || descriptionEditor.value?.__quill
-    if (quill) {
-      const html = quill.root.innerHTML
-      // Don't save empty editor content (just <p><br></p>)
-      form.value.description = (html === '<p><br></p>' || html === '<p></p>') ? '' : html
-      console.log('[Save] Description HTML synced:', form.value.description?.substring(0, 200))
-    }
+  // Use direct DOM query since ref may be null inside v-if modal
+  const qlEditor = document.querySelector('#description-editor-wrapper .ql-editor')
+  if (qlEditor) {
+    const html = qlEditor.innerHTML
+    form.value.description = (html === '<p><br></p>' || html === '<p></p>') ? '' : html
+    console.log('[Save] Description HTML synced:', form.value.description?.substring(0, 300))
+  } else {
+    console.warn('[Save] Could not find .ql-editor in DOM')
   }
   
   try {
