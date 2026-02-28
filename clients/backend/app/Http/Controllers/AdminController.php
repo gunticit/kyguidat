@@ -155,7 +155,22 @@ class AdminController extends Controller
      */
     public function consignments(Request $request): JsonResponse
     {
-        $query = Consignment::with('user');
+        // Only select fields needed for list view (exclude heavy fields like description, images, etc.)
+        $query = Consignment::select([
+            'id',
+            'code',
+            'order_number',
+            'title',
+            'price',
+            'status',
+            'consigner_name',
+            'province',
+            'user_id',
+            'featured_image',
+            'reject_reason',
+            'created_at',
+            'updated_at'
+        ])->with('user:id,name,email');
 
         if ($status = $request->input('status')) {
             $query->where('status', $status);

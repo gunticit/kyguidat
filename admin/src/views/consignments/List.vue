@@ -13,19 +13,19 @@
         
         <!-- Filters -->
         <div class="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap gap-3 items-center">
-          <select v-model="filters.status" @change="fetchData" class="px-3 py-2 border rounded-lg text-sm">
+          <select v-model="filters.status" @change="filters.page = 1; fetchData()" class="px-3 py-2 border rounded-lg text-sm">
             <option value="">Tất cả trạng thái</option>
             <option value="pending">Chờ duyệt</option>
             <option value="approved">Đã duyệt</option>
             <option value="rejected">Từ chối</option>
           </select>
 
-          <select v-model="filters.province" @change="fetchData" class="px-3 py-2 border rounded-lg text-sm">
+          <select v-model="filters.province" @change="filters.page = 1; fetchData()" class="px-3 py-2 border rounded-lg text-sm">
             <option value="">Tỉnh / TP</option>
             <option v-for="prov in provinces" :key="prov.id" :value="prov.name">{{ prov.name }}</option>
           </select>
 
-          <select v-model="filters.consigner_name" @change="fetchData" class="px-3 py-2 border rounded-lg text-sm">
+          <select v-model="filters.consigner_name" @change="filters.page = 1; fetchData()" class="px-3 py-2 border rounded-lg text-sm">
             <option value="">Người đăng</option>
             <option v-for="name in uniqueConsigners" :key="name" :value="name">{{ name }}</option>
           </select>
@@ -48,9 +48,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="loading" class="border-t">
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Đang tải...</td>
-              </tr>
+              <template v-if="loading">
+                <tr v-for="n in 5" :key="'skeleton-'+n" class="border-t animate-pulse">
+                  <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-12"></div></td>
+                  <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-48"></div></td>
+                  <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
+                  <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-28"></div></td>
+                  <td class="px-6 py-4"><div class="h-5 bg-gray-200 rounded-full w-16"></div></td>
+                  <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
+                </tr>
+              </template>
               <tr v-else-if="consignments.length === 0" class="border-t">
                 <td colspan="6" class="px-6 py-8 text-center text-gray-500">Chưa có dữ liệu</td>
               </tr>
@@ -82,6 +89,30 @@
               </tr>
             </tbody>
           </table>
+          <!-- Pagination -->
+          <div v-if="!loading && totalPages > 1" class="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
+            <p class="text-sm text-gray-600">
+              Hiển thị <span class="font-medium">{{ (currentPage - 1) * 15 + 1 }}</span>–<span class="font-medium">{{ Math.min(currentPage * 15, totalItems) }}</span> / <span class="font-medium">{{ totalItems }}</span> kết quả
+            </p>
+            <div class="flex items-center gap-1">
+              <button @click="goToPage(currentPage - 1)" :disabled="currentPage <= 1"
+                      class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹ Trước
+              </button>
+              <template v-for="page in paginationPages" :key="page">
+                <span v-if="page === '...'" class="px-2 py-1.5 text-sm text-gray-400">…</span>
+                <button v-else @click="goToPage(page)"
+                        :class="page === currentPage ? 'bg-indigo-600 text-white border-indigo-600' : 'hover:bg-gray-100'"
+                        class="px-3 py-1.5 text-sm border rounded-lg min-w-[36px]">
+                  {{ page }}
+                </button>
+              </template>
+              <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages"
+                      class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                Sau ›
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Create/Edit Modal -->
@@ -488,6 +519,34 @@ const store = useConsignmentStore()
 const authStore = useAuthStore()
 const consignments = ref([])
 const filters = ref({ status: '', province: '', consigner_name: '', search: '', page: 1 })
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalItems = ref(0)
+
+// Pagination pages array (with ellipsis)
+const paginationPages = computed(() => {
+  const pages = []
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (current > 3) pages.push('...')
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i)
+    }
+    if (current < total - 2) pages.push('...')
+    pages.push(total)
+  }
+  return pages
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value || page === currentPage.value) return
+  filters.value.page = page
+  fetchData()
+}
 
 // Unique consigner names from loaded data
 const uniqueConsigners = computed(() => {
@@ -964,6 +1023,11 @@ const fetchData = async () => {
   loading.value = true
   await store.fetchConsignments(filters.value)
   consignments.value = store.consignments
+  // Update pagination state from store
+  const meta = store.meta || {}
+  currentPage.value = meta.current_page || 1
+  totalPages.value = meta.last_page || 1
+  totalItems.value = meta.total || 0
   loading.value = false
 }
 

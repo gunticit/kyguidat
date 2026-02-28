@@ -6,6 +6,7 @@ export const useConsignmentStore = defineStore('consignment', {
         consignments: [],
         currentConsignment: null,
         total: 0,
+        meta: {},
         loading: false,
         error: null
     }),
@@ -17,7 +18,8 @@ export const useConsignmentStore = defineStore('consignment', {
             try {
                 const response = await adminApi.getConsignments(params)
                 this.consignments = response.data.data || []
-                this.total = response.data.meta?.total || 0
+                this.meta = response.data.meta || {}
+                this.total = this.meta.total || 0
             } catch (error) {
                 this.error = error.message
             } finally {
