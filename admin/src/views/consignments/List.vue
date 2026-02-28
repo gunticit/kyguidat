@@ -151,6 +151,10 @@
                       <button type="button" @click="removeGalleryImage(index)"
                               class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Xóa ảnh">✕</button>
+                      <!-- Rotate button -->
+                      <button type="button" @click="rotateGalleryImage(index)"
+                              class="absolute bottom-1 left-1 bg-gray-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Xoay 90°">↻</button>
                       <!-- Set as featured button -->
                       <button type="button" @click="setAsFeatured(index)"
                               class="absolute bottom-1 right-1 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
@@ -794,6 +798,58 @@ const removeGalleryImage = (index) => {
 const setAsFeatured = (index) => {
   if (!form.value.images || !form.value.images[index]) return
   form.value.featured_image = form.value.images[index]
+}
+
+const rotateGalleryImage = async (index) => {
+  if (!form.value.images || !form.value.images[index]) return
+  const imageUrl = form.value.images[index]
+
+  try {
+    // Fetch the image
+    const response = await fetch(imageUrl)
+    const blob = await response.blob()
+
+    // Load into Image element
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    const objectUrl = URL.createObjectURL(blob)
+    img.src = objectUrl
+    await new Promise((resolve) => { img.onload = resolve })
+
+    // Draw rotated on canvas
+    const canvas = document.createElement('canvas')
+    canvas.width = img.height
+    canvas.height = img.width
+    const ctx = canvas.getContext('2d')
+    ctx.translate(canvas.width / 2, canvas.height / 2)
+    ctx.rotate(Math.PI / 2)
+    ctx.drawImage(img, -img.width / 2, -img.height / 2)
+    URL.revokeObjectURL(objectUrl)
+
+    // Export to blob
+    const rotatedBlob = await new Promise((resolve) => {
+      canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.92)
+    })
+
+    // Upload rotated image
+    const file = new File([rotatedBlob], `rotated_${Date.now()}.jpg`, { type: 'image/jpeg' })
+    const { adminApi: api } = await import('@/services/api.js')
+    const uploadRes = await api.uploadOptimizedImage(file, 'consignments/gallery')
+    if (uploadRes.data?.success && uploadRes.data?.data?.url) {
+      const newUrl = uploadRes.data.data.url
+      // Update gallery
+      form.value.images = form.value.images.map((u, i) => i === index ? newUrl : u)
+      // Update featured if it was this image
+      if (form.value.featured_image === imageUrl) {
+        form.value.featured_image = newUrl
+      }
+    } else {
+      alert('Xoay ảnh thất bại: upload lỗi')
+    }
+  } catch (err) {
+    console.error('Rotate error:', err)
+    alert('Xoay ảnh thất bại: ' + (err.message || 'Unknown error'))
+  }
 }
 
 const fetchData = async () => {

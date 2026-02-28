@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiArrowLeft, FiUpload, FiX, FiFile } from 'react-icons/fi';
+import { FiArrowLeft, FiUpload, FiX, FiFile, FiRotateCw } from 'react-icons/fi';
 import Link from 'next/link';
 import { consignmentApi, uploadApi } from '@/lib/api';
 import { formatCurrencyInput } from '@/lib/formatCurrency';
@@ -64,6 +64,36 @@ export default function NewConsignmentPage() {
             if (removed) URL.revokeObjectURL(removed.preview);
             return prev.filter((_, i) => i !== index);
         });
+    };
+
+    const rotateImage = async (index: number) => {
+        const item = imageItems[index];
+        if (!item) return;
+
+        const img = new Image();
+        img.src = item.preview;
+        await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+
+        const canvas = document.createElement('canvas');
+        // Swap width/height for 90° rotation
+        canvas.width = img.height;
+        canvas.height = img.width;
+        const ctx = canvas.getContext('2d')!;
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(Math.PI / 2); // 90° clockwise
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+        const blob = await new Promise<Blob>((resolve) => {
+            canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.92);
+        });
+
+        const rotatedFile = new File([blob], item.file.name, { type: 'image/jpeg' });
+        URL.revokeObjectURL(item.preview);
+        const newPreview = URL.createObjectURL(rotatedFile);
+
+        setImageItems(prev =>
+            prev.map((it, i) => i === index ? { file: rotatedFile, preview: newPreview } : it)
+        );
     };
 
     const removeFile = (index: number) => {
@@ -337,6 +367,14 @@ export default function NewConsignmentPage() {
                                         onClick={() => removeImage(index)}
                                     >
                                         <FiX />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={styles.rotateImageBtn}
+                                        onClick={() => rotateImage(index)}
+                                        title="Xoay 90°"
+                                    >
+                                        <FiRotateCw />
                                     </button>
                                 </div>
                             ))}

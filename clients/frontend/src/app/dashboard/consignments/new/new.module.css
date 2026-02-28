@@ -136,6 +136,27 @@
     background: rgba(239, 68, 68, 0.9);
 }
 
+.rotateImageBtn {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.rotateImageBtn:hover {
+    background: rgba(99, 102, 241, 0.9);
+}
+
 .fileList {
     display: flex;
     flex-direction: column;
