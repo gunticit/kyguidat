@@ -595,17 +595,29 @@ const setupQuillImageHandler = (editorInstance) => {
       if (!file) return
 
       try {
-        const response = await adminApi.uploadOptimizedImage(file, 'consignments/content')
-        if (response.data?.success && response.data?.data?.url) {
+        const token = localStorage.getItem('admin_token')
+        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/admin\/?$/, '')
+        const formData = new FormData()
+        formData.append('image', file)
+        formData.append('directory', 'consignments/content')
+
+        const response = await fetch(`${apiBase}/upload/image-optimized`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        })
+        const data = await response.json()
+
+        if (data.success && data.data?.url) {
           const range = quill.getSelection(true)
-          quill.insertEmbed(range.index, 'image', response.data.data.url)
+          quill.insertEmbed(range.index, 'image', data.data.url)
           quill.setSelection(range.index + 1)
         } else {
-          alert('Upload ảnh thất bại: ' + (response.data?.message || 'Lỗi không xác định'))
+          alert('Upload ảnh thất bại: ' + (data.message || 'Lỗi không xác định'))
         }
       } catch (err) {
         console.error('Quill image upload error:', err)
-        alert('Upload ảnh thất bại: ' + (err.response?.data?.message || err.message))
+        alert('Upload ảnh thất bại: ' + err.message)
       }
     }
   })
