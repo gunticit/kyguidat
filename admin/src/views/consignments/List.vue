@@ -575,9 +575,8 @@ const simpleToolbar = [
 // Quill editor ref
 const descriptionEditor = ref(null)
 
-// Custom image handler for Quill — uploads to server as WebP instead of base64
+// Custom image handler for Quill — resize + upload to server as WebP
 const setupQuillImageHandler = (editorInstance) => {
-  // editorInstance from @ready is the QuillEditor component, get the raw Quill
   const quill = editorInstance.__quill || editorInstance.getQuill?.() || editorInstance
   const toolbar = quill.getModule('toolbar')
   if (!toolbar) {
@@ -595,10 +594,13 @@ const setupQuillImageHandler = (editorInstance) => {
       if (!file) return
 
       try {
+        // Client-side resize: max 1600px, compress to JPEG 0.85
+        const resizedBlob = await resizeImageFile(file, 1600, 0.85)
+
         const token = localStorage.getItem('admin_token')
         const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/admin\/?$/, '')
         const formData = new FormData()
-        formData.append('image', file)
+        formData.append('image', resizedBlob, file.name.replace(/\.\w+$/, '.jpg'))
         formData.append('directory', 'consignments/content')
 
         const response = await fetch(`${apiBase}/upload/image-optimized`, {
@@ -620,6 +622,34 @@ const setupQuillImageHandler = (editorInstance) => {
         alert('Upload ảnh thất bại: ' + err.message)
       }
     }
+  })
+}
+
+// Resize an image file client-side using Canvas
+const resizeImageFile = (file, maxDimension = 1600, quality = 0.85) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      let { width, height } = img
+      // Only resize if larger than maxDimension
+      if (width > maxDimension || height > maxDimension) {
+        const ratio = Math.min(maxDimension / width, maxDimension / height)
+        width = Math.round(width * ratio)
+        height = Math.round(height * ratio)
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error('Canvas toBlob failed')),
+        'image/jpeg',
+        quality
+      )
+    }
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = URL.createObjectURL(file)
   })
 }
 
