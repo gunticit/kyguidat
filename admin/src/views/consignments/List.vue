@@ -1060,21 +1060,23 @@ const saveConsignment = async () => {
   saving.value = true
   error.value = ''
   
-  // Sync Quill editor HTML into form.description before saving
-  // v-model:content may not capture programmatic changes (like insertEmbed for images)
-  // Use direct DOM query since ref may be null inside v-if modal
+  // Create a non-reactive copy of form data to avoid v-model overriding description
+  const payload = JSON.parse(JSON.stringify(form.value))
+  
+  // Sync Quill editor HTML into payload.description (NOT form.value)
+  // v-model:content does not capture programmatic insertEmbed changes reliably
   const qlEditor = document.querySelector('#description-editor-wrapper .ql-editor')
   if (qlEditor) {
     const html = qlEditor.innerHTML
-    form.value.description = (html === '<p><br></p>' || html === '<p></p>') ? '' : html
-    console.log('[Save] Description HTML synced:', form.value.description?.substring(0, 300))
+    payload.description = (html === '<p><br></p>' || html === '<p></p>') ? '' : html
+    console.log('[Save] Description payload:', payload.description?.substring(0, 300))
   } else {
     console.warn('[Save] Could not find .ql-editor in DOM')
   }
   
   try {
     if (editingId.value) {
-      const result = await store.updateConsignment(editingId.value, form.value)
+      const result = await store.updateConsignment(editingId.value, payload)
       if (result) {
         closeModal()
         fetchData()
@@ -1082,7 +1084,7 @@ const saveConsignment = async () => {
         error.value = store.error || 'Có lỗi xảy ra'
       }
     } else {
-      const result = await store.createConsignment(form.value)
+      const result = await store.createConsignment(payload)
       if (result) {
         closeModal()
         fetchData()
