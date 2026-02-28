@@ -124,11 +124,13 @@
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả sản phẩm</label>
                   <QuillEditor 
+                    ref="descriptionEditor"
                     v-model:content="form.description" 
                     contentType="html"
                     theme="snow"
                     :toolbar="toolbarOptions"
                     style="min-height: 200px;"
+                    @ready="setupQuillImageHandler"
                   />
                 </div>
               </div>
@@ -569,6 +571,40 @@ const simpleToolbar = [
   ['link'],
   ['clean']
 ]
+
+// Quill editor ref
+const descriptionEditor = ref(null)
+
+// Custom image handler for Quill — uploads to server as WebP instead of base64
+const setupQuillImageHandler = (quill) => {
+  const toolbar = quill.getModule('toolbar')
+  toolbar.addHandler('image', () => {
+    const input = document.createElement('input')
+    input.setAttribute('type', 'file')
+    input.setAttribute('accept', 'image/*')
+    input.click()
+
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+
+      try {
+        const { adminApi: api } = await import('@/services/api.js')
+        const response = await api.uploadOptimizedImage(file, 'consignments/content')
+        if (response.data?.success && response.data?.data?.url) {
+          const range = quill.getSelection(true)
+          quill.insertEmbed(range.index, 'image', response.data.data.url)
+          quill.setSelection(range.index + 1)
+        } else {
+          alert('Upload ảnh thất bại: ' + (response.data?.message || 'Lỗi không xác định'))
+        }
+      } catch (err) {
+        console.error('Quill image upload error:', err)
+        alert('Upload ảnh thất bại: ' + (err.response?.data?.message || err.message))
+      }
+    }
+  })
+}
 
 // Categories (should be fetched from API)
 const categories = ref([
