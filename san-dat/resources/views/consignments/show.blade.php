@@ -90,6 +90,12 @@
                                 {{ $consignment['category']['name'] ?? $consignment['category'] }}
                             </span>
                         @endif
+                        @if($consignment['order_number'])
+                            <span
+                                class="px-3 py-1 bg-gray-500/20 text-gray-300 text-sm font-normal rounded-full border border-gray-500/30">
+                                {{ '#' . $consignment['order_number'] }}
+                            </span>
+                        @endif
                         @if($consignment['status'] == 'approved')
                             <span
                                 class="px-3 py-1 bg-green-500/20 text-green-400 text-sm font-medium rounded-full border border-green-500/30">
@@ -309,25 +315,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Code -->
-                        <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
-                            <div class="flex items-center mb-2">
-                                <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center mr-3">
-                                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-400">Số thứ tự</p>
-                                    <p class="font-bold text-gray-100">
-                                        {{ $consignment['order_number'] ?? 'N/A' }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -341,7 +328,7 @@
                         Mô tả chi tiết
                     </h2>
                     <div class="description-content text-gray-300 leading-relaxed">
-                        {!! $consignment['description'] ?? 'Chưa có mô tả chi tiết cho bất động sản này.' !!}
+                        {!! html_entity_decode($consignment['description']) ?? 'Chưa có mô tả chi tiết cho bất động sản này.' !!}
                     </div>
                     <style>
                         .description-content {
