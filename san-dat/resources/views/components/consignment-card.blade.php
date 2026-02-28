@@ -99,7 +99,10 @@
                         <p><span class="text-gray-400">Loại đường:</span> {{ data_get($consignment, 'road') }}</p>
                     @endif
                     @if(data_get($consignment, 'frontage_actual') && data_get($consignment, 'frontage_actual') != '0' && data_get($consignment, 'frontage_actual') != '0.00')
-                        <p><span class="text-gray-400">Mặt tiền:</span> {{ data_get($consignment, 'frontage_actual') }}</p>
+                        <p>
+                            <span class="text-gray-400">Mặt tiền:</span>
+                            {{ floatval(data_get($consignment, 'frontage_actual')) }} m
+                        </p>
                     @endif
                     @if(data_get($consignment, 'has_house'))
                         <p><span class="text-gray-400">Tình trạng:</span>

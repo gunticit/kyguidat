@@ -252,7 +252,7 @@
                                     </div>
                                     <div>
                                         <p class="text-xs text-gray-400">Mặt tiền</p>
-                                        <p class="font-bold text-gray-100">{{ $consignment['width'] }} m</p>
+                                        <p class="font-bold text-gray-100">{{ floatval($consignment['width']) }} m</p>
                                     </div>
                                 </div>
                             </div>
@@ -271,7 +271,7 @@
                                     </div>
                                     <div>
                                         <p class="text-xs text-gray-400">Chiều dài</p>
-                                        <p class="font-bold text-gray-100">{{ $consignment['length'] }} m</p>
+                                        <p class="font-bold text-gray-100">{{ floatval($consignment['length']) }} m</p>
                                     </div>
                                 </div>
                             </div>
