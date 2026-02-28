@@ -576,8 +576,14 @@ const simpleToolbar = [
 const descriptionEditor = ref(null)
 
 // Custom image handler for Quill — uploads to server as WebP instead of base64
-const setupQuillImageHandler = (quill) => {
+const setupQuillImageHandler = (editorInstance) => {
+  // editorInstance from @ready is the QuillEditor component, get the raw Quill
+  const quill = editorInstance.__quill || editorInstance.getQuill?.() || editorInstance
   const toolbar = quill.getModule('toolbar')
+  if (!toolbar) {
+    console.warn('Quill toolbar module not found')
+    return
+  }
   toolbar.addHandler('image', () => {
     const input = document.createElement('input')
     input.setAttribute('type', 'file')
@@ -589,8 +595,7 @@ const setupQuillImageHandler = (quill) => {
       if (!file) return
 
       try {
-        const { adminApi: api } = await import('@/services/api.js')
-        const response = await api.uploadOptimizedImage(file, 'consignments/content')
+        const response = await adminApi.uploadOptimizedImage(file, 'consignments/content')
         if (response.data?.success && response.data?.data?.url) {
           const range = quill.getSelection(true)
           quill.insertEmbed(range.index, 'image', response.data.data.url)
