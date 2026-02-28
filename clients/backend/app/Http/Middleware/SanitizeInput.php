@@ -15,6 +15,9 @@ class SanitizeInput
         'password',
         'password_confirmation',
         'current_password',
+        'description',
+        'notes',
+        'internal_note',
     ];
 
     /**
