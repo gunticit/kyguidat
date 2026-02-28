@@ -580,9 +580,11 @@ const setupQuillImageHandler = (editorInstance) => {
   const quill = editorInstance.__quill || editorInstance.getQuill?.() || editorInstance
   const toolbar = quill.getModule('toolbar')
   if (!toolbar) {
-    console.warn('Quill toolbar module not found')
+    console.warn('[Quill] toolbar module not found')
     return
   }
+  console.log('[Quill] Custom image handler registered')
+
   toolbar.addHandler('image', () => {
     const input = document.createElement('input')
     input.setAttribute('type', 'file')
@@ -593,9 +595,18 @@ const setupQuillImageHandler = (editorInstance) => {
       const file = input.files?.[0]
       if (!file) return
 
+      console.log('[Quill] Selected file:', file.name, file.size, 'bytes', file.type)
+
+      // Insert uploading placeholder
+      const range = quill.getSelection(true) || { index: quill.getLength() - 1 }
+      quill.insertText(range.index, '⏳ Đang upload ảnh...', { bold: true, color: '#6366f1' })
+      const placeholderLength = '⏳ Đang upload ảnh...'.length
+
       try {
         // Client-side resize: max 1600px, compress to JPEG 0.85
+        console.log('[Quill] Resizing image...')
         const resizedBlob = await resizeImageFile(file, 1600, 0.85)
+        console.log('[Quill] Resized to:', resizedBlob.size, 'bytes')
 
         const token = localStorage.getItem('admin_token')
         const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/admin\/?$/, '')
@@ -603,22 +614,31 @@ const setupQuillImageHandler = (editorInstance) => {
         formData.append('image', resizedBlob, file.name.replace(/\.\w+$/, '.jpg'))
         formData.append('directory', 'consignments/content')
 
+        console.log('[Quill] Uploading to:', `${apiBase}/upload/image-optimized`)
         const response = await fetch(`${apiBase}/upload/image-optimized`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData
         })
         const data = await response.json()
+        console.log('[Quill] Upload response:', data)
+
+        // Remove placeholder
+        quill.deleteText(range.index, placeholderLength)
 
         if (data.success && data.data?.url) {
-          const range = quill.getSelection(true)
           quill.insertEmbed(range.index, 'image', data.data.url)
           quill.setSelection(range.index + 1)
+          console.log('[Quill] Image inserted:', data.data.url, data.data.width + 'x' + data.data.height)
         } else {
+          quill.insertText(range.index, '[Upload thất bại]', { color: 'red' })
           alert('Upload ảnh thất bại: ' + (data.message || 'Lỗi không xác định'))
         }
       } catch (err) {
-        console.error('Quill image upload error:', err)
+        // Remove placeholder on error
+        quill.deleteText(range.index, placeholderLength)
+        quill.insertText(range.index, '[Upload lỗi]', { color: 'red' })
+        console.error('[Quill] Image upload error:', err)
         alert('Upload ảnh thất bại: ' + err.message)
       }
     }
@@ -629,7 +649,9 @@ const setupQuillImageHandler = (editorInstance) => {
 const resizeImageFile = (file, maxDimension = 1600, quality = 0.85) => {
   return new Promise((resolve, reject) => {
     const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
       let { width, height } = img
       // Only resize if larger than maxDimension
       if (width > maxDimension || height > maxDimension) {
@@ -648,8 +670,11 @@ const resizeImageFile = (file, maxDimension = 1600, quality = 0.85) => {
         quality
       )
     }
-    img.onerror = () => reject(new Error('Failed to load image'))
-    img.src = URL.createObjectURL(file)
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Failed to load image'))
+    }
+    img.src = objectUrl
   })
 }
 
