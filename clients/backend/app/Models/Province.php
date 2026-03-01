@@ -10,10 +10,12 @@ class Province extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'sort_order', 'is_active'];
+    protected $fillable = ['name', 'slug', 'sort_order', 'is_active', 'is_featured', 'images'];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_featured' => 'boolean',
+        'images' => 'array',
     ];
 
     protected static function boot()
@@ -39,6 +41,11 @@ class Province extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true)->where('is_active', true);
     }
 
     public function scopeOrdered($query)

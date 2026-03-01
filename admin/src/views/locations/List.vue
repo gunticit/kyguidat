@@ -11,7 +11,7 @@
       <div class="bg-gray-800 rounded-lg p-4">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-semibold text-white">Tỉnh / Thành phố</h2>
-          <button @click="showProvinceModal = true; editingProvince = null; provinceForm = { name: '', sort_order: 0, is_active: true }"
+          <button @click="openProvinceModal(null)"
                   class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-700">
             + Thêm
           </button>
@@ -22,13 +22,14 @@
                @click="selectProvince(province)"
                class="flex items-center justify-between p-3 rounded-lg cursor-pointer transition"
                :class="selectedProvince?.id === province.id ? 'bg-blue-900 border border-blue-500' : 'bg-gray-700 hover:bg-gray-600'">
-            <div>
+            <div class="flex items-center gap-2">
               <span class="text-white font-medium">{{ province.name }}</span>
-              <span class="text-gray-400 text-sm ml-2">({{ province.wards_count }} đơn vị)</span>
-              <span v-if="!province.is_active" class="ml-2 text-xs bg-red-600 text-white px-1.5 py-0.5 rounded">Ẩn</span>
+              <span class="text-gray-400 text-sm">({{ province.wards_count }} đơn vị)</span>
+              <span v-if="province.is_featured" class="text-xs bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 rounded">⭐ Nổi bật</span>
+              <span v-if="!province.is_active" class="text-xs bg-red-600 text-white px-1.5 py-0.5 rounded">Ẩn</span>
             </div>
             <div class="flex gap-1">
-              <button @click.stop="editProvince(province)" class="text-yellow-400 hover:text-yellow-300 p-1">
+              <button @click.stop="openProvinceModal(province)" class="text-yellow-400 hover:text-yellow-300 p-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
@@ -97,7 +98,7 @@
 
     <!-- Province Modal -->
     <div v-if="showProvinceModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+      <div class="bg-gray-800 rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-semibold text-white mb-4">{{ editingProvince ? 'Sửa' : 'Thêm' }} Tỉnh/TP</h3>
         <div class="space-y-3">
           <div>
@@ -108,9 +109,42 @@
             <label class="text-sm text-gray-300 block mb-1">Thứ tự</label>
             <input v-model.number="provinceForm.sort_order" type="number" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"/>
           </div>
-          <div class="flex items-center gap-2">
-            <input v-model="provinceForm.is_active" type="checkbox" id="province_active" class="rounded"/>
-            <label for="province_active" class="text-sm text-gray-300">Hiển thị</label>
+          <div class="flex items-center gap-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input v-model="provinceForm.is_active" type="checkbox" class="rounded"/>
+              <span class="text-sm text-gray-300">Hiển thị</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input v-model="provinceForm.is_featured" type="checkbox" class="rounded"/>
+              <span class="text-sm text-yellow-300">⭐ Tỉnh nổi bật</span>
+            </label>
+          </div>
+
+          <!-- Image Upload Section (only visible when featured) -->
+          <div v-if="provinceForm.is_featured" class="border-t border-gray-700 pt-3 mt-3">
+            <label class="text-sm text-gray-300 block mb-2">Ảnh đại diện tỉnh (có thể upload nhiều ảnh)</label>
+            
+            <!-- Current Images -->
+            <div v-if="provinceForm.images && provinceForm.images.length" class="flex flex-wrap gap-2 mb-3">
+              <div v-for="(img, idx) in provinceForm.images" :key="idx" class="relative group">
+                <img :src="img" class="w-24 h-16 object-cover rounded-lg border border-gray-600"/>
+                <button @click="removeProvinceImage(idx)" 
+                        class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Button -->
+            <label class="flex items-center justify-center w-full h-20 bg-gray-700 border-2 border-dashed border-gray-500 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-gray-600 transition">
+              <div class="text-center">
+                <svg class="w-6 h-6 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-xs text-gray-400">{{ uploading ? 'Đang upload...' : 'Chọn ảnh' }}</span>
+              </div>
+              <input type="file" multiple accept="image/*" @change="handleProvinceImageUpload" class="hidden" :disabled="uploading"/>
+            </label>
           </div>
         </div>
         <div class="flex justify-end gap-2 mt-5">
@@ -189,11 +223,12 @@ const provinces = ref([])
 const wards = ref([])
 const selectedProvince = ref(null)
 const saving = ref(false)
+const uploading = ref(false)
 
 // Province modal
 const showProvinceModal = ref(false)
 const editingProvince = ref(null)
-const provinceForm = ref({ name: '', sort_order: 0, is_active: true })
+const provinceForm = ref({ name: '', sort_order: 0, is_active: true, is_featured: false, images: [] })
 
 // Ward modal
 const showWardModal = ref(false)
@@ -254,19 +289,60 @@ async function selectProvince(province) {
   }
 }
 
-function editProvince(province) {
+function openProvinceModal(province) {
   editingProvince.value = province
-  provinceForm.value = { name: province.name, sort_order: province.sort_order, is_active: province.is_active }
+  if (province) {
+    provinceForm.value = {
+      name: province.name,
+      sort_order: province.sort_order,
+      is_active: province.is_active,
+      is_featured: province.is_featured || false,
+      images: province.images || []
+    }
+  } else {
+    provinceForm.value = { name: '', sort_order: 0, is_active: true, is_featured: false, images: [] }
+  }
   showProvinceModal.value = true
+}
+
+async function handleProvinceImageUpload(e) {
+  const files = Array.from(e.target.files)
+  if (!files.length) return
+  uploading.value = true
+  try {
+    for (const file of files) {
+      const { data } = await adminApi.uploadOptimizedImage(file, 'provinces')
+      if (data.data?.url) {
+        if (!provinceForm.value.images) provinceForm.value.images = []
+        provinceForm.value.images.push(data.data.url)
+      }
+    }
+  } catch (err) {
+    alert('Upload lỗi: ' + (err.response?.data?.message || err.message))
+  } finally {
+    uploading.value = false
+    e.target.value = '' // reset input
+  }
+}
+
+function removeProvinceImage(idx) {
+  provinceForm.value.images.splice(idx, 1)
 }
 
 async function saveProvince() {
   saving.value = true
   try {
+    const payload = {
+      name: provinceForm.value.name,
+      sort_order: provinceForm.value.sort_order,
+      is_active: provinceForm.value.is_active,
+      is_featured: provinceForm.value.is_featured,
+      images: provinceForm.value.images || []
+    }
     if (editingProvince.value) {
-      await adminApi.updateProvince(editingProvince.value.id, provinceForm.value)
+      await adminApi.updateProvince(editingProvince.value.id, payload)
     } else {
-      await adminApi.createProvince(provinceForm.value)
+      await adminApi.createProvince(payload)
     }
     showProvinceModal.value = false
     await loadProvinces()

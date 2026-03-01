@@ -84,6 +84,7 @@ func main() {
 		publicProxy.GET("/articles/:slug", proxyHandler.ProxyRequest)
 		publicProxy.GET("/provinces", proxyHandler.ProxyRequest)
 		publicProxy.GET("/provinces/:slug/wards", proxyHandler.ProxyRequest)
+		publicProxy.GET("/featured-provinces", proxyHandler.ProxyRequest)
 	}
 
 	// Upload routes - proxy to Laravel backend (authenticated)

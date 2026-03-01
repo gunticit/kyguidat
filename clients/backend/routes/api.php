@@ -85,6 +85,7 @@ Route::prefix('public')->group(function () {
     // Administrative divisions
     Route::get('/provinces', [AdministrativeDivisionController::class, 'publicProvinces']);
     Route::get('/provinces/{slug}/wards', [AdministrativeDivisionController::class, 'publicWards']);
+    Route::get('/featured-provinces', [AdministrativeDivisionController::class, 'featuredProvinces']);
 });
 
 // IPN Handler routes (public - called by payment gateways)

@@ -24,7 +24,8 @@ class HomeController extends Controller
         $consignments = $response['data'] ?? [];
         $categories = $this->apiService->getCategories();
         $locations = $this->apiService->getLocations();
+        $featuredProvinces = $this->apiService->getFeaturedProvinces();
 
-        return view('home', compact('consignments', 'categories', 'locations'));
+        return view('home', compact('consignments', 'categories', 'locations', 'featuredProvinces'));
     }
 }

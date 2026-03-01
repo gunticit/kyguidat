@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Consignment;
 use App\Models\Province;
 use App\Models\Ward;
 use Illuminate\Http\Request;
@@ -41,6 +42,30 @@ class AdministrativeDivisionController extends Controller
     }
 
     /**
+     * Get featured provinces with approved consignment counts
+     */
+    public function featuredProvinces()
+    {
+        $provinces = Province::featured()
+            ->ordered()
+            ->get()
+            ->map(function ($province) {
+                $count = Consignment::where('province', $province->name)
+                    ->where('status', 'approved')
+                    ->count();
+                return [
+                    'id' => $province->id,
+                    'name' => $province->name,
+                    'slug' => $province->slug,
+                    'images' => $province->images ?? [],
+                    'consignment_count' => $count,
+                ];
+            });
+
+        return response()->json(['data' => $provinces]);
+    }
+
+    /**
      * Get wards for a specific province by slug
      */
     public function publicWards($slug)
@@ -72,6 +97,8 @@ class AdministrativeDivisionController extends Controller
             'name' => 'required|string|max:255',
             'sort_order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
+            'is_featured' => 'nullable|boolean',
+            'images' => 'nullable|array',
         ]);
 
         $province = Province::create([
@@ -79,6 +106,8 @@ class AdministrativeDivisionController extends Controller
             'slug' => Str::slug($request->name),
             'sort_order' => $request->sort_order ?? 0,
             'is_active' => $request->is_active ?? true,
+            'is_featured' => $request->is_featured ?? false,
+            'images' => $request->images ?? [],
         ]);
 
         return response()->json(['data' => $province, 'message' => 'Tạo tỉnh/TP thành công'], 201);
@@ -92,6 +121,8 @@ class AdministrativeDivisionController extends Controller
             'name' => 'required|string|max:255',
             'sort_order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
+            'is_featured' => 'nullable|boolean',
+            'images' => 'nullable|array',
         ]);
 
         $province->update([
@@ -99,6 +130,8 @@ class AdministrativeDivisionController extends Controller
             'slug' => Str::slug($request->name),
             'sort_order' => $request->sort_order ?? $province->sort_order,
             'is_active' => $request->has('is_active') ? $request->is_active : $province->is_active,
+            'is_featured' => $request->has('is_featured') ? $request->is_featured : $province->is_featured,
+            'images' => $request->has('images') ? $request->images : $province->images,
         ]);
 
         return response()->json(['data' => $province, 'message' => 'Cập nhật thành công']);

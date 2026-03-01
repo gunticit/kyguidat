@@ -82,4 +82,18 @@ class GolangApiService
 
         return [];
     }
+
+    /**
+     * Get featured provinces with consignment counts
+     */
+    public function getFeaturedProvinces(): array
+    {
+        $response = Http::get("{$this->baseUrl}/api/public/featured-provinces");
+
+        if ($response->successful()) {
+            return $response->json()['data'] ?? [];
+        }
+
+        return [];
+    }
 }
