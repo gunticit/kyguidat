@@ -16,9 +16,8 @@
             <!-- Brand -->
             <div class="text-center md:text-left">
                 @if($logo)
-                    <img src="{{ $logo }}" alt="{{ $siteName }}" class="h-12 w-auto object-contain mb-3 mx-auto md:mx-0">
+                    <img src="{{ $logo }}" alt="{{ $siteName }}" class="object-contain" style="width: 100%; height: 80px; margin: 0;">
                 @endif
-                <h3 class="text-xl font-bold text-green-400">{{ $siteName }}</h3>
                 <p class="mt-3 text-gray-400 text-sm leading-relaxed">Nền tảng ký gửi bất động sản uy tín hàng đầu Việt
                     Nam</p>
             </div>
