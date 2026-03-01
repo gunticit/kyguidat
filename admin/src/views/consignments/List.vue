@@ -142,10 +142,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Số thứ tự</label>
                     <input v-model.number="form.order_number" type="number" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                   </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ngày thông báo</label>
-                    <input v-model="form.notification_date" type="date" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-                  </div>
+
                 </div>
               </div>
 
@@ -256,10 +253,7 @@
               <!-- Section 5: Loại và hướng đất -->
               <div class="border-b pb-4">
                 <h3 class="text-lg font-semibold mb-4 text-indigo-700">Phân loại đất</h3>
-                <div class="mb-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                  <input v-model="form.type" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-                </div>
+
                 <div class="grid grid-cols-2 gap-6">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Hướng đất</label>
@@ -358,18 +352,23 @@
                   <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
                   <input v-model="form.address" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <div class="grid grid-cols-4 gap-4 mb-4">
+                <div class="grid grid-cols-5 gap-4 mb-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Thổ cư (m)</label>
                     <input v-model.number="form.residential_area" type="number" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Diện tích sàn (m²)</label>
-                    <input v-model.number="form.floor_area" type="number" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Loại thổ cư</label>
+                    <select v-model="form.residential_type" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                      <option value="">-- Chọn --</option>
+                      <option value="full">100% thổ cư</option>
+                      <option value="partial">Một phần thổ cư</option>
+                      <option value="none">Chưa có thổ cư</option>
+                    </select>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Đường</label>
-                    <input v-model="form.road" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Diện tích sàn (m²)</label>
+                    <input v-model.number="form.floor_area" type="number" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Diện tích (VD: 10 x 24)</label>
@@ -377,6 +376,10 @@
                   </div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Đường</label>
+                    <input v-model="form.road" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                  </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
                     <input v-model="form.latitude" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
@@ -918,6 +921,7 @@ const defaultForm = {
   has_house: '',
   address: '',
   residential_area: '',
+  residential_type: '',
   road: '',
   area_dimensions: '',
   floor_area: '',
@@ -1133,6 +1137,7 @@ const openEditModal = async (item) => {
     has_house: data.has_house || '',
     address: data.address || '',
     residential_area: data.residential_area || '',
+    residential_type: data.residential_type || '',
     road: data.road || '',
     area_dimensions: data.area_dimensions || '',
     floor_area: data.floor_area || '',

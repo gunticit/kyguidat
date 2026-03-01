@@ -30,6 +30,7 @@ class SearchController extends Controller
             'road_type' => $request->get('road_type'),
             'frontage' => $request->get('frontage'),
             'area_range' => $request->get('area_range'),
+            'floor_area_range' => $request->get('floor_area_range'),
             'direction' => $request->get('direction'),
             'so_to' => $request->get('so_to'),
             'so_thua' => $request->get('so_thua'),

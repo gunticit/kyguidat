@@ -36,6 +36,7 @@ class Consignment extends Model
         'has_house',
         'address',
         'residential_area',
+        'residential_type',
         'road',
         'area_dimensions',
         'floor_area',
