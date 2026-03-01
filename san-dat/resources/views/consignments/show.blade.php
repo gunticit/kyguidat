@@ -53,9 +53,20 @@
                     <!-- Main Image -->
                     <div class="bg-navy-700 rounded-xl overflow-hidden aspect-video mb-3 shadow-lg border border-navy-600">
                         @if(count($images) > 0)
-                            <img id="mainImage" src="{{ $images[0] }}" alt="{{ $consignment['title'] }}"
-                                class="w-full h-full object-cover transition-all duration-300"
-                                onerror="this.onerror=null;this.style.display='none';this.parentElement.innerHTML='<div class=\'w-full h-full flex flex-col items-center justify-center text-gray-500 bg-gradient-to-br from-navy-700 to-navy-800\'><svg class=\'w-20 h-20 mb-2\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/></svg><span class=\'text-sm\'>Chưa có hình ảnh</span></div>'">
+                            <div class="relative group w-full h-full cursor-pointer"
+                                onclick="openLightbox(document.getElementById('mainImage').src)">
+                                <img id="mainImage" src="{{ $images[0] }}" alt="{{ $consignment['title'] }}"
+                                    class="w-full h-full object-cover transition-all duration-300"
+                                    onerror="this.onerror=null;this.style.display='none';this.parentElement.parentElement.innerHTML='<div class=\'w-full h-full flex flex-col items-center justify-center text-gray-500 bg-gradient-to-br from-navy-700 to-navy-800\'><svg class=\'w-20 h-20 mb-2\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/></svg><span class=\'text-sm\'>Chưa có hình ảnh</span></div>'">
+                                <div
+                                    class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+                                    <svg class="w-14 h-14 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-lg"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                    </svg>
+                                </div>
+                            </div>
                         @else
                             <div
                                 class="w-full h-full flex flex-col items-center justify-center text-gray-500 bg-gradient-to-br from-navy-700 to-navy-800">
@@ -394,6 +405,13 @@
                             height: auto;
                             border-radius: 8px;
                             margin: 12px 0;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            position: relative;
+                        }
+
+                        .description-content img:hover {
+                            opacity: 0.8;
                         }
 
                         .description-content blockquote {
@@ -568,10 +586,107 @@
         @endif
     </div>
 
+    <!-- Lightbox Overlay -->
+    <div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 backdrop-blur-sm"
+        onclick="if(event.target===this)closeLightbox()">
+        <!-- Close Button -->
+        <button onclick="closeLightbox()"
+            class="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl transition">&times;</button>
+        <!-- Prev Button -->
+        <button id="lbPrev" onclick="lightboxNav(-1)"
+            class="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl transition">&#8249;</button>
+        <!-- Image -->
+        <img id="lbImage" src="" alt=""
+            class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl select-none" />
+        <!-- Next Button -->
+        <button id="lbNext" onclick="lightboxNav(1)"
+            class="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl transition">&#8250;</button>
+        <!-- Counter -->
+        <div id="lbCounter" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm"></div>
+    </div>
+
     <script>
         function copyLink() {
             navigator.clipboard.writeText(window.location.href);
             alert('Đã sao chép link!');
         }
+
+        // Lightbox
+        let lbImages = [];
+        let lbIndex = 0;
+
+        function collectAllImages() {
+            const imgs = [];
+            // Gallery images
+            @if(count($images) > 0)
+                @foreach($images as $img)
+                    imgs.push('{{ $img }}');
+                @endforeach
+            @endif
+            // Description images
+            document.querySelectorAll('.description-content img').forEach(img => {
+                if (img.src && !imgs.includes(img.src)) imgs.push(img.src);
+            });
+            return imgs;
+        }
+
+        function openLightbox(src) {
+            lbImages = collectAllImages();
+            lbIndex = lbImages.indexOf(src);
+            if (lbIndex === -1) {
+                lbImages.push(src);
+                lbIndex = lbImages.length - 1;
+            }
+            showLightboxImage();
+            const lb = document.getElementById('lightbox');
+            lb.classList.remove('hidden');
+            lb.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lb = document.getElementById('lightbox');
+            lb.classList.add('hidden');
+            lb.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        function lightboxNav(dir) {
+            lbIndex = (lbIndex + dir + lbImages.length) % lbImages.length;
+            showLightboxImage();
+        }
+
+        function showLightboxImage() {
+            document.getElementById('lbImage').src = lbImages[lbIndex];
+            const counter = document.getElementById('lbCounter');
+            const prevBtn = document.getElementById('lbPrev');
+            const nextBtn = document.getElementById('lbNext');
+            if (lbImages.length > 1) {
+                counter.textContent = (lbIndex + 1) + ' / ' + lbImages.length;
+                counter.style.display = '';
+                prevBtn.style.display = '';
+                nextBtn.style.display = '';
+            } else {
+                counter.style.display = 'none';
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function (e) {
+            const lb = document.getElementById('lightbox');
+            if (lb.classList.contains('hidden')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') lightboxNav(-1);
+            if (e.key === 'ArrowRight') lightboxNav(1);
+        });
+
+        // Make description images clickable
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.description-content img').forEach(img => {
+                img.addEventListener('click', function () { openLightbox(this.src); });
+            });
+        });
     </script>
 @endsection

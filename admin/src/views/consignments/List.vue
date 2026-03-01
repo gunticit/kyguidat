@@ -179,18 +179,25 @@
                     <div v-for="(img, index) in form.images" :key="index" class="w-32 h-24 border rounded overflow-hidden relative group">
                       <img :src="img" class="w-full h-full object-cover" :alt="'Ảnh ' + (index + 1)"
                            @error="$event.target.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%2296%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22128%22 height=%2296%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2212%22%3ELỗi ảnh%3C/text%3E%3C/svg%3E'">
-                      <span class="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">{{ index + 1 }}</span>
+                      <!-- Magnifying glass / zoom button -->
+                      <button type="button" @click="openGalleryLightbox(index)"
+                              class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-80 transition-opacity drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
+                      </button>
+                      <span class="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded z-10">{{ index + 1 }}</span>
                       <!-- Delete button -->
                       <button type="button" @click="removeGalleryImage(index)"
-                              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
                               title="Xóa ảnh">✕</button>
                       <!-- Rotate button -->
                       <button type="button" @click="rotateGalleryImage(index)"
-                              class="absolute bottom-1 left-1 bg-gray-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              class="absolute bottom-1 left-1 bg-gray-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
                               title="Xoay 90°">↻</button>
                       <!-- Set as featured button -->
                       <button type="button" @click="setAsFeatured(index)"
-                              class="absolute bottom-1 right-1 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              class="absolute bottom-1 right-1 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
                               title="Đặt làm ảnh đại diện">★</button>
                     </div>
                   </div>
@@ -503,10 +510,21 @@
       </main>
     </div>
   </div>
+
+  <!-- Gallery Lightbox -->
+  <Teleport to="body">
+    <div v-if="galleryLightboxOpen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm" @click.self="closeGalleryLightbox">
+      <button @click="closeGalleryLightbox" class="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl transition">&times;</button>
+      <button v-if="form.images && form.images.length > 1" @click="galleryLightboxNav(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl transition">&#8249;</button>
+      <img v-if="form.images && form.images[galleryLightboxIndex]" :src="form.images[galleryLightboxIndex]" class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl select-none" />
+      <button v-if="form.images && form.images.length > 1" @click="galleryLightboxNav(1)" class="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl transition">&#8250;</button>
+      <div v-if="form.images && form.images.length > 1" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm">{{ galleryLightboxIndex + 1 }} / {{ form.images.length }}</div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useConsignmentStore } from '@/store/consignment'
 import { useAuthStore } from '@/store/auth'
 import Sidebar from '@/components/layout/Sidebar.vue'
@@ -514,6 +532,31 @@ import Header from '@/components/layout/Header.vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { adminApi } from '@/services/api'
+
+// Gallery Lightbox
+const galleryLightboxOpen = ref(false)
+const galleryLightboxIndex = ref(0)
+
+const openGalleryLightbox = (index) => {
+  galleryLightboxIndex.value = index
+  galleryLightboxOpen.value = true
+}
+
+const closeGalleryLightbox = () => {
+  galleryLightboxOpen.value = false
+}
+
+const galleryLightboxNav = (dir) => {
+  if (!form.value.images || form.value.images.length === 0) return
+  galleryLightboxIndex.value = (galleryLightboxIndex.value + dir + form.value.images.length) % form.value.images.length
+}
+
+const handleLightboxKeydown = (e) => {
+  if (!galleryLightboxOpen.value) return
+  if (e.key === 'Escape') closeGalleryLightbox()
+  if (e.key === 'ArrowLeft') galleryLightboxNav(-1)
+  if (e.key === 'ArrowRight') galleryLightboxNav(1)
+}
 
 const store = useConsignmentStore()
 const authStore = useAuthStore()
@@ -1215,7 +1258,12 @@ const statusClass = (s) => ({
 }[s] || 'bg-gray-100')
 
 onMounted(async () => {
+  document.addEventListener('keydown', handleLightboxKeydown)
   await Promise.all([fetchData(), loadProvinces()])
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleLightboxKeydown)
 })
 </script>
 
