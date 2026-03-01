@@ -305,18 +305,57 @@ function openProvinceModal(province) {
   showProvinceModal.value = true
 }
 
+async function compressImage(file, maxWidth = 1600, quality = 0.8) {
+  return new Promise((resolve) => {
+    // If file is already small (< 500KB), skip compression
+    if (file.size < 500 * 1024) {
+      resolve(file)
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let { width, height } = img
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width)
+          width = maxWidth
+        }
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob((blob) => {
+          const compressed = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          })
+          resolve(compressed)
+        }, 'image/jpeg', quality)
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 async function handleProvinceImageUpload(e) {
   const files = Array.from(e.target.files)
   if (!files.length) return
   uploading.value = true
   try {
-    for (const file of files) {
-      const { data } = await adminApi.uploadOptimizedImage(file, 'provinces')
+    // Compress all images client-side first, then upload in parallel
+    const compressed = await Promise.all(files.map(f => compressImage(f)))
+    const results = await Promise.all(
+      compressed.map(file => adminApi.uploadOptimizedImage(file, 'provinces'))
+    )
+    results.forEach(({ data }) => {
       if (data.data?.url) {
         if (!provinceForm.value.images) provinceForm.value.images = []
         provinceForm.value.images.push(data.data.url)
       }
-    }
+    })
   } catch (err) {
     alert('Upload lỗi: ' + (err.response?.data?.message || err.message))
   } finally {
