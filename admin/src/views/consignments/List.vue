@@ -126,7 +126,7 @@
               <!-- Section 1: Thông tin cơ bản -->
               <div class="border-b pb-4">
                 <h3 class="text-lg font-semibold mb-4 text-indigo-700">Thông tin cơ bản</h3>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm *</label>
                     <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
@@ -360,7 +360,7 @@
                 </div>
                 <div class="grid grid-cols-4 gap-4 mb-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Thổ cư (m²)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Thổ cư (m)</label>
                     <input v-model.number="form.residential_area" type="number" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                   </div>
                   <div>
