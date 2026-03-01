@@ -212,7 +212,7 @@
         <div class="flex items-center justify-between h-16 max-w-md mx-auto px-4">
             <!-- Chính sách -->
             <a href="{{ url('/chinh-sach') }}"
-                class="flex-1 flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
                 style="color: #6b7280;">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -222,7 +222,7 @@
             </a>
 
             <!-- Trang chủ (highlighted) -->
-            <a href="{{ url('/') }}" class="flex-1 flex flex-col items-center -mt-6">
+            <a href="{{ url('/') }}" class="flex flex-col items-center -mt-6">
                 <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
                     style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +235,7 @@
 
             <!-- Ký gửi -->
             <a href="{{ env('APP_URL_SANDAT', '#') }}"
-                class="flex-1 flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
                 style="color: #6b7280;">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
