@@ -358,10 +358,14 @@
                   <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
                   <input v-model="form.address" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="grid grid-cols-4 gap-4 mb-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Thổ cư (m²)</label>
                     <input v-model.number="form.residential_area" type="number" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Diện tích sàn (m²)</label>
+                    <input v-model.number="form.floor_area" type="number" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Đường</label>
@@ -916,6 +920,7 @@ const defaultForm = {
   residential_area: '',
   road: '',
   area_dimensions: '',
+  floor_area: '',
   latitude: '',
   longitude: '',
   google_map_link: '',
@@ -1130,6 +1135,7 @@ const openEditModal = async (item) => {
     residential_area: data.residential_area || '',
     road: data.road || '',
     area_dimensions: data.area_dimensions || '',
+    floor_area: data.floor_area || '',
     latitude: data.latitude || '',
     longitude: data.longitude || '',
     google_map_link: data.google_map_link || '',

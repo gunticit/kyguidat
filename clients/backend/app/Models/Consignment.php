@@ -38,6 +38,7 @@ class Consignment extends Model
         'residential_area',
         'road',
         'area_dimensions',
+        'floor_area',
         'latitude',
         'longitude',
         'google_map_link',

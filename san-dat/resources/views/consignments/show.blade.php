@@ -136,6 +136,7 @@
                     @php
                         $areaDimensions = $consignment['area_dimensions'] ?? null;
                         $residentialArea = $consignment['residential_area'] ?? null;
+                        $floorArea = $consignment['floor_area'] ?? null;
                         $_directions = $consignment['land_directions'] ?? null;
                         $directions = is_string($_directions) ? (json_decode($_directions, true) ?? []) : (is_array($_directions) ? $_directions : []);
                         $dirMap = ['dong' => 'Đông', 'tay' => 'Tây', 'nam' => 'Nam', 'bac' => 'Bắc', 'dong-nam' => 'Đông Nam', 'dong_nam' => 'Đông Nam', 'dong-bac' => 'Đông Bắc', 'dong_bac' => 'Đông Bắc', 'tay-nam' => 'Tây Nam', 'tay_nam' => 'Tây Nam', 'tay-bac' => 'Tây Bắc', 'tay_bac' => 'Tây Bắc'];
@@ -143,7 +144,7 @@
                         $directionStr = !empty($directions) ? implode(', ', $directions) : null;
                         $roadType = $consignment['road'] ?? null;
                     @endphp
-                    @if($areaDimensions || $residentialArea || $directionStr || $roadType)
+                    @if($areaDimensions || $residentialArea || $floorArea || $directionStr || $roadType)
                         <div
                             class="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-300 bg-navy-700/50 rounded-lg px-4 py-3 border border-navy-600">
                             @if($areaDimensions)
@@ -165,6 +166,17 @@
                                     </svg>
                                     <span class="text-gray-500">Thổ cư:</span>
                                     <span class="font-medium text-gray-200">{{ $residentialArea }} m²</span>
+                                </div>
+                                <span class="text-navy-500">|</span>
+                            @endif
+                            @if($floorArea)
+                                <div class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                    <span class="text-gray-500">DT sàn:</span>
+                                    <span class="font-medium text-gray-200">{{ $floorArea }} m²</span>
                                 </div>
                                 <span class="text-navy-500">|</span>
                             @endif
