@@ -83,7 +83,7 @@
                         <p><span class="text-gray-400">Diện tích:</span> {{ data_get($consignment, 'area_dimensions') }}</p>
                     @endif
                     @if(data_get($consignment, 'residential_area'))
-                        <p><span class="text-gray-400">Thổ cư:</span> {{ data_get($consignment, 'residential_area') }} m²
+                        <p><span class="text-gray-400">Thổ cư:</span> {{ rtrim(rtrim(number_format(data_get($consignment, 'residential_area'), 2), '0'), '.') }} m²
                         </p>
                     @endif
                     @php
