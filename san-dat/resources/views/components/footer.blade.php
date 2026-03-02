@@ -12,8 +12,8 @@
     $showBctBadge = $settings['show_bct_badge'] ?? false;
     $bctImage = $settings['bct_image'] ?? '';
 @endphp
-<footer class="bg-navy-900 border-t border-navy-600 mt-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<footer class="bg-navy-900 border-t border-navy-600">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
             <!-- Brand -->
             <div class="text-center md:text-left">
@@ -81,8 +81,8 @@
             @endif
         </div>
 
-        <div class="border-t border-navy-600 mt-10 pt-6 text-center text-gray-500 text-sm">
-            <div class="flex flex-wrap justify-center gap-4 mb-3">
+        <div class="border-t border-navy-600 mt-8 pt-6 text-center text-gray-500 text-sm">
+            <div class="flex flex-wrap justify-center gap-4 mb-1">
                 <a href="{{ route('privacy-policy') }}" class="hover:text-green-400 transition">Chính sách bảo mật</a>
                 <span class="hidden md:inline">|</span>
                 <a href="{{ route('terms') }}" class="hover:text-green-400 transition">Điều khoản sử dụng</a>
