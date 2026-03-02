@@ -3,10 +3,10 @@
 @section('title', ($article['title'] ?? 'Tin tức') . ' - ' . ($settings['siteName'] ?? 'SànĐất'))
 
 @section('content')
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Main Content -->
-            <article class="lg:col-span-2">
+            <article class="lg:col-span-3">
                 <!-- Breadcrumb -->
                 <nav class="mb-4 text-sm">
                     <a href="{{ route('home') }}" class="text-gray-400 hover:text-green-400 transition">Trang chủ</a>

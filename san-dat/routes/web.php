@@ -5,6 +5,7 @@ use App\Http\Controllers\ConsignmentController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
 // Home
@@ -24,7 +25,7 @@ Route::get('/tin-tuc/{slug}', [ArticleController::class, 'show'])->name('article
 // Contact (Liên hệ)
 Route::get('/lien-he', [ArticleController::class, 'contact'])->name('contact');
 
-// Policy pages
+// Policy pages (static fallbacks)
 Route::get('/chinh-sach-bao-mat', function () {
     return view('pages.privacy-policy');
 })->name('privacy-policy');
@@ -53,3 +54,6 @@ Route::get('/api/public/provinces', function () {
     $provinces = $apiService->getProvinces();
     return response()->json(['data' => $provinces]);
 });
+
+// Dynamic CMS Pages (catch-all — must be last!)
+Route::get('/trang/{slug}', [PageController::class, 'show'])->name('pages.show');
