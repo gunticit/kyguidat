@@ -38,6 +38,8 @@ class SettingsController extends Controller
             'siteName' => $request->input('siteName', 'SànĐất'),
             'logo' => $request->input('logo', $existingSettings['logo'] ?? ''),
             'favicon' => $request->input('favicon', $existingSettings['favicon'] ?? ''),
+            'show_bct_badge' => (bool) $request->input('show_bct_badge', $existingSettings['show_bct_badge'] ?? false),
+            'bct_image' => $request->input('bct_image', $existingSettings['bct_image'] ?? ''),
         ];
 
         Storage::put($this->settingsFile, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -69,7 +71,7 @@ class SettingsController extends Controller
     {
         $request->validate([
             'file' => 'required|image|max:2048',
-            'type' => 'required|in:logo,favicon'
+            'type' => 'required|in:logo,favicon,bct_image'
         ]);
 
         $type = $request->input('type');
