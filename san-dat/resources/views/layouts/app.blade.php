@@ -19,6 +19,14 @@
         <link rel="icon" type="image/png" href="{{ $appFavicon }}">
     @endif
 
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Khodat">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
+
     <!-- Theme Detection (runs before render to prevent flash) -->
     <script>
         (function () {
@@ -256,6 +264,30 @@
     </style>
 
     @stack('scripts')
+
+    <!-- PWA Service Worker & Install Prompt -->
+    <script>
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(function () { });
+        }
+        // Capture install prompt for download button
+        window.deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            window.deferredPrompt = e;
+            // Show download buttons
+            document.querySelectorAll('.pwa-install-btn').forEach(function (btn) {
+                btn.style.display = 'inline-flex';
+            });
+        });
+        window.addEventListener('appinstalled', function () {
+            window.deferredPrompt = null;
+            document.querySelectorAll('.pwa-install-btn').forEach(function (btn) {
+                btn.style.display = 'none';
+            });
+        });
+    </script>
 </body>
 
 </html>

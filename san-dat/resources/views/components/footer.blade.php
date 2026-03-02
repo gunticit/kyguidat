@@ -9,17 +9,32 @@
     $address = $settings['address'] ?? 'TP. Hồ Chí Minh';
     $siteName = $settings['siteName'] ?? 'SànĐất';
     $logo = isset($settings['logo']) ? preg_replace('#^https?://[^/]+#', '', $settings['logo']) : '';
+    $showBctBadge = $settings['show_bct_badge'] ?? false;
+    $bctImage = $settings['bct_image'] ?? '';
 @endphp
 <footer class="bg-navy-900 border-t border-navy-600 mt-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
             <!-- Brand -->
             <div class="text-center md:text-left">
                 @if($logo)
-                    <img src="{{ $logo }}" alt="{{ $siteName }}" class="object-contain" style="width: 100%; height: 80px; margin: 0;">
+                    <img src="{{ $logo }}" alt="{{ $siteName }}" class="object-contain"
+                        style="width: 100%; height: 80px; margin: 0;">
                 @endif
                 <p class="mt-3 text-gray-400 text-sm leading-relaxed">Nền tảng ký gửi bất động sản uy tín hàng đầu Việt
                     Nam</p>
+
+                <!-- Download App Button -->
+                <button
+                    class="pwa-install-btn mt-4 items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg shadow-green-500/20 hover:shadow-green-500/30"
+                    style="display: none;"
+                    onclick="if(window.deferredPrompt){window.deferredPrompt.prompt();window.deferredPrompt.userChoice.then(function(){window.deferredPrompt=null})}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Tải ứng dụng
+                </button>
             </div>
 
             <!-- Navigation -->
@@ -66,6 +81,16 @@
                     </li>
                 </ul>
             </div>
+
+            <!-- Bộ Công Thương Badge -->
+            @if($showBctBadge && $bctImage)
+                <div class="text-center md:text-left">
+                    <h4 class="font-semibold mb-4 text-gray-200">Chứng nhận</h4>
+                    <div class="inline-block bg-white rounded-lg p-2">
+                        <img src="{{ $bctImage }}" alt="Đã đăng ký Bộ Công Thương" class="h-20 object-contain">
+                    </div>
+                </div>
+            @endif
         </div>
 
         <div class="border-t border-navy-600 mt-10 pt-6 text-center text-gray-500 text-sm">

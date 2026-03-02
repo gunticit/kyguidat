@@ -120,6 +120,34 @@
             </div>
             <div v-if="uploadMessage" :class="uploadMessageClass" class="text-sm p-3 rounded-lg">{{ uploadMessage }}</div>
           </div>
+
+          <!-- Bộ Công Thương Badge -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold mb-4">Bộ Công Thương</h2>
+            <div class="mb-4">
+              <div class="flex items-center justify-between">
+                <label class="text-sm font-medium text-gray-700">Hiển thị hình Bộ Công Thương</label>
+                <button type="button" @click="settings.show_bct_badge = !settings.show_bct_badge; saveSettings()"
+                  :class="settings.show_bct_badge ? 'bg-indigo-600' : 'bg-gray-300'"
+                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors">
+                  <span :class="settings.show_bct_badge ? 'translate-x-6' : 'translate-x-1'"
+                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Bật để hiển thị hình đã khai báo Bộ Công Thương dưới footer</p>
+            </div>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-500 transition-colors">
+              <div v-if="bctPreview || settings.bct_image" class="mb-4">
+                <img :src="bctPreview || resolveUrl(settings.bct_image)" alt="BCT" class="max-h-24 mx-auto object-contain" />
+              </div>
+              <div v-else class="mb-4">
+                <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              </div>
+              <input type="file" @change="handleBctUpload" accept="image/*" class="hidden" ref="bctInput" />
+              <button type="button" @click="$refs.bctInput.click()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm">Chọn hình BCT</button>
+              <p class="text-xs text-gray-500 mt-2">PNG, JPG tối đa 2MB</p>
+            </div>
+          </div>
         </div>
 
         <!-- SEO Tab -->
@@ -354,7 +382,8 @@ const activeTab = ref('contact')
 
 // Contact settings
 const settings = ref({
-  email: '', phone: '', address: '', facebook: '', zalo: '', siteName: '', logo: '', favicon: ''
+  email: '', phone: '', address: '', facebook: '', zalo: '', siteName: '', logo: '', favicon: '',
+  show_bct_badge: false, bct_image: ''
 })
 const saving = ref(false)
 const message = ref('')
@@ -363,6 +392,7 @@ const logoPreview = ref('')
 const faviconPreview = ref('')
 const uploadMessage = ref('')
 const uploadMessageType = ref('success')
+const bctPreview = ref('')
 
 // API Keys
 const apiKeys = ref({
@@ -496,6 +526,18 @@ const uploadFile = async (file, type) => {
     uploadMessageType.value = 'error'
   }
   setTimeout(() => { uploadMessage.value = '' }, 3000)
+}
+
+const handleBctUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  if (file.size > 2 * 1024 * 1024) {
+    uploadMessage.value = 'Hình quá lớn!'
+    uploadMessageType.value = 'error'
+    return
+  }
+  bctPreview.value = URL.createObjectURL(file)
+  await uploadFile(file, 'bct_image')
 }
 
 onMounted(() => { loadSettings() })
