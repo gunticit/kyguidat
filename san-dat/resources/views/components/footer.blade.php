@@ -23,18 +23,6 @@
                 @endif
                 <p class="mt-3 text-gray-400 text-sm leading-relaxed">Nền tảng ký gửi bất động sản uy tín hàng đầu Việt
                     Nam</p>
-
-                <!-- Download App Button -->
-                <button
-                    class="pwa-install-btn mt-4 items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg shadow-green-500/20 hover:shadow-green-500/30"
-                    style="display: none;"
-                    onclick="if(window.deferredPrompt){window.deferredPrompt.prompt();window.deferredPrompt.userChoice.then(function(){window.deferredPrompt=null})}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Tải ứng dụng
-                </button>
             </div>
 
             <!-- Navigation -->
