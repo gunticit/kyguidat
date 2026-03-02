@@ -56,4 +56,5 @@ Route::get('/api/public/provinces', function () {
 });
 
 // Dynamic CMS Pages (catch-all — must be last!)
-Route::get('/trang/{slug}', [PageController::class, 'show'])->name('pages.show');
+Route::get('/{slug}', [PageController::class, 'show'])->name('pages.show')
+    ->where('slug', '^(?!api|bat-dong-san|tim-kiem|tin-tuc|lien-he|chinh-sach-bao-mat|dieu-khoan-su-dung|xoa-tai-khoan).*$');
