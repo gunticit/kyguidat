@@ -85,6 +85,7 @@ func main() {
 		publicProxy.GET("/provinces", proxyHandler.ProxyRequest)
 		publicProxy.GET("/provinces/:slug/wards", proxyHandler.ProxyRequest)
 		publicProxy.GET("/featured-provinces", proxyHandler.ProxyRequest)
+		publicProxy.GET("/pages/:slug", proxyHandler.ProxyRequest)
 	}
 
 	// Upload routes - proxy to Laravel backend (authenticated)
@@ -161,6 +162,14 @@ func main() {
 		admin.POST("/articles", proxyHandler.ProxyRequest)
 		admin.PUT("/articles/:id", proxyHandler.ProxyRequest)
 		admin.DELETE("/articles/:id", proxyHandler.ProxyRequest)
+		admin.GET("/check-slug", proxyHandler.ProxyRequest)
+
+		// Pages
+		admin.GET("/pages", proxyHandler.ProxyRequest)
+		admin.GET("/pages/:id", proxyHandler.ProxyRequest)
+		admin.POST("/pages", proxyHandler.ProxyRequest)
+		admin.PUT("/pages/:id", proxyHandler.ProxyRequest)
+		admin.DELETE("/pages/:id", proxyHandler.ProxyRequest)
 
 		// Administrative Divisions — Provinces
 		admin.GET("/provinces", proxyHandler.ProxyRequest)
