@@ -217,20 +217,20 @@
     <!-- Mobile Bottom Navigation -->
     <nav
         class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-navy-800 border-t border-navy-600 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
-        <div class="flex items-center justify-evenly h-16 w-full mx-auto">
-            <!-- Chính sách -->
-            <a href="{{ url('/chinh-sach') }}"
-                class="flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
+        <div class="flex items-center h-16 w-full">
+            <!-- Giới thiệu -->
+            <a href="{{ url('/gioi-thieu') }}"
+                class="flex-1 flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
                 style="color: #6b7280;">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span class="text-xs font-medium">Chính sách</span>
+                <span class="text-xs font-medium">Giới thiệu</span>
             </a>
 
-            <!-- Trang chủ (highlighted) -->
-            <a href="{{ url('/') }}" class="flex flex-col items-center -mt-6">
+            <!-- Trang chủ (highlighted, centered) -->
+            <a href="{{ url('/') }}" class="flex-1 flex flex-col items-center -mt-6">
                 <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
                     style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +243,7 @@
 
             <!-- Ký gửi -->
             <a href="{{ env('APP_URL_SANDAT', '#') }}"
-                class="flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
+                class="flex-1 flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
                 style="color: #6b7280;">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
