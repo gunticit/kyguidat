@@ -32,6 +32,9 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/posting-packages/{id}', [PostingPackageController::class, 'show']);
 });
 
+// Public consignment listing (no auth - used by API gateway proxy)
+Route::get('/consignments', [PublicConsignmentController::class, 'index'])->middleware('throttle:60,1');
+
 // Public routes - Consignments (Xem danh sách bất động sản công khai)
 Route::prefix('public')->middleware('throttle:60,1')->group(function () {
     Route::get('/consignments', [PublicConsignmentController::class, 'index']);
