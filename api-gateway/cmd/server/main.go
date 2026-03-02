@@ -52,18 +52,18 @@ func main() {
 
 	// Auth routes (public)
 	r.POST("/api/auth/login", authHandler.Login)
+	// Proxy handler for Laravel backend
+	proxyHandler := handlers.NewProxyHandler(backendURL)
 
 	// Public routes
 	public := r.Group("/api")
 	{
-		public.GET("/consignments", consignmentHandler.List)
+		public.GET("/consignments", proxyHandler.ProxyRequest)      // Proxy to Laravel for full filter support
+		public.GET("/consignments-nearby", consignmentHandler.List) // Go handler for geo-sorting
 		public.GET("/consignments/:id", consignmentHandler.Show)
 		public.GET("/categories", consignmentHandler.Categories)
 		public.GET("/locations", consignmentHandler.Locations)
 	}
-
-	// Proxy handler for Laravel backend
-	proxyHandler := handlers.NewProxyHandler(backendURL)
 
 	// Social auth routes - proxy to Laravel backend (OAuth redirect flow)
 	authProxy := r.Group("/api/auth")

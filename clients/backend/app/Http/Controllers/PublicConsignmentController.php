@@ -17,11 +17,11 @@ class PublicConsignmentController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = min($request->get('per_page', 15), 100);
+        $perPage = min($request->get('per_page', $request->get('limit', 15)), 100);
         $cacheKey = 'public_consignments_' . md5(json_encode($request->all()));
 
-        // Cache for 5 minutes
-        $consignments = Cache::remember($cacheKey, 300, function () use ($request, $perPage) {
+        // Cache for 1 minute
+        $consignments = Cache::remember($cacheKey, 60, function () use ($request, $perPage) {
             $query = Consignment::query()
                 ->whereIn('status', [Consignment::STATUS_APPROVED, Consignment::STATUS_SELLING])
                 ->with('user:id,name');
