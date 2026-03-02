@@ -217,7 +217,7 @@
     <!-- Mobile Bottom Navigation -->
     <nav
         class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-navy-800 border-t border-navy-600 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
-        <div class="flex items-center justify-between h-16 w-full mx-auto px-4">
+        <div class="flex items-center justify-evenly h-16 w-full mx-auto">
             <!-- Chính sách -->
             <a href="{{ url('/chinh-sach') }}"
                 class="flex flex-col items-center gap-1 text-gray-500 hover:text-green-600 transition"
