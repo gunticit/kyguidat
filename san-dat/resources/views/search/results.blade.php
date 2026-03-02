@@ -29,10 +29,10 @@
         </div>
 
         <!-- Pagination -->
-        @if($meta && $meta['total_pages'] > 1)
+        @if($meta && ($meta['last_page'] ?? $meta['total_pages'] ?? 0) > 1)
             <div class="mt-8 flex justify-center">
                 <nav class="flex items-center space-x-2">
-                    @for($i = 1; $i <= $meta['total_pages']; $i++)
+                    @for($i = 1; $i <= ($meta['last_page'] ?? $meta['total_pages'] ?? 1); $i++)
                         <a href="{{ route('search.results', array_merge(request()->query(), ['page' => $i])) }}"
                             class="px-4 py-2 rounded-lg {{ $meta['current_page'] == $i ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600' }} transition">
                             {{ $i }}

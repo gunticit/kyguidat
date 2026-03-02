@@ -352,7 +352,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
                   <input v-model="form.address" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <div class="grid grid-cols-5 gap-4 mb-4">
+                <div class="grid grid-cols-4 gap-4 mb-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Thổ cư (m)</label>
                     <input v-model.number="form.residential_area" type="number" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
@@ -375,7 +375,7 @@
                     <input v-model="form.area_dimensions" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                   </div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-4 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Đường</label>
                     <input v-model="form.road" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
@@ -398,7 +398,7 @@
               <!-- Section 7: Thông tin người ký gửi -->
               <div class="border-b pb-4">
                 <h3 class="text-lg font-semibold mb-4 text-indigo-700">Thông tin người ký gửi</h3>
-                <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="grid grid-cols-5 gap-4 mb-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Người ký gửi</label>
                     <input v-model="form.consigner_name" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
@@ -416,8 +416,6 @@
                       <option value="khac">Khác</option>
                     </select>
                   </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Số tờ</label>
                     <input v-model="form.sheet_number" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
