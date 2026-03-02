@@ -91,6 +91,13 @@ export const adminApi = {
     deleteArticle: (id) => api.delete(`/admin/articles/${id}`),
     checkSlug: (params) => api.get('/admin/check-slug', { params }),
 
+    // Pages
+    getPages: (params) => api.get('/admin/pages', { params }),
+    getPage: (id) => api.get(`/admin/pages/${id}`),
+    createPage: (data) => api.post('/admin/pages', data),
+    updatePage: (id, data) => api.put(`/admin/pages/${id}`, data),
+    deletePage: (id) => api.delete(`/admin/pages/${id}`),
+
     // Administrative Divisions — Provinces
     getProvinces: (params) => api.get('/admin/provinces', { params }),
     createProvince: (data) => api.post('/admin/provinces', data),

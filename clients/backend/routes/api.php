@@ -11,6 +11,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\AdministrativeDivisionController;
 use App\Http\Controllers\PostingPackageController;
 use App\Http\Controllers\UploadController;
@@ -84,6 +85,7 @@ Route::prefix('payments')->middleware('throttle:30,1')->group(function () {
 Route::prefix('public')->group(function () {
     Route::get('/articles', [ArticleController::class, 'publicIndex']);
     Route::get('/articles/{slug}', [ArticleController::class, 'publicShow']);
+    Route::get('/pages/{slug}', [PageController::class, 'publicShow']);
 
     // Administrative divisions
     Route::get('/provinces', [AdministrativeDivisionController::class, 'publicProvinces']);
@@ -244,6 +246,13 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::put('/articles/{id}', [ArticleController::class, 'update']);
         Route::delete('/articles/{id}', [ArticleController::class, 'destroy']);
         Route::get('/check-slug', [ArticleController::class, 'checkSlug']);
+
+        // Pages
+        Route::get('/pages', [PageController::class, 'index']);
+        Route::get('/pages/{id}', [PageController::class, 'show']);
+        Route::post('/pages', [PageController::class, 'store']);
+        Route::put('/pages/{id}', [PageController::class, 'update']);
+        Route::delete('/pages/{id}', [PageController::class, 'destroy']);
 
         // Administrative Divisions — Provinces
         Route::get('/provinces', [AdministrativeDivisionController::class, 'provinceIndex']);

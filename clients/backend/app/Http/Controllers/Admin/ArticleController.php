@@ -203,12 +203,12 @@ class ArticleController extends Controller
     }
 
     /**
-     * Check slug availability across articles and consignments
+     * Check slug availability across articles, consignments, and pages
      */
     public function checkSlug(Request $request)
     {
         $slug = $request->input('slug', '');
-        $type = $request->input('type', 'article'); // 'article' or 'consignment'
+        $type = $request->input('type', 'article'); // 'article', 'consignment', or 'page'
         $excludeId = $request->input('exclude_id');
 
         if (empty($slug)) {
@@ -229,8 +229,15 @@ class ArticleController extends Controller
         }
         $inConsignments = $consignmentQuery->exists();
 
-        $available = !$inArticles && !$inConsignments;
-        $usedBy = $inArticles ? 'bài viết' : ($inConsignments ? 'sản phẩm' : null);
+        // Check in pages
+        $pageQuery = \App\Models\Page::where('slug', $slug);
+        if ($type === 'page' && $excludeId) {
+            $pageQuery->where('id', '!=', $excludeId);
+        }
+        $inPages = $pageQuery->exists();
+
+        $available = !$inArticles && !$inConsignments && !$inPages;
+        $usedBy = $inArticles ? 'bài viết' : ($inConsignments ? 'sản phẩm' : ($inPages ? 'trang' : null));
 
         return response()->json([
             'available' => $available,
