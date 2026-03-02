@@ -470,7 +470,7 @@
             grid.classList.add('hidden');
             pagination.classList.add('hidden');
 
-            let apiUrl = `/api/consignments-nearby?page=${page}&limit=${perPage}`;
+            let apiUrl = `/api/consignments?page=${page}&limit=${perPage}`;
             if (userLat && userLng) {
                 apiUrl += `&lat=${userLat}&lng=${userLng}&max_distance=15`;
             }
