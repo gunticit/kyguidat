@@ -58,8 +58,8 @@ func main() {
 	// Public routes
 	public := r.Group("/api")
 	{
-		public.GET("/consignments", proxyHandler.ProxyRequest)      // Proxy to Laravel for full filter support
-		public.GET("/consignments-nearby", consignmentHandler.List) // Go handler for geo-sorting
+		public.GET("/consignments", proxyHandler.ProxyToPath("/api/public/consignments")) // Rewrite to Laravel public route
+		public.GET("/consignments-nearby", consignmentHandler.List)                       // Go handler for geo-sorting
 		public.GET("/consignments/:id", consignmentHandler.Show)
 		public.GET("/categories", consignmentHandler.Categories)
 		public.GET("/locations", consignmentHandler.Locations)
