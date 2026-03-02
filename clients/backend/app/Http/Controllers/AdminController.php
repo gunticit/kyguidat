@@ -277,9 +277,18 @@ class AdminController extends Controller
             // Ensure uniqueness by appending suffix if needed
             $original = $validated['seo_url'];
             $count = 1;
-            while (Consignment::where('seo_url', $validated['seo_url'])->exists()) {
+            while (Consignment::where('seo_url', $validated['seo_url'])->exists() || \App\Models\Article::where('slug', $validated['seo_url'])->exists()) {
                 $validated['seo_url'] = $original . '-' . $count;
                 $count++;
+            }
+        } elseif (!empty($validated['seo_url'])) {
+            // Check cross-table uniqueness
+            if (\App\Models\Article::where('slug', $validated['seo_url'])->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'SEO URL đã được sử dụng bởi một bài viết',
+                    'errors' => ['seo_url' => ['SEO URL đã được sử dụng bởi một bài viết']],
+                ], 422);
             }
         }
 
@@ -365,6 +374,15 @@ class AdminController extends Controller
             'display_order' => 'nullable|integer',
             'status' => 'nullable|in:pending,approved,rejected',
         ]);
+
+        // Check cross-table uniqueness for seo_url
+        if (!empty($validated['seo_url']) && \App\Models\Article::where('slug', $validated['seo_url'])->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'SEO URL đã được sử dụng bởi một bài viết',
+                'errors' => ['seo_url' => ['SEO URL đã được sử dụng bởi một bài viết']],
+            ], 422);
+        }
 
         $consignment->update($validated);
 

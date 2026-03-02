@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\Consignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -70,9 +71,20 @@ class ArticleController extends Controller
 
             if (empty($validated['slug'])) {
                 $validated['slug'] = Str::slug($validated['title']);
-                $count = Article::where('slug', 'like', $validated['slug'] . '%')->count();
-                if ($count > 0) {
-                    $validated['slug'] .= '-' . ($count + 1);
+                $original = $validated['slug'];
+                $count = 1;
+                while (Article::where('slug', $validated['slug'])->exists() || Consignment::where('seo_url', $validated['slug'])->exists()) {
+                    $validated['slug'] = $original . '-' . $count;
+                    $count++;
+                }
+            } else {
+                // Check cross-table uniqueness
+                if (Consignment::where('seo_url', $validated['slug'])->exists()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Slug đã được sử dụng bởi một sản phẩm',
+                        'errors' => ['slug' => ['Slug đã được sử dụng bởi một sản phẩm']],
+                    ], 422);
                 }
             }
 
@@ -119,6 +131,15 @@ class ArticleController extends Controller
             'featured_image' => 'nullable|string',
             'status' => 'in:draft,published',
         ]);
+
+        // Check cross-table uniqueness for slug
+        if (!empty($validated['slug']) && Consignment::where('seo_url', $validated['slug'])->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Slug đã được sử dụng bởi một sản phẩm',
+                'errors' => ['slug' => ['Slug đã được sử dụng bởi một sản phẩm']],
+            ], 422);
+        }
 
         // Set published_at when publishing for the first time
         if (($validated['status'] ?? '') === 'published' && !$article->published_at) {
@@ -178,6 +199,42 @@ class ArticleController extends Controller
         return response()->json([
             'success' => true,
             'data' => $article,
+        ]);
+    }
+
+    /**
+     * Check slug availability across articles and consignments
+     */
+    public function checkSlug(Request $request)
+    {
+        $slug = $request->input('slug', '');
+        $type = $request->input('type', 'article'); // 'article' or 'consignment'
+        $excludeId = $request->input('exclude_id');
+
+        if (empty($slug)) {
+            return response()->json(['available' => true]);
+        }
+
+        // Check in articles
+        $articleQuery = Article::where('slug', $slug);
+        if ($type === 'article' && $excludeId) {
+            $articleQuery->where('id', '!=', $excludeId);
+        }
+        $inArticles = $articleQuery->exists();
+
+        // Check in consignments
+        $consignmentQuery = Consignment::where('seo_url', $slug);
+        if ($type === 'consignment' && $excludeId) {
+            $consignmentQuery->where('id', '!=', $excludeId);
+        }
+        $inConsignments = $consignmentQuery->exists();
+
+        $available = !$inArticles && !$inConsignments;
+        $usedBy = $inArticles ? 'bài viết' : ($inConsignments ? 'sản phẩm' : null);
+
+        return response()->json([
+            'available' => $available,
+            'used_by' => $usedBy,
         ]);
     }
 }

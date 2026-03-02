@@ -89,6 +89,7 @@ export const adminApi = {
     createArticle: (data) => api.post('/admin/articles', data),
     updateArticle: (id, data) => api.put(`/admin/articles/${id}`, data),
     deleteArticle: (id) => api.delete(`/admin/articles/${id}`),
+    checkSlug: (params) => api.get('/admin/check-slug', { params }),
 
     // Administrative Divisions — Provinces
     getProvinces: (params) => api.get('/admin/provinces', { params }),

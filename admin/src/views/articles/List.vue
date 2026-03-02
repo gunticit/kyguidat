@@ -93,7 +93,12 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Slug (tự động nếu để trống)</label>
-                <input v-model="form.slug" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="tu-dong-tu-tieu-de" />
+                <div class="relative">
+                  <input v-model="form.slug" @input="debouncedCheckSlug" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" :class="slugStatus === 'taken' ? 'border-red-400' : slugStatus === 'available' ? 'border-green-400' : 'border-gray-300'" placeholder="tu-dong-tu-tieu-de" />
+                  <span v-if="slugStatus === 'checking'" class="absolute right-3 top-2.5 text-gray-400 text-sm">Đang kiểm tra...</span>
+                  <span v-else-if="slugStatus === 'available'" class="absolute right-3 top-2.5 text-green-500 text-sm">✓ Khả dụng</span>
+                  <span v-else-if="slugStatus === 'taken'" class="absolute right-3 top-2.5 text-red-500 text-sm">✗ Đã dùng bởi {{ slugUsedBy }}</span>
+                </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả ngắn</label>
@@ -152,7 +157,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Header from '@/components/layout/Header.vue'
 import { adminApi } from '@/services/api'
@@ -188,6 +193,9 @@ const editingId = ref(null)
 const saving = ref(false)
 const formError = ref('')
 const form = ref({ title: '', slug: '', excerpt: '', content: '', featured_image: '', status: 'draft' })
+const slugStatus = ref('') // '', 'checking', 'available', 'taken'
+const slugUsedBy = ref('')
+const slugManuallyEdited = ref(false)
 
 // Delete modal
 const showDeleteModal = ref(false)
@@ -216,6 +224,9 @@ const openCreate = () => {
   editingId.value = null
   form.value = { title: '', slug: '', excerpt: '', content: '', featured_image: '', status: 'draft' }
   formError.value = ''
+  slugStatus.value = ''
+  slugUsedBy.value = ''
+  slugManuallyEdited.value = false
   showModal.value = true
 }
 
@@ -223,8 +234,45 @@ const openEdit = (article) => {
   editingId.value = article.id
   form.value = { title: article.title, slug: article.slug, excerpt: article.excerpt || '', content: article.content || '', featured_image: article.featured_image || '', status: article.status }
   formError.value = ''
+  slugStatus.value = ''
+  slugUsedBy.value = ''
+  slugManuallyEdited.value = true
   showModal.value = true
 }
+
+// Slug helpers
+const toSlug = (str) => {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'd')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+let slugCheckTimer = null
+const debouncedCheckSlug = () => {
+  slugManuallyEdited.value = true
+  clearTimeout(slugCheckTimer)
+  if (!form.value.slug) { slugStatus.value = ''; return }
+  slugStatus.value = 'checking'
+  slugCheckTimer = setTimeout(async () => {
+    try {
+      const res = await adminApi.checkSlug({ slug: form.value.slug, type: 'article', exclude_id: editingId.value || '' })
+      slugStatus.value = res.data.available ? 'available' : 'taken'
+      slugUsedBy.value = res.data.used_by || ''
+    } catch { slugStatus.value = '' }
+  }, 400)
+}
+
+// Auto-generate slug from title if user hasn't manually edited slug
+watch(() => form.value.title, (newTitle) => {
+  if (!slugManuallyEdited.value && newTitle) {
+    form.value.slug = toSlug(newTitle)
+    debouncedCheckSlug()
+  }
+})
 
 const saveArticle = async () => {
   saving.value = true

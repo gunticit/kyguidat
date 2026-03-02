@@ -243,6 +243,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/articles', [ArticleController::class, 'store']);
         Route::put('/articles/{id}', [ArticleController::class, 'update']);
         Route::delete('/articles/{id}', [ArticleController::class, 'destroy']);
+        Route::get('/check-slug', [ArticleController::class, 'checkSlug']);
 
         // Administrative Divisions — Provinces
         Route::get('/provinces', [AdministrativeDivisionController::class, 'provinceIndex']);
