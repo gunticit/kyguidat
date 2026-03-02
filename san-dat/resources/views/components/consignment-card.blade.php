@@ -1,9 +1,9 @@
 @php $isVertical = !empty($vertical); @endphp
 <a href="{{ route('consignments.show', !empty(data_get($consignment, 'seo_url')) ? data_get($consignment, 'seo_url') : data_get($consignment, 'id')) }}"
-    class="flex {{ $isVertical ? 'flex-col' : 'flex-col md:flex-row' }} bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group">
+    class="flex {{ $isVertical ? 'flex-col' : 'flex-col md:flex-row' }} bg-navy-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group border border-navy-600">
     <!-- Image -->
     <div
-        class="w-full {{ $isVertical ? 'aspect-video' : 'md:w-48 flex-shrink-0 aspect-video md:aspect-auto' }} bg-gray-100 relative overflow-hidden">
+        class="w-full {{ $isVertical ? 'aspect-video' : 'md:w-48 flex-shrink-0 aspect-video md:aspect-auto' }} bg-navy-800 relative overflow-hidden">
         @php
             $firstImage = null;
             $fi = data_get($consignment, 'featured_image', '');
@@ -25,7 +25,7 @@
         @if($firstImage)
             <img src="{{ $firstImage }}" alt="{{ data_get($consignment, 'title', '') }}"
                 class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy"
-                onerror="this.onerror=null;this.style.display='none';this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-gray-400 text-sm bg-gray-100\'>No Image</div>'">
+                onerror="this.onerror=null;this.style.display='none';this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-gray-400 text-sm bg-navy-800\'>No Image</div>'">
         @else
             <div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image</div>
         @endif
