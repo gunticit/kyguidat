@@ -50,6 +50,51 @@
             <div class="lg:col-span-2">
                 <!-- Image Gallery -->
                 <div class="mb-6">
+
+                    <!-- Full Address -->
+                    <div class="bg-navy-800 rounded-xl shadow-md p-6 mb-8 border border-navy-600">
+                        <h2 class="text-xl font-bold text-gray-100 mb-4 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Địa chỉ
+                        </h2>
+                        <p class="text-gray-300">
+                            {{ $consignment['address'] ?? '' }}
+                            {{ !empty($consignment['address']) && !empty($consignment['ward']) ? ', ' : '' }}
+                            {{ $consignment['ward'] ?? '' }}
+                            {{ !empty($consignment['ward']) && !empty($consignment['district']) ? ', ' : '' }}
+                            {{ $consignment['district'] ?? '' }}
+                            {{ !empty($consignment['district']) && !empty($consignment['province']) ? ', ' : '' }}
+                            {{ $consignment['province'] ?? '' }}
+                        </p>
+
+                        <!-- Map -->
+                        @if(!empty($consignment['latitude']) && !empty($consignment['longitude']))
+                            <div class="mt-4 rounded-lg overflow-hidden border border-navy-600">
+                                <iframe width="100%" height="300" style="border:0" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    src="https://maps.google.com/maps?q={{ $consignment['latitude'] }},{{ $consignment['longitude'] }}&z=15&output=embed"
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        @else
+                            <div
+                                class="mt-4 bg-navy-700 rounded-lg h-48 flex items-center justify-center text-gray-500 border border-navy-600">
+                                <div class="text-center">
+                                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                    </svg>
+                                    <span class="text-sm">Bản đồ vị trí</span>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
                     <!-- Main Image -->
                     <div class="bg-navy-700 rounded-xl overflow-hidden aspect-video mb-3 shadow-lg border border-navy-600">
                         @if(count($images) > 0)
@@ -238,109 +283,6 @@
                     </div>
                 </div>
 
-                <!-- Property Details Cards -->
-                <div class="bg-navy-800 rounded-xl shadow-md p-6 mb-8 border border-navy-600">
-                    <h2 class="text-xl font-bold text-gray-100 mb-6 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Thông tin chi tiết
-                    </h2>
-
-                    <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
-                        <!-- Area -->
-                        @if(!empty($consignment['area']))
-                            <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
-                                <div class="flex items-center mb-2">
-                                    <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
-                                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-400">Diện tích</p>
-                                        <p class="font-bold text-gray-100">{{ $consignment['area'] }} m²</p>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Width -->
-                        @if(!empty($consignment['width']))
-                            <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
-                                <div class="flex items-center mb-2">
-                                    <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center mr-3">
-                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-400">Mặt tiền</p>
-                                        <p class="font-bold text-gray-100">{{ floatval($consignment['width']) }} m</p>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Length -->
-                        @if(!empty($consignment['length']))
-                            <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
-                                <div class="flex items-center mb-2">
-                                    <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mr-3">
-                                        <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-400">Chiều dài</p>
-                                        <p class="font-bold text-gray-100">{{ floatval($consignment['length']) }} m</p>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Province -->
-                        <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
-                            <div class="flex items-center mb-2">
-                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mr-3">
-                                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-400">Tỉnh/Thành phố</p>
-                                    <p class="font-bold text-gray-100">{{ $consignment['province'] ?? 'N/A' }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- District -->
-                        <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
-                            <div class="flex items-center mb-2">
-                                <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center mr-3">
-                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-400">Quận/Huyện</p>
-                                    <p class="font-bold text-gray-100">{{ $consignment['ward'] ?? 'N/A' }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Description -->
                 <div class="bg-navy-800 rounded-xl shadow-md p-6 mb-8 border border-navy-600">
                     <h2 class="text-xl font-bold text-gray-100 mb-4 flex items-center">
@@ -455,48 +397,107 @@
                     </style>
                 </div>
 
-                <!-- Full Address -->
+                <!-- Property Details Cards -->
                 <div class="bg-navy-800 rounded-xl shadow-md p-6 mb-8 border border-navy-600">
-                    <h2 class="text-xl font-bold text-gray-100 mb-4 flex items-center">
+                    <h2 class="text-xl font-bold text-gray-100 mb-6 flex items-center">
                         <svg class="w-6 h-6 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Địa chỉ
+                        Thông tin chi tiết
                     </h2>
-                    <p class="text-gray-300">
-                        {{ $consignment['address'] ?? '' }}
-                        {{ !empty($consignment['address']) && !empty($consignment['ward']) ? ', ' : '' }}
-                        {{ $consignment['ward'] ?? '' }}
-                        {{ !empty($consignment['ward']) && !empty($consignment['district']) ? ', ' : '' }}
-                        {{ $consignment['district'] ?? '' }}
-                        {{ !empty($consignment['district']) && !empty($consignment['province']) ? ', ' : '' }}
-                        {{ $consignment['province'] ?? '' }}
-                    </p>
 
-                    <!-- Map -->
-                    @if(!empty($consignment['latitude']) && !empty($consignment['longitude']))
-                        <div class="mt-4 rounded-lg overflow-hidden border border-navy-600">
-                            <iframe width="100%" height="300" style="border:0" loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"
-                                src="https://maps.google.com/maps?q={{ $consignment['latitude'] }},{{ $consignment['longitude'] }}&z=15&output=embed"
-                                allowfullscreen>
-                            </iframe>
-                        </div>
-                    @else
-                        <div
-                            class="mt-4 bg-navy-700 rounded-lg h-48 flex items-center justify-center text-gray-500 border border-navy-600">
-                            <div class="text-center">
-                                <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                                </svg>
-                                <span class="text-sm">Bản đồ vị trí</span>
+                    <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+                        <!-- Area -->
+                        @if(!empty($consignment['area']))
+                            <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-400">Diện tích</p>
+                                        <p class="font-bold text-gray-100">{{ $consignment['area'] }} m²</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Width -->
+                        @if(!empty($consignment['width']))
+                            <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-400">Mặt tiền</p>
+                                        <p class="font-bold text-gray-100">{{ floatval($consignment['width']) }} m</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Length -->
+                        @if(!empty($consignment['length']))
+                            <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-400">Chiều dài</p>
+                                        <p class="font-bold text-gray-100">{{ floatval($consignment['length']) }} m</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Province -->
+                        <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
+                            <div class="flex items-center mb-2">
+                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mr-3">
+                                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400">Tỉnh/Thành phố</p>
+                                    <p class="font-bold text-gray-100">{{ $consignment['province'] ?? 'N/A' }}</p>
+                                </div>
                             </div>
                         </div>
-                    @endif
+
+                        <!-- District -->
+                        <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
+                            <div class="flex items-center mb-2">
+                                <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center mr-3">
+                                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400">Quận/Huyện</p>
+                                    <p class="font-bold text-gray-100">{{ $consignment['ward'] ?? 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -506,30 +507,34 @@
                 <div class="bg-navy-800 shadow-xl rounded-xl p-6 sticky top-24 border border-navy-600">
                     <h3 class="font-bold text-lg mb-5 text-gray-100">Liên hệ tư vấn</h3>
 
-                    @if(isset($consignment['user']))
-                        <div class="flex items-center mb-5 p-4 bg-navy-700 rounded-xl border border-navy-600">
-                            <div
-                                class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center shadow-lg">
-                                <span class="text-white font-bold text-xl">
-                                    {{ strtoupper(substr($consignment['user']['name'] ?? 'U', 0, 1)) }}
-                                </span>
-                            </div>
-                            <div class="ml-4">
-                                <p class="font-bold text-gray-100">{{ $consignment['user']['name'] ?? 'Người đăng' }}</p>
-                                <p class="text-sm text-gray-400 flex items-center">
-                                    <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    Thành viên xác thực
-                                </p>
-                            </div>
+                    @php
+                        $contactName = !empty($consignment['consigner_name']) ? $consignment['consigner_name'] : ($consignment['user']['name'] ?? 'Người đăng');
+                        $contactPhone = !empty($consignment['consigner_phone']) ? $consignment['consigner_phone'] : ($consignment['user']['phone'] ?? '0123456789');
+                        $isConsigner = !empty($consignment['consigner_name']);
+                    @endphp
+
+                    <div class="flex items-center mb-5 p-4 bg-navy-700 rounded-xl border border-navy-600">
+                        <div
+                            class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center shadow-lg">
+                            <span class="text-white font-bold text-xl">
+                                {{ strtoupper(substr($contactName, 0, 1)) }}
+                            </span>
                         </div>
-                    @endif
+                        <div class="ml-4">
+                            <p class="font-bold text-gray-100">{{ $contactName }}</p>
+                            <p class="text-sm text-gray-400 flex items-center">
+                                <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                {{ $isConsigner ? 'Người ký gửi' : 'Thành viên xác thực' }}
+                            </p>
+                        </div>
+                    </div>
 
                     <div class="space-y-3">
-                        <a href="tel:{{ $consignment['user']['phone'] ?? '0123456789' }}"
+                        <a href="tel:{{ $contactPhone }}"
                             class="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition shadow-lg shadow-green-500/25 font-semibold">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -538,7 +543,7 @@
                             Gọi ngay
                         </a>
 
-                        <a href="https://zalo.me/{{ $consignment['user']['phone'] ?? '0123456789' }}" target="_blank"
+                        <a href="https://zalo.me/{{ $contactPhone }}" target="_blank"
                             class="w-full flex items-center justify-center px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition shadow-lg font-semibold">
                             <span class="mr-2 text-lg">💬</span>
                             Chat Zalo
