@@ -29,21 +29,34 @@ type Consignment struct {
 	Description     string          `json:"description" gorm:"type:text"`
 	FeaturedImage   string          `json:"featured_image"`
 	Price           float64         `json:"price"`
+	MinPrice        float64         `json:"min_price"`
 	Address         string          `json:"address"`
 	Province        string          `json:"province"`
 	Ward            string          `json:"ward"`
 	AreaDimensions  string          `json:"area_dimensions"`
+	AreaRange       string          `json:"area_range"`
 	ResidentialArea string          `json:"residential_area"`
+	ResidentialType string          `json:"residential_type"`
 	LandDirections  json.RawMessage `json:"land_directions" gorm:"type:json"`
+	LandTypes       json.RawMessage `json:"land_types" gorm:"type:json"`
 	Road            string          `json:"road"`
+	RoadDisplay     string          `json:"road_display"`
 	HasHouse        string          `json:"has_house"`
 	FrontageActual  string          `json:"frontage_actual"`
+	FrontageRange   string          `json:"frontage_range"`
+	FloorArea       float64         `json:"floor_area"`
+	Keywords        string          `json:"keywords"`
 	Latitude        string          `json:"latitude"`
 	Longitude       string          `json:"longitude"`
 	SeoUrl          string          `json:"seo_url"`
 	Status          string          `json:"status" gorm:"default:pending"` // pending, approved, rejected, sold
 	OrderNumber     int             `json:"order_number"`
+	DisplayOrder    int             `json:"display_order"`
 	Images          json.RawMessage `json:"images" gorm:"type:json"`
+	SheetNumber     string          `json:"sheet_number"`
+	ParcelNumber    string          `json:"parcel_number"`
+	ConsignerPhone  string          `json:"consigner_phone"`
+	SellerPhone     string          `json:"seller_phone"`
 	CreatedAt       time.Time       `json:"created_at"`
 	UpdatedAt       time.Time       `json:"updated_at"`
 	DeletedAt       gorm.DeletedAt  `json:"-" gorm:"index"`

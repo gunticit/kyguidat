@@ -24,10 +24,13 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - BACKEND_URL=http://backend-nginx:80
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     networks:
       - khodat-network
     depends_on:
       mysql:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
 
   # ===========================================
@@ -260,6 +263,29 @@ services:
       retries: 5
 
   # ===========================================
+  # ELASTICSEARCH (Full-text Search)
+  # ===========================================
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    container_name: khodat-elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - khodat-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ===========================================
   # SOCKET.IO SERVER (Real-time Support Chat)
   # ===========================================
   socket:
@@ -287,5 +313,6 @@ networks:
 volumes:
   mysql-data:
   redis-data:
+  es-data:
   minio-data:
   sandat-storage:

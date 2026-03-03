@@ -53,6 +53,7 @@ Hệ thống quản lý ký gửi bất động sản với kiến trúc microse
 | **Golang API** | Go + Gin | 8080 | API cho Sàn đất và Admin |
 | **Vue Admin** | Vue 3 | 8089 | Trang quản trị tổng |
 | **MinIO** | S3-Compatible | 9000/9002 | Object Storage (hình ảnh WebP) |
+| **Elasticsearch** | ES 8.12 | 9200 | Full-text search BĐS (tiếng Việt) |
 | **Socket.IO** | Node.js | 3020 | Real-time support chat |
 | **MySQL** | MySQL 8.0 | 3321 | Database chung |
 | **Redis** | Redis | 6394 | Cache & Sessions |
@@ -129,6 +130,7 @@ kyguidat/
 │   ├── internal/
 │   │   ├── config/           # Configuration
 │   │   ├── handlers/         # HTTP handlers
+│   │   ├── elasticsearch/   # ES client, indexer, search, sync
 │   │   ├── middleware/       # Auth, CORS, etc.
 │   │   ├── models/           # Data models
 │   │   └── repository/       # Database layer
@@ -206,6 +208,7 @@ DB_DATABASE=khodat
 DB_USERNAME=khodat
 DB_PASSWORD=khodat123
 JWT_SECRET=your_jwt_secret
+ELASTICSEARCH_URL=http://elasticsearch:9200
 ```
 
 ### Laravel Backend (.env)
@@ -260,7 +263,7 @@ IMAGE_FORMAT=webp
 
 **Public:**
 ```
-GET  /api/consignments          # Danh sách BĐS đã duyệt
+GET  /api/consignments          # Danh sách BĐS (Elasticsearch full-text search)
 GET  /api/consignments/:id      # Chi tiết BĐS
 GET  /api/categories            # Danh mục
 GET  /api/locations             # Khu vực
@@ -274,6 +277,8 @@ GET    /api/admin/consignments  # Tất cả bài đăng
 PUT    /api/admin/consignments/:id/approve  # Duyệt bài
 PUT    /api/admin/consignments/:id/reject   # Từ chối bài
 GET    /api/admin/transactions  # Giao dịch
+GET    /api/admin/elasticsearch/health  # ES cluster status
+POST   /api/admin/elasticsearch/sync    # Sync MySQL → ES
 ```
 
 ### Laravel Backend (Port 8015)

@@ -17,10 +17,13 @@ services:
       - DB_USERNAME=khodat
       - DB_PASSWORD=khodat123
       - JWT_SECRET=your-super-secret-jwt-key
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     networks:
       - khodat-network
     depends_on:
       mysql:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
 
   # ===========================================
@@ -175,6 +178,29 @@ services:
     command: npx nodemon server.js
 
   # ===========================================
+  # ELASTICSEARCH (Full-text Search)
+  # ===========================================
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    container_name: khodat-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - khodat-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ===========================================
   # MINIO (S3-Compatible Object Storage)
   # ===========================================
   minio:
@@ -225,6 +251,7 @@ networks:
 volumes:
   mysql-data:
   redis-data:
+  es-data:
   minio-data:
   backend-vendor:
   sandat-vendor:
