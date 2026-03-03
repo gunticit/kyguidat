@@ -65,13 +65,18 @@ func (c *Client) Health() (string, error) {
 	return string(body), nil
 }
 
-// doRequest performs an HTTP request to ES
+// doRequest performs an HTTP request to ES with application/json
 func (c *Client) doRequest(method, path string, body io.Reader) ([]byte, int, error) {
+	return c.doRequestWithContentType(method, path, body, "application/json")
+}
+
+// doRequestWithContentType performs an HTTP request with a custom content type
+func (c *Client) doRequestWithContentType(method, path string, body io.Reader, contentType string) ([]byte, int, error) {
 	req, err := http.NewRequest(method, c.BaseURL+path, body)
 	if err != nil {
 		return nil, 0, err
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", contentType)
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
