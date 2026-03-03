@@ -14,7 +14,7 @@
 @endphp
 <footer class="bg-navy-900 border-t border-navy-600">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div class="grid grid-cols-1 md:grid-cols-4 sm:gap-10 gap-4">
             <!-- Brand -->
             <div class="text-center md:text-left">
                 @if($logo)

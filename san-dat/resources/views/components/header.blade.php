@@ -82,10 +82,6 @@
                 class="block px-3 py-2.5 rounded-lg text-gray-300 hover:text-green-400 hover:bg-navy-700 transition font-medium">
                 Trang chủ
             </a>
-            <a href="{{ route('consignments.index') }}"
-                class="block px-3 py-2.5 rounded-lg text-gray-300 hover:text-green-400 hover:bg-navy-700 transition font-medium">
-                Bất động sản
-            </a>
             <a href="{{ route('articles.index') }}"
                 class="block px-3 py-2.5 rounded-lg text-gray-300 hover:text-green-400 hover:bg-navy-700 transition font-medium">
                 Tin tức
