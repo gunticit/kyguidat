@@ -202,21 +202,12 @@ func (c *Client) BulkIndex(consignments []models.Consignment) error {
 		return fmt.Errorf("bulk index error: %w", err)
 	}
 
-	log.Printf("📋 Bulk response (status %d, %d bytes): %s", statusCode, len(respBody), string(respBody[:min(len(respBody), 500)]))
-
 	if statusCode >= 400 {
 		return fmt.Errorf("bulk index error (status %d): %s", statusCode, string(respBody))
 	}
 
 	log.Printf("✅ Bulk indexed %d consignments", len(consignments))
 	return nil
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // DeleteConsignment removes a consignment from the index
