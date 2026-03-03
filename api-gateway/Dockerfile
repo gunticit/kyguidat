@@ -11,8 +11,8 @@ RUN go mod download || true
 COPY . .
 RUN go mod tidy
 
-# Download dependencies and build
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/server
+# Download dependencies and build (limited parallelism to prevent OOM on small VPS)
+RUN CGO_ENABLED=0 GOOS=linux go build -p 2 -o main ./cmd/server
 
 # Final stage
 FROM alpine:latest
