@@ -228,6 +228,12 @@ func (c *Client) DeleteConsignment(id uint) error {
 
 // consignmentToDoc converts a Consignment model to an ES document
 func consignmentToDoc(c models.Consignment) ConsignmentDoc {
+	// Skip base64 image data (too large for ES keyword)
+	featuredImage := c.FeaturedImage
+	if strings.HasPrefix(featuredImage, "data:") {
+		featuredImage = "" // Don't index base64 images
+	}
+
 	doc := ConsignmentDoc{
 		ID:              c.ID,
 		UserID:          c.UserID,
@@ -237,7 +243,7 @@ func consignmentToDoc(c models.Consignment) ConsignmentDoc {
 		Description:     c.Description,
 		Address:         c.Address,
 		Keywords:        c.Keywords,
-		FeaturedImage:   c.FeaturedImage,
+		FeaturedImage:   featuredImage,
 		Price:           c.Price,
 		MinPrice:        c.MinPrice,
 		Province:        c.Province,
