@@ -69,9 +69,9 @@ var indexMapping = `{
 			"display_order":    { "type": "integer" },
 			"consigner_phone":  { "type": "keyword" },
 			"seller_phone":     { "type": "keyword" },
-			"created_at":       { "type": "date", "format": "yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd HH:mm:ss||epoch_millis" },
-			"updated_at":       { "type": "date", "format": "yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd HH:mm:ss||epoch_millis" },
-			"approved_at":      { "type": "date", "format": "yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd HH:mm:ss||epoch_millis" },
+			"created_at":       { "type": "date", "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis" },
+			"updated_at":       { "type": "date", "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis" },
+			"approved_at":      { "type": "date", "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis" },
 			"user_name":        { "type": "keyword" }
 		}
 	}
@@ -267,8 +267,8 @@ func consignmentToDoc(c models.Consignment) ConsignmentDoc {
 		SeoUrl:          c.SeoUrl,
 		Status:          c.Status,
 		DisplayOrder:    c.DisplayOrder,
-		CreatedAt:       c.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:       c.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:       c.CreatedAt.Format("2006-01-02T15:04:05-07:00"),
+		UpdatedAt:       c.UpdatedAt.Format("2006-01-02T15:04:05-07:00"),
 	}
 
 	// User name
