@@ -197,7 +197,7 @@ func (c *Client) BulkIndex(consignments []models.Consignment) error {
 		buf.WriteByte('\n')
 	}
 
-	respBody, statusCode, err := c.doRequestWithContentType("POST", "/_bulk", &buf, "application/x-ndjson")
+	respBody, statusCode, err := c.doRequestWithContentType("POST", "/_bulk?refresh=true", &buf, "application/x-ndjson")
 	if err != nil {
 		return fmt.Errorf("bulk index error: %w", err)
 	}
