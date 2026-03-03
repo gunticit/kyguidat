@@ -2,59 +2,87 @@ package elasticsearch
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
-
-	"github.com/elastic/go-elasticsearch/v8"
+	"time"
 )
 
-// Client wraps the Elasticsearch client
+// Client wraps a lightweight HTTP-based Elasticsearch client
 type Client struct {
-	ES *elasticsearch.Client
+	BaseURL    string
+	HTTPClient *http.Client
 }
 
-// NewClient creates a new Elasticsearch client
+// NewClient creates a new Elasticsearch client using net/http
 func NewClient() (*Client, error) {
 	esURL := os.Getenv("ELASTICSEARCH_URL")
 	if esURL == "" {
 		esURL = "http://elasticsearch:9200"
 	}
 
-	cfg := elasticsearch.Config{
-		Addresses: []string{esURL},
-	}
-
-	es, err := elasticsearch.NewClient(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("error creating ES client: %w", err)
+	client := &Client{
+		BaseURL: esURL,
+		HTTPClient: &http.Client{
+			Timeout: 30 * time.Second,
+		},
 	}
 
 	// Check connection
-	res, err := es.Info()
+	resp, err := client.HTTPClient.Get(esURL)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to ES: %w", err)
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	if res.IsError() {
-		return nil, fmt.Errorf("ES connection error: %s", res.String())
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("ES connection error: %s", string(body))
 	}
 
 	log.Println("✅ Connected to Elasticsearch")
-	return &Client{ES: es}, nil
+	return client, nil
 }
 
 // Health checks cluster health
 func (c *Client) Health() (string, error) {
-	res, err := c.ES.Cluster.Health()
+	resp, err := c.HTTPClient.Get(c.BaseURL + "/_cluster/health")
 	if err != nil {
 		return "", err
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	if res.IsError() {
-		return "", fmt.Errorf("cluster health error: %s", res.String())
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
 	}
 
-	return res.String(), nil
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("cluster health error: %s", string(body))
+	}
+
+	return string(body), nil
+}
+
+// doRequest performs an HTTP request to ES
+func (c *Client) doRequest(method, path string, body io.Reader) ([]byte, int, error) {
+	req, err := http.NewRequest(method, c.BaseURL+path, body)
+	if err != nil {
+		return nil, 0, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, resp.StatusCode, err
+	}
+
+	return respBody, resp.StatusCode, nil
 }

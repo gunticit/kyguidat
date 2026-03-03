@@ -2,7 +2,6 @@ package elasticsearch
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -41,32 +40,27 @@ type SearchResult struct {
 func (c *Client) SearchConsignments(params SearchParams) (*SearchResult, error) {
 	query := buildQuery(params)
 
+	from := (params.Page - 1) * params.Limit
+	query["from"] = from
+	query["size"] = params.Limit
+	query["track_total_hits"] = true
+
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		return nil, fmt.Errorf("error encoding query: %w", err)
 	}
 
-	from := (params.Page - 1) * params.Limit
-
-	res, err := c.ES.Search(
-		c.ES.Search.WithContext(context.Background()),
-		c.ES.Search.WithIndex(IndexName),
-		c.ES.Search.WithBody(&buf),
-		c.ES.Search.WithFrom(from),
-		c.ES.Search.WithSize(params.Limit),
-		c.ES.Search.WithTrackTotalHits(true),
-	)
+	body, statusCode, err := c.doRequest("POST", "/"+IndexName+"/_search", &buf)
 	if err != nil {
 		return nil, fmt.Errorf("search error: %w", err)
 	}
-	defer res.Body.Close()
 
-	if res.IsError() {
-		return nil, fmt.Errorf("search error: %s", res.String())
+	if statusCode >= 400 {
+		return nil, fmt.Errorf("search error (status %d): %s", statusCode, string(body))
 	}
 
 	var result map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, fmt.Errorf("error parsing response: %w", err)
 	}
 
@@ -254,7 +248,6 @@ func buildQuery(params SearchParams) map[string]interface{} {
 		boolQuery["filter"] = filter
 	}
 	if len(must) == 0 && len(filter) > 0 {
-		// No search text but have filters — match all with filters
 		boolQuery["must"] = []map[string]interface{}{
 			{"match_all": map[string]interface{}{}},
 		}
@@ -301,14 +294,12 @@ func buildSort(sort string, hasSearch bool) []map[string]interface{} {
 		}
 	default:
 		if hasSearch {
-			// Sort by relevance score when searching
 			return []map[string]interface{}{
 				{"_score": map[string]interface{}{"order": "desc"}},
 				{"display_order": map[string]interface{}{"order": "asc", "missing": "_last"}},
 				{"created_at": map[string]interface{}{"order": "desc"}},
 			}
 		}
-		// Default sort: display_order then newest
 		return []map[string]interface{}{
 			{"display_order": map[string]interface{}{"order": "asc", "missing": "_last"}},
 			{"created_at": map[string]interface{}{"order": "desc"}},

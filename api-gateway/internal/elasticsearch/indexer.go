@@ -2,7 +2,6 @@ package elasticsearch
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -72,7 +71,7 @@ var indexMapping = `{
 			"seller_phone":     { "type": "keyword" },
 			"created_at":       { "type": "date", "format": "yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd HH:mm:ss||epoch_millis" },
 			"updated_at":       { "type": "date", "format": "yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd HH:mm:ss||epoch_millis" },
-			"approved_at":      { "type": "date", "format": "yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd HH:mm:ss||epoch_millis", "null_value": null },
+			"approved_at":      { "type": "date", "format": "yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd HH:mm:ss||epoch_millis" },
 			"user_name":        { "type": "keyword" }
 		}
 	}
@@ -123,29 +122,25 @@ type ConsignmentDoc struct {
 
 // EnsureIndex creates the consignments index if it doesn't exist
 func (c *Client) EnsureIndex() error {
-	res, err := c.ES.Indices.Exists([]string{IndexName})
+	// Check if index exists
+	_, statusCode, err := c.doRequest("HEAD", "/"+IndexName, nil)
 	if err != nil {
 		return fmt.Errorf("error checking index: %w", err)
 	}
-	defer res.Body.Close()
 
-	if res.StatusCode == 200 {
+	if statusCode == 200 {
 		log.Printf("✅ Index '%s' already exists", IndexName)
 		return nil
 	}
 
 	// Create index with mapping
-	res, err = c.ES.Indices.Create(
-		IndexName,
-		c.ES.Indices.Create.WithBody(strings.NewReader(indexMapping)),
-	)
+	_, statusCode, err = c.doRequest("PUT", "/"+IndexName, strings.NewReader(indexMapping))
 	if err != nil {
 		return fmt.Errorf("error creating index: %w", err)
 	}
-	defer res.Body.Close()
 
-	if res.IsError() {
-		return fmt.Errorf("error creating index: %s", res.String())
+	if statusCode >= 400 {
+		return fmt.Errorf("error creating index, status: %d", statusCode)
 	}
 
 	log.Printf("✅ Created index '%s' with Vietnamese analyzer", IndexName)
@@ -161,19 +156,14 @@ func (c *Client) IndexConsignment(consignment models.Consignment) error {
 		return fmt.Errorf("error marshaling document: %w", err)
 	}
 
-	res, err := c.ES.Index(
-		IndexName,
-		bytes.NewReader(data),
-		c.ES.Index.WithDocumentID(fmt.Sprintf("%d", doc.ID)),
-		c.ES.Index.WithContext(context.Background()),
-	)
+	path := fmt.Sprintf("/%s/_doc/%d", IndexName, doc.ID)
+	_, statusCode, err := c.doRequest("PUT", path, bytes.NewReader(data))
 	if err != nil {
 		return fmt.Errorf("error indexing document: %w", err)
 	}
-	defer res.Body.Close()
 
-	if res.IsError() {
-		return fmt.Errorf("error indexing document %d: %s", doc.ID, res.String())
+	if statusCode >= 400 {
+		return fmt.Errorf("error indexing document %d, status: %d", doc.ID, statusCode)
 	}
 
 	return nil
@@ -207,18 +197,13 @@ func (c *Client) BulkIndex(consignments []models.Consignment) error {
 		buf.WriteByte('\n')
 	}
 
-	res, err := c.ES.Bulk(
-		bytes.NewReader(buf.Bytes()),
-		c.ES.Bulk.WithIndex(IndexName),
-		c.ES.Bulk.WithContext(context.Background()),
-	)
+	_, statusCode, err := c.doRequest("POST", "/_bulk", &buf)
 	if err != nil {
 		return fmt.Errorf("bulk index error: %w", err)
 	}
-	defer res.Body.Close()
 
-	if res.IsError() {
-		return fmt.Errorf("bulk index error: %s", res.String())
+	if statusCode >= 400 {
+		return fmt.Errorf("bulk index error, status: %d", statusCode)
 	}
 
 	log.Printf("✅ Bulk indexed %d consignments", len(consignments))
@@ -227,17 +212,9 @@ func (c *Client) BulkIndex(consignments []models.Consignment) error {
 
 // DeleteConsignment removes a consignment from the index
 func (c *Client) DeleteConsignment(id uint) error {
-	res, err := c.ES.Delete(
-		IndexName,
-		fmt.Sprintf("%d", id),
-		c.ES.Delete.WithContext(context.Background()),
-	)
-	if err != nil {
-		return fmt.Errorf("error deleting document: %w", err)
-	}
-	defer res.Body.Close()
-
-	return nil
+	path := fmt.Sprintf("/%s/_doc/%d", IndexName, id)
+	_, _, err := c.doRequest("DELETE", path, nil)
+	return err
 }
 
 // consignmentToDoc converts a Consignment model to an ES document
