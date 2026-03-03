@@ -23,8 +23,6 @@
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-8">
                 <a href="{{ route('home') }}" class="text-gray-300 hover:text-green-400 transition">Trang chủ</a>
-                <a href="{{ route('consignments.index') }}" class="text-gray-300 hover:text-green-400 transition">Bất
-                    động sản</a>
                 <a href="{{ route('articles.index') }}" class="text-gray-300 hover:text-green-400 transition">Tin
                     tức</a>
                 <a href="{{ route('contact') }}" class="text-gray-300 hover:text-green-400 transition">Liên hệ</a>
