@@ -4,18 +4,19 @@
 
 @section('content')
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Breadcrumb -->
+        <nav class="mb-4 text-sm">
+            <a href="{{ route('home') }}" class="text-gray-400 hover:text-green-400 transition">Trang chủ</a>
+            <span class="text-gray-600 mx-2">›</span>
+            <a href="{{ route('articles.index') }}" class="text-gray-400 hover:text-green-400 transition">Tin
+                tức</a>
+            <span class="text-gray-600 mx-2">›</span>
+            <span class="text-gray-300">{{ $article['title'] }}</span>
+        </nav>
+
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Main Content -->
             <article class="lg:col-span-3">
-                <!-- Breadcrumb -->
-                <nav class="mb-4 text-sm">
-                    <a href="{{ route('home') }}" class="text-gray-400 hover:text-green-400 transition">Trang chủ</a>
-                    <span class="text-gray-600 mx-2">›</span>
-                    <a href="{{ route('articles.index') }}" class="text-gray-400 hover:text-green-400 transition">Tin
-                        tức</a>
-                    <span class="text-gray-600 mx-2">›</span>
-                    <span class="text-gray-300">{{ $article['title'] }}</span>
-                </nav>
 
                 <div class="bg-navy-700 rounded-lg shadow-md overflow-hidden border border-navy-600">
                     <!-- Featured Image -->

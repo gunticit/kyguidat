@@ -19,7 +19,7 @@
         <template v-else-if="data">
           <!-- Action buttons -->
           <div class="flex gap-3 mb-6" v-if="data.status === 'pending'">
-            <button @click="approve" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+            <button @click="doApprove" :disabled="acting" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
               Duyệt
             </button>
@@ -30,15 +30,13 @@
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left Column: Images + Main Info -->
+            <!-- Left Column -->
             <div class="lg:col-span-2 space-y-6">
               <!-- Images -->
               <div class="bg-white rounded-xl shadow-md overflow-hidden" v-if="allImages.length > 0">
                 <div class="p-4 border-b bg-gray-50"><h2 class="font-semibold text-gray-700">Hình ảnh</h2></div>
                 <div class="p-4">
-                  <!-- Main Image -->
                   <img :src="selectedImage" class="w-full h-80 object-cover rounded-lg mb-3" @error="$event.target.src='/images/placeholder.jpg'" />
-                  <!-- Thumbnails -->
                   <div class="flex gap-2 overflow-x-auto pb-2">
                     <img v-for="(img, i) in allImages" :key="i" :src="img" @click="selectedImage = img"
                          class="w-20 h-16 object-cover rounded cursor-pointer border-2 transition flex-shrink-0"
@@ -51,17 +49,20 @@
               <!-- Basic Info -->
               <div class="bg-white rounded-xl shadow-md overflow-hidden">
                 <div class="p-4 border-b bg-gray-50"><h2 class="font-semibold text-gray-700">Thông tin cơ bản</h2></div>
-                <div class="p-4 space-y-3">
-                  <InfoRow label="Tiêu đề" :value="data.title" bold />
-                  <InfoRow label="Mã" :value="'#' + (data.order_number || data.id)" />
-                  <InfoRow label="Danh mục" :value="data.category?.name || getCategoryName(data.category_id)" />
-                  <InfoRow label="Giá" :value="formatCurrency(data.price)" highlight />
-                  <InfoRow label="SEO URL" :value="data.seo_url" mono />
-                  <InfoRow label="Ngày thông báo" :value="formatDate(data.notification_date)" />
-                  <InfoRow label="Mô tả" :value="data.description" multiline />
-                  <InfoRow label="Ghi chú" :value="data.notes" multiline />
-                  <InfoRow label="Ghi chú nội bộ" :value="data.internal_note" multiline />
-                  <InfoRow label="Từ khóa" :value="data.keywords" />
+                <div class="p-4">
+                  <table class="w-full">
+                    <tbody>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500 w-40">Tiêu đề</td><td class="py-2 px-3 font-semibold">{{ data.title || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Mã</td><td class="py-2 px-3">{{ data.order_number || data.id }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Giá</td><td class="py-2 px-3 text-lg font-bold text-indigo-600">{{ formatCurrency(data.price) }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">SEO URL</td><td class="py-2 px-3 font-mono text-sm">{{ data.seo_url || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Ngày thông báo</td><td class="py-2 px-3">{{ formatDate(data.notification_date) }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500 align-top">Mô tả</td><td class="py-2 px-3 whitespace-pre-wrap">{{ data.description || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500 align-top">Ghi chú</td><td class="py-2 px-3 whitespace-pre-wrap">{{ data.notes || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500 align-top">Ghi chú nội bộ</td><td class="py-2 px-3 whitespace-pre-wrap">{{ data.internal_note || '—' }}</td></tr>
+                      <tr><td class="py-2 px-3 text-sm text-gray-500">Từ khóa</td><td class="py-2 px-3">{{ data.keywords || '—' }}</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -69,65 +70,76 @@
               <div class="bg-white rounded-xl shadow-md overflow-hidden">
                 <div class="p-4 border-b bg-gray-50"><h2 class="font-semibold text-gray-700">Thông tin đất</h2></div>
                 <div class="p-4">
-                  <div class="grid grid-cols-2 gap-3">
-                    <InfoRow label="Loại" :value="data.type" />
-                    <InfoRow label="Hướng" :value="formatArray(data.land_directions)" />
-                    <InfoRow label="Loại đất" :value="formatArray(data.land_types)" />
-                    <InfoRow label="Mặt đường" :value="data.road_display" />
-                    <InfoRow label="Mặt tiền (m)" :value="data.frontage_actual" />
-                    <InfoRow label="Mặt tiền (khoảng)" :value="data.frontage_range" />
-                    <InfoRow label="Diện tích (khoảng)" :value="data.area_range" />
-                    <InfoRow label="Kích thước" :value="data.area_dimensions" />
-                    <InfoRow label="Diện tích sàn (m²)" :value="data.floor_area" />
-                    <InfoRow label="Thổ cư (m²)" :value="data.residential_area" />
-                    <InfoRow label="Loại thổ cư" :value="data.residential_type" />
-                    <InfoRow label="Có nhà" :value="data.has_house" />
-                    <InfoRow label="Đường" :value="data.road" />
-                    <InfoRow label="Tờ số" :value="data.sheet_number" />
-                    <InfoRow label="Thửa số" :value="data.parcel_number" />
-                  </div>
+                  <table class="w-full">
+                    <tbody>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500 w-40">Loại</td><td class="py-2 px-3">{{ data.type || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Hướng</td><td class="py-2 px-3">{{ formatArray(data.land_directions) }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Loại đất</td><td class="py-2 px-3">{{ formatArray(data.land_types) }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Mặt đường</td><td class="py-2 px-3">{{ data.road_display || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Mặt tiền (m)</td><td class="py-2 px-3">{{ data.frontage_actual || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Mặt tiền (khoảng)</td><td class="py-2 px-3">{{ data.frontage_range || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Diện tích (khoảng)</td><td class="py-2 px-3">{{ data.area_range || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Kích thước</td><td class="py-2 px-3">{{ data.area_dimensions || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Diện tích sàn (m²)</td><td class="py-2 px-3">{{ data.floor_area || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Thổ cư (m²)</td><td class="py-2 px-3">{{ data.residential_area || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Loại thổ cư</td><td class="py-2 px-3">{{ data.residential_type || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Có nhà</td><td class="py-2 px-3">{{ data.has_house || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Đường</td><td class="py-2 px-3">{{ data.road || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Tờ số</td><td class="py-2 px-3">{{ data.sheet_number || '—' }}</td></tr>
+                      <tr><td class="py-2 px-3 text-sm text-gray-500">Thửa số</td><td class="py-2 px-3">{{ data.parcel_number || '—' }}</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
 
-            <!-- Right Column: Location + Consigner -->
+            <!-- Right Column -->
             <div class="space-y-6">
               <!-- Location -->
               <div class="bg-white rounded-xl shadow-md overflow-hidden">
                 <div class="p-4 border-b bg-gray-50"><h2 class="font-semibold text-gray-700">Vị trí</h2></div>
-                <div class="p-4 space-y-3">
-                  <InfoRow label="Tỉnh/TP" :value="data.province" />
-                  <InfoRow label="Xã/Phường" :value="data.ward" />
-                  <InfoRow label="Địa chỉ" :value="data.address" />
-                  <InfoRow label="Lat" :value="data.latitude" mono />
-                  <InfoRow label="Long" :value="data.longitude" mono />
-                  <div v-if="data.google_map_link">
-                    <span class="text-xs text-gray-500">Google Maps</span>
-                    <a :href="data.google_map_link" target="_blank" class="text-indigo-600 hover:text-indigo-800 text-sm block truncate">{{ data.google_map_link }}</a>
-                  </div>
+                <div class="p-4">
+                  <table class="w-full">
+                    <tbody>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500 w-24">Tỉnh/TP</td><td class="py-2 px-3">{{ data.province || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Xã/Phường</td><td class="py-2 px-3">{{ data.ward || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Địa chỉ</td><td class="py-2 px-3">{{ data.address || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Lat</td><td class="py-2 px-3 font-mono text-sm">{{ data.latitude || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Long</td><td class="py-2 px-3 font-mono text-sm">{{ data.longitude || '—' }}</td></tr>
+                      <tr v-if="data.google_map_link"><td class="py-2 px-3 text-sm text-gray-500">Maps</td><td class="py-2 px-3"><a :href="data.google_map_link" target="_blank" class="text-indigo-600 hover:text-indigo-800 text-sm truncate block">Xem bản đồ</a></td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
               <!-- Consigner -->
               <div class="bg-white rounded-xl shadow-md overflow-hidden">
                 <div class="p-4 border-b bg-gray-50"><h2 class="font-semibold text-gray-700">Người ký gửi</h2></div>
-                <div class="p-4 space-y-3">
-                  <InfoRow label="Tên" :value="data.consigner_name" />
-                  <InfoRow label="SĐT" :value="data.consigner_phone" />
-                  <InfoRow label="Loại" :value="data.consigner_type" />
-                  <InfoRow label="Người đăng" :value="data.user?.name" />
-                  <InfoRow label="Email" :value="data.user?.email" />
+                <div class="p-4">
+                  <table class="w-full">
+                    <tbody>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500 w-24">Tên</td><td class="py-2 px-3">{{ data.consigner_name || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">SĐT</td><td class="py-2 px-3">{{ data.consigner_phone || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Loại</td><td class="py-2 px-3">{{ data.consigner_type || '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Người đăng</td><td class="py-2 px-3">{{ data.user?.name || '—' }}</td></tr>
+                      <tr><td class="py-2 px-3 text-sm text-gray-500">Email</td><td class="py-2 px-3">{{ data.user?.email || '—' }}</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
               <!-- Meta -->
               <div class="bg-white rounded-xl shadow-md overflow-hidden">
                 <div class="p-4 border-b bg-gray-50"><h2 class="font-semibold text-gray-700">Thông tin khác</h2></div>
-                <div class="p-4 space-y-3">
-                  <InfoRow label="Thứ tự" :value="data.display_order" />
-                  <InfoRow label="Ngày tạo" :value="formatDate(data.created_at)" />
-                  <InfoRow label="Cập nhật" :value="formatDate(data.updated_at)" />
-                  <div v-if="data.reject_reason" class="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
+                <div class="p-4">
+                  <table class="w-full">
+                    <tbody>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500 w-24">Thứ tự</td><td class="py-2 px-3">{{ data.display_order ?? '—' }}</td></tr>
+                      <tr class="border-b"><td class="py-2 px-3 text-sm text-gray-500">Ngày tạo</td><td class="py-2 px-3">{{ formatDate(data.created_at) }}</td></tr>
+                      <tr><td class="py-2 px-3 text-sm text-gray-500">Cập nhật</td><td class="py-2 px-3">{{ formatDate(data.updated_at) }}</td></tr>
+                    </tbody>
+                  </table>
+                  <div v-if="data.reject_reason" class="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
                     <span class="text-xs font-medium text-red-600">Lý do từ chối:</span>
                     <p class="text-sm text-red-700 mt-1">{{ data.reject_reason }}</p>
                   </div>
@@ -144,7 +156,7 @@
             <textarea v-model="rejectReason" rows="3" placeholder="Nhập lý do từ chối..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 mb-4"></textarea>
             <div class="flex justify-end gap-3">
               <button @click="showRejectModal = false" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Hủy</button>
-              <button @click="reject" :disabled="acting" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
+              <button @click="doReject" :disabled="acting" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
                 {{ acting ? 'Đang xử lý...' : 'Từ chối' }}
               </button>
             </div>
@@ -157,13 +169,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Header from '@/components/layout/Header.vue'
 import { adminApi } from '@/services/api'
 
 const route = useRoute()
-const router = useRouter()
 const data = ref(null)
 const loading = ref(true)
 const error = ref('')
@@ -171,17 +182,6 @@ const selectedImage = ref('')
 const showRejectModal = ref(false)
 const rejectReason = ref('')
 const acting = ref(false)
-
-const categories = [
-  { id: 1, name: 'Đất nền' },
-  { id: 2, name: 'Nhà phố' },
-  { id: 3, name: 'Biệt thự' },
-  { id: 4, name: 'Căn hộ' },
-  { id: 5, name: 'Đất nông nghiệp' },
-  { id: 6, name: 'Khác' }
-]
-
-const getCategoryName = (id) => categories.find(c => c.id == id)?.name || `ID: ${id}`
 
 const allImages = computed(() => {
   if (!data.value) return []
@@ -198,7 +198,7 @@ const allImages = computed(() => {
 })
 
 const formatCurrency = (v) => {
-  if (!v) return '—'
+  if (!v && v !== 0) return '—'
   return new Intl.NumberFormat('vi-VN').format(v) + ' VNĐ'
 }
 
@@ -215,13 +215,19 @@ const formatArray = (val) => {
   return Array.isArray(val) && val.length ? val.join(', ') : '—'
 }
 
-const statusClass = (s) => ({
-  'bg-yellow-100 text-yellow-800': s === 'pending',
-  'bg-green-100 text-green-800': s === 'approved',
-  'bg-red-100 text-red-800': s === 'rejected',
-}[s] || 'bg-gray-100 text-gray-800')
+const statusClass = (s) => {
+  if (s === 'pending') return 'bg-yellow-100 text-yellow-800'
+  if (s === 'approved') return 'bg-green-100 text-green-800'
+  if (s === 'rejected') return 'bg-red-100 text-red-800'
+  return 'bg-gray-100 text-gray-800'
+}
 
-const statusText = (s) => ({ pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối' }[s] || s)
+const statusText = (s) => {
+  if (s === 'pending') return 'Chờ duyệt'
+  if (s === 'approved') return 'Đã duyệt'
+  if (s === 'rejected') return 'Từ chối'
+  return s
+}
 
 const loadData = async () => {
   loading.value = true
@@ -237,7 +243,7 @@ const loadData = async () => {
   }
 }
 
-const approve = async () => {
+const doApprove = async () => {
   acting.value = true
   try {
     await adminApi.approveConsignment(route.params.id)
@@ -249,7 +255,7 @@ const approve = async () => {
   }
 }
 
-const reject = async () => {
+const doReject = async () => {
   acting.value = true
   try {
     await adminApi.rejectConsignment(route.params.id, rejectReason.value)
@@ -264,27 +270,4 @@ const reject = async () => {
 }
 
 onMounted(loadData)
-
-// InfoRow component inline
-const InfoRow = {
-  props: {
-    label: String,
-    value: [String, Number],
-    bold: Boolean,
-    highlight: Boolean,
-    mono: Boolean,
-    multiline: Boolean,
-  },
-  template: `
-    <div v-if="value && value !== '—'" class="flex flex-col">
-      <span class="text-xs text-gray-500 mb-0.5">{{ label }}</span>
-      <p :class="[
-        bold ? 'font-semibold text-gray-900' : 'text-gray-700',
-        highlight ? 'text-lg font-bold text-indigo-600' : '',
-        mono ? 'font-mono text-sm' : '',
-        multiline ? 'whitespace-pre-wrap' : ''
-      ]" class="text-sm">{{ value }}</p>
-    </div>
-  `
-}
 </script>
