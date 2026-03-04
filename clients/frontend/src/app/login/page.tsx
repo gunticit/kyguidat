@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc';
@@ -18,6 +18,13 @@ export default function LoginPage() {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [generalError, setGeneralError] = useState<string>('');
+
+    useEffect(() => {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            router.push('/dashboard');
+        }
+    }, [router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
