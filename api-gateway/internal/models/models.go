@@ -55,6 +55,7 @@ type Consignment struct {
 	Images          json.RawMessage `json:"images" gorm:"type:json"`
 	SheetNumber     string          `json:"sheet_number"`
 	ParcelNumber    string          `json:"parcel_number"`
+	ConsignerName   string          `json:"consigner_name"`
 	ConsignerPhone  string          `json:"consigner_phone"`
 	SellerPhone     string          `json:"seller_phone"`
 	CreatedAt       time.Time       `json:"created_at"`

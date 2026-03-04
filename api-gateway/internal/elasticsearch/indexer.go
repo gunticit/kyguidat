@@ -67,6 +67,7 @@ var indexMapping = `{
 			"seo_url":          { "type": "keyword" },
 			"status":           { "type": "keyword" },
 			"display_order":    { "type": "integer" },
+			"consigner_name":  { "type": "keyword" },
 			"consigner_phone":  { "type": "keyword" },
 			"seller_phone":     { "type": "keyword" },
 			"created_at":       { "type": "date", "format": "strict_date_optional_time||yyyy-MM-dd HH:mm:ss||epoch_millis" },
@@ -112,6 +113,7 @@ type ConsignmentDoc struct {
 	SeoUrl          string      `json:"seo_url"`
 	Status          string      `json:"status"`
 	DisplayOrder    int         `json:"display_order"`
+	ConsignerName   string      `json:"consigner_name"`
 	ConsignerPhone  string      `json:"consigner_phone"`
 	SellerPhone     string      `json:"seller_phone"`
 	CreatedAt       string      `json:"created_at"`
@@ -251,6 +253,7 @@ func consignmentToDoc(c models.Consignment) ConsignmentDoc {
 		FrontageRange:   c.FrontageRange,
 		SheetNumber:     c.SheetNumber,
 		ParcelNumber:    c.ParcelNumber,
+		ConsignerName:   c.ConsignerName,
 		ConsignerPhone:  c.ConsignerPhone,
 		SellerPhone:     c.SellerPhone,
 		Latitude:        c.Latitude,
