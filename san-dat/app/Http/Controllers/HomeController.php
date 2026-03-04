@@ -18,7 +18,8 @@ class HomeController extends Controller
     {
         $response = $this->apiService->getConsignments([
             'page' => 1,
-            'limit' => 8
+            'limit' => 30,
+            'sort' => 'latest',
         ]);
 
         $consignments = $response['data'] ?? [];

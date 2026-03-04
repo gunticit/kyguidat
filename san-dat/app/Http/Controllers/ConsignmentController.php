@@ -72,12 +72,13 @@ class ConsignmentController extends Controller
     {
         $params = [
             'page' => $request->get('page', 1),
-            'limit' => $request->get('limit', 12),
+            'limit' => $request->get('limit', 30),
             'search' => $request->get('search'),
             'province' => $request->get('province'),
             'lat' => $request->get('lat'),
             'lng' => $request->get('lng'),
             'max_distance' => $request->get('max_distance'),
+            'sort' => $request->get('sort', 'latest'),
         ];
 
         $response = $this->apiService->getConsignments(array_filter($params));
