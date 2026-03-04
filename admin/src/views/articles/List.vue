@@ -115,8 +115,21 @@
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh đại diện (URL)</label>
-                <input v-model="form.featured_image" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://..." />
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh đại diện</label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-500 transition-colors">
+                  <div v-if="imagePreview || form.featured_image" class="mb-3">
+                    <img :src="imagePreview || form.featured_image" alt="Preview" class="max-h-40 mx-auto object-contain rounded" />
+                  </div>
+                  <div v-else class="mb-3">
+                    <svg class="w-10 h-10 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  </div>
+                  <input type="file" @change="handleImageUpload" accept="image/*" class="hidden" ref="imageInput" />
+                  <button type="button" @click="$refs.imageInput.click()" :disabled="uploadingImage" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm">
+                    {{ uploadingImage ? 'Đang tải lên...' : 'Chọn ảnh' }}
+                  </button>
+                  <p v-if="imageError" class="text-red-500 text-xs mt-2">{{ imageError }}</p>
+                  <p class="text-xs text-gray-500 mt-2">PNG, JPG, WebP tối đa 5MB</p>
+                </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
@@ -201,6 +214,36 @@ const slugManuallyEdited = ref(false)
 const showDeleteModal = ref(false)
 const deleteTarget = ref(null)
 
+// Image upload
+const imagePreview = ref('')
+const uploadingImage = ref(false)
+const imageError = ref('')
+
+const handleImageUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  if (file.size > 5 * 1024 * 1024) {
+    imageError.value = 'Ảnh quá lớn (tối đa 5MB)'
+    return
+  }
+  imageError.value = ''
+  imagePreview.value = URL.createObjectURL(file)
+  uploadingImage.value = true
+  try {
+    const res = await adminApi.uploadOptimizedImage(file, 'articles')
+    if (res.data?.url) {
+      form.value.featured_image = res.data.url
+    } else if (res.data?.data?.url) {
+      form.value.featured_image = res.data.data.url
+    }
+  } catch (e) {
+    imageError.value = 'Lỗi tải ảnh: ' + (e.response?.data?.message || e.message)
+    imagePreview.value = ''
+  } finally {
+    uploadingImage.value = false
+  }
+}
+
 let debounceTimer = null
 const debouncedLoad = () => {
   clearTimeout(debounceTimer)
@@ -227,6 +270,8 @@ const openCreate = () => {
   slugStatus.value = ''
   slugUsedBy.value = ''
   slugManuallyEdited.value = false
+  imagePreview.value = ''
+  imageError.value = ''
   showModal.value = true
 }
 
@@ -237,6 +282,8 @@ const openEdit = (article) => {
   slugStatus.value = ''
   slugUsedBy.value = ''
   slugManuallyEdited.value = true
+  imagePreview.value = ''
+  imageError.value = ''
   showModal.value = true
 }
 

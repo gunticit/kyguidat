@@ -21,10 +21,8 @@
                 <div class="bg-navy-700 rounded-lg shadow-md overflow-hidden border border-navy-600">
                     <!-- Featured Image -->
                     @if(!empty($article['featured_image']))
-                        @php $showImg = $article['featured_image']; $showImgSrc = str_starts_with($showImg, 'data:') ? $showImg : preg_replace('#^https?://[^/]+#', '', $showImg); @endphp
-                        <img src="{{ $showImgSrc }}"
-                            alt="{{ $article['title'] }}" class="w-full h-64 md:h-80 object-cover"
-                            onerror="this.style.display='none'">
+                        <img src="{{ $article['featured_image'] }}" alt="{{ $article['title'] }}"
+                            class="w-full h-64 md:h-80 object-cover" onerror="this.style.display='none'">
                     @endif
 
                     <div class="p-6 md:p-8">
@@ -82,9 +80,7 @@
                                 @if(($recent['slug'] ?? '') !== ($article['slug'] ?? ''))
                                     <a href="{{ route('articles.show', $recent['slug']) }}" class="flex gap-3 group">
                                         @if(!empty($recent['featured_image']))
-                                            @php $recImg = $recent['featured_image']; $recImgSrc = str_starts_with($recImg, 'data:') ? $recImg : preg_replace('#^https?://[^/]+#', '', $recImg); @endphp
-                                            <img src="{{ $recImgSrc }}"
-                                                class="w-16 h-12 object-cover rounded flex-shrink-0"
+                                            <img src="{{ $recent['featured_image'] }}" class="w-16 h-12 object-cover rounded flex-shrink-0"
                                                 onerror="this.src='/images/placeholder.jpg'">
                                         @else
                                             <div class="w-16 h-12 bg-navy-800 rounded flex-shrink-0 flex items-center justify-center">
@@ -96,9 +92,11 @@
                                         @endif
                                         <div>
                                             <p class="text-sm text-gray-300 group-hover:text-green-400 transition line-clamp-2">
-                                                {{ $recent['title'] }}</p>
+                                                {{ $recent['title'] }}
+                                            </p>
                                             <p class="text-xs text-gray-500 mt-1">
-                                                {{ \Carbon\Carbon::parse($recent['published_at'])->format('d/m/Y') }}</p>
+                                                {{ \Carbon\Carbon::parse($recent['published_at'])->format('d/m/Y') }}
+                                            </p>
                                         </div>
                                     </a>
                                 @endif
