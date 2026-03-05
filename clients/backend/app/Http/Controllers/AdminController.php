@@ -298,17 +298,10 @@ class AdminController extends Controller
             $validated['order_number'] = $maxOrder + 1;
         }
 
-        // Generate unique code based on max existing code
-        $maxCode = Consignment::max('code');
-        $nextNum = 1;
-        if ($maxCode && preg_match('/KG(\d+)/', $maxCode, $m)) {
-            $nextNum = intval($m[1]) + 1;
-        }
-        $code = 'KG' . str_pad($nextNum, 6, '0', STR_PAD_LEFT);
-        // Safety: ensure uniqueness
-        while (Consignment::where('code', $code)->exists()) {
-            $nextNum++;
-            $code = 'KG' . str_pad($nextNum, 6, '0', STR_PAD_LEFT);
+        // Generate unique code (same format as ConsignmentService)
+        $code = 'KG' . date('Ymd') . strtoupper(\Illuminate\Support\Str::random(4));
+        while (Consignment::withTrashed()->where('code', $code)->exists()) {
+            $code = 'KG' . date('Ymd') . strtoupper(\Illuminate\Support\Str::random(4));
         }
         $validated['code'] = $code;
         $validated['user_id'] = $request->user()->id;
