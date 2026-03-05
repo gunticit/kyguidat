@@ -258,7 +258,7 @@ class AdminController extends Controller
             'floor_area' => 'nullable|numeric',
             'latitude' => 'nullable|string|max:50',
             'longitude' => 'nullable|string|max:50',
-            'google_map_link' => 'nullable|string|max:500',
+            'google_map_link' => 'nullable|string|max:2000',
             'consigner_name' => 'nullable|string|max:255',
             'consigner_phone' => 'nullable|string|max:50',
             'consigner_type' => 'nullable|string|max:50',
@@ -314,6 +314,14 @@ class AdminController extends Controller
         $validated['user_id'] = $request->user()->id;
         $validated['status'] = $validated['status'] ?? 'pending';
 
+        // Auto-extract lat/lng from google_map_link if not provided
+        if (!empty($validated['google_map_link']) && (empty($validated['latitude']) || empty($validated['longitude']))) {
+            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $validated['google_map_link'], $matches)) {
+                $validated['latitude'] = $matches[1];
+                $validated['longitude'] = $matches[2];
+            }
+        }
+
         $consignment = Consignment::create($validated);
 
         return response()->json([
@@ -362,7 +370,7 @@ class AdminController extends Controller
             'floor_area' => 'nullable|numeric',
             'latitude' => 'nullable|string|max:50',
             'longitude' => 'nullable|string|max:50',
-            'google_map_link' => 'nullable|string|max:500',
+            'google_map_link' => 'nullable|string|max:2000',
             'consigner_name' => 'nullable|string|max:255',
             'consigner_phone' => 'nullable|string|max:50',
             'consigner_type' => 'nullable|string|max:50',
@@ -382,6 +390,14 @@ class AdminController extends Controller
                 'message' => 'SEO URL đã được sử dụng bởi một bài viết',
                 'errors' => ['seo_url' => ['SEO URL đã được sử dụng bởi một bài viết']],
             ], 422);
+        }
+
+        // Auto-extract lat/lng from google_map_link if not provided
+        if (!empty($validated['google_map_link']) && (empty($validated['latitude']) || empty($validated['longitude']))) {
+            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $validated['google_map_link'], $matches)) {
+                $validated['latitude'] = $matches[1];
+                $validated['longitude'] = $matches[2];
+            }
         }
 
         $consignment->update($validated);

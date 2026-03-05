@@ -17,7 +17,7 @@ class UpdateConsignmentRequest extends FormRequest
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:10000',
             'address' => 'sometimes|string|max:500',
-            'google_map_link' => 'nullable|string|url|max:500',
+            'google_map_link' => 'nullable|string|url|max:2000',
             'price' => 'sometimes|numeric|min:1000000',
             'min_price' => 'nullable|numeric|min:1000000|lte:price',
             'seller_phone' => 'sometimes|string|regex:/^[0-9]{10,11}$/',

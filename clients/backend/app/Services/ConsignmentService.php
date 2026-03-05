@@ -133,12 +133,23 @@ class ConsignmentService
         // Auto-set featured_image from first image if not provided
         $featuredImage = !empty($images) ? $images[0] : null;
 
+        // Auto-extract lat/lng from google_map_link
+        $latitude = null;
+        $longitude = null;
+        $mapLink = $data['google_map_link'] ?? null;
+        if ($mapLink && preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
+            $latitude = $matches[1];
+            $longitude = $matches[2];
+        }
+
         $consignment = $user->consignments()->create([
             'code' => $this->generateCode(),
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'address' => $data['address'],
-            'google_map_link' => $data['google_map_link'] ?? null,
+            'google_map_link' => $mapLink,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
             'price' => $data['price'],
             'min_price' => $data['min_price'] ?? null,
             'seller_phone' => $data['seller_phone'],

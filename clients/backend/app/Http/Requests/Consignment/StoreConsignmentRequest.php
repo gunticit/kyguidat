@@ -17,7 +17,7 @@ class StoreConsignmentRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
             'address' => 'required|string|max:500',
-            'google_map_link' => 'nullable|string|url|max:500',
+            'google_map_link' => 'nullable|string|url|max:2000',
             'price' => 'required|numeric|min:1000000',
             'min_price' => 'nullable|numeric|min:1000000|lte:price',
             'seller_phone' => 'required|string|regex:/^[0-9]{10,11}$/',
