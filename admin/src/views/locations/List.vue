@@ -1,9 +1,9 @@
 <template>
   <div class="flex h-screen">
-    <Sidebar />
+    <Sidebar ref="sidebar" />
     <div class="flex-1 overflow-auto">
-      <Header />
-      <main class="p-6">
+      <Header @toggle-sidebar="$refs.sidebar?.open()" />
+      <main class="p-3 sm:p-6">
     <h1 class="text-2xl font-bold mb-6">Quản lý Địa giới hành chính</h1>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

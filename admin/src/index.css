@@ -5,3 +5,39 @@
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
+
+/* Mobile responsive: scrollable tables */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  thead,
+  tbody,
+  tr {
+    min-width: 600px;
+  }
+
+  /* Stack grid columns on mobile */
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-5 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modal full width on mobile */
+  .max-w-5xl,
+  .max-w-3xl,
+  .max-w-2xl {
+    max-width: 100% !important;
+    margin: 0.5rem;
+  }
+
+  /* Smaller text on mobile */
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+}

@@ -1,9 +1,9 @@
 <template>
   <div class="flex h-screen">
-    <Sidebar />
+    <Sidebar ref="sidebar" />
     <div class="flex-1 overflow-auto">
-      <Header />
-      <main class="p-6">
+      <Header @toggle-sidebar="$refs.sidebar?.open()" />
+      <main class="p-3 sm:p-6">
         <!-- Back + Title -->
         <div class="flex items-center gap-4 mb-6">
           <router-link to="/consignments" class="text-gray-400 hover:text-gray-600 transition">

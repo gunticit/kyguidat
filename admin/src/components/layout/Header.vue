@@ -1,15 +1,23 @@
 <template>
-  <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-    <div>
-      <h2 class="text-gray-500 text-sm">Xin chào,</h2>
-      <p class="font-semibold">{{ user?.name || 'Admin' }}</p>
+  <header class="bg-white shadow-sm px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <!-- Mobile hamburger -->
+      <button @click="$emit('toggle-sidebar')" class="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition">
+        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+      <div>
+        <h2 class="text-gray-500 text-xs sm:text-sm">Xin chào,</h2>
+        <p class="font-semibold text-sm sm:text-base">{{ user?.name || 'Admin' }}</p>
+      </div>
     </div>
     
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center space-x-2 sm:space-x-3">
       <!-- Notifications -->
       <div class="relative" ref="notifRef">
         <button @click="toggleNotifications" class="p-2 rounded-full hover:bg-gray-100 relative transition">
-          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
           <span v-if="unreadCount > 0" class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1">
@@ -19,7 +27,7 @@
 
         <!-- Notification Dropdown -->
         <Transition name="dropdown">
-          <div v-if="showNotifications" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+          <div v-if="showNotifications" class="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
             <div class="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
               <h3 class="font-semibold text-sm text-gray-700">Thông báo</h3>
               <button v-if="unreadCount > 0" @click="markAllRead" class="text-xs text-indigo-600 hover:underline">
@@ -55,8 +63,8 @@
       <!-- User Profile -->
       <div class="relative" ref="profileRef">
         <button @click="toggleProfile" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition">
-          <div class="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center">
-            <span class="text-indigo-600 font-semibold text-sm">{{ user?.name?.charAt(0)?.toUpperCase() || 'A' }}</span>
+          <div class="w-8 h-8 sm:w-9 sm:h-9 bg-indigo-100 rounded-full flex items-center justify-center">
+            <span class="text-indigo-600 font-semibold text-xs sm:text-sm">{{ user?.name?.charAt(0)?.toUpperCase() || 'A' }}</span>
           </div>
         </button>
 
@@ -99,6 +107,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { adminApi } from '@/services/api'
+
+defineEmits(['toggle-sidebar'])
 
 const router = useRouter()
 const authStore = useAuthStore()

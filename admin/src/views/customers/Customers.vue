@@ -1,9 +1,9 @@
 <template>
   <div class="flex h-screen bg-gray-100">
-    <Sidebar />
+    <Sidebar ref="sidebar" />
     <div class="flex-1 flex flex-col overflow-hidden">
-      <Header />
-      <main class="flex-1 overflow-y-auto p-6">
+      <Header @toggle-sidebar="$refs.sidebar?.open()" />
+      <main class="flex-1 overflow-y-auto p-3 sm:p-6">
         <div class="max-w-7xl mx-auto">
           <!-- Header -->
           <div class="flex justify-between items-center mb-6">
