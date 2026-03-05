@@ -13,7 +13,9 @@ RUN apk add --no-cache \
     supervisor
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    && apk del .build-deps
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
