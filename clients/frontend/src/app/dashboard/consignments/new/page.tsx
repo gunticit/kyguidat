@@ -127,7 +127,7 @@ export default function NewConsignmentPage() {
         if (formData.min_price && parseInt(formData.min_price) > parseInt(formData.price)) {
             newErrors.min_price = 'Giá thấp nhất phải nhỏ hơn hoặc bằng giá mong muốn';
         }
-        if (formData.google_map_link && !formData.google_map_link.includes('google.com/maps')) {
+        if (formData.google_map_link && !(/google\.com\/maps|maps\.app\.goo\.gl|goo\.gl\/maps/.test(formData.google_map_link))) {
             newErrors.google_map_link = 'Link Google Map không hợp lệ';
         }
 
@@ -274,7 +274,7 @@ export default function NewConsignmentPage() {
                             type="text"
                             name="google_map_link"
                             className={`input ${errors.google_map_link ? 'input-error' : ''}`}
-                            placeholder="VD: https://www.google.com/maps/place/..."
+                            placeholder="VD: https://maps.app.goo.gl/abc123 hoặc link Google Maps"
                             value={formData.google_map_link}
                             onChange={handleChange}
                         />

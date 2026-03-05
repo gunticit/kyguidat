@@ -75,6 +75,40 @@
                                     allowfullscreen>
                                 </iframe>
                             </div>
+                            @if(!empty($consignment['google_map_link']))
+                                <a href="{{ $consignment['google_map_link'] }}" target="_blank"
+                                    class="mt-2 inline-flex items-center text-sm text-green-400 hover:text-green-300 transition">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    Mở Google Maps
+                                </a>
+                            @endif
+                        @elseif(!empty($consignment['google_map_link']))
+                            <div class="mt-4 rounded-lg overflow-hidden border border-navy-600">
+                                <iframe width="100%" height="300" style="border:0" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    src="https://maps.google.com/maps?q={{ urlencode($consignment['address'] ?? '') }}&z=15&output=embed"
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <a href="{{ $consignment['google_map_link'] }}" target="_blank"
+                                class="mt-2 inline-flex items-center text-sm text-green-400 hover:text-green-300 transition">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                Mở Google Maps
+                            </a>
+                        @elseif(!empty($consignment['address']))
+                            <div class="mt-4 rounded-lg overflow-hidden border border-navy-600">
+                                <iframe width="100%" height="300" style="border:0" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    src="https://maps.google.com/maps?q={{ urlencode($consignment['address']) }}&z=15&output=embed"
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
                         @else
                             <div
                                 class="mt-4 bg-navy-700 rounded-lg h-48 flex items-center justify-center text-gray-500 border border-navy-600">
