@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
-
-const inter = Inter({ subsets: ['vietnamese', 'latin'] });
 
 export const metadata: Metadata = {
     title: 'Khodat - Nền tảng Ký gửi',
@@ -17,7 +14,12 @@ export default function RootLayout({
 }) {
     return (
         <html lang="vi">
-            <body className={inter.className}>
+            <head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+            </head>
+            <body style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
                 {children}
                 <Toaster
                     position="top-right"
