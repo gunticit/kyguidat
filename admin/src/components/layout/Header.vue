@@ -137,15 +137,29 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 const notifications = ref([])
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
+const NOTIF_READ_KEY = 'admin_notif_read_ids'
+
+const getReadIds = () => {
+  try {
+    return JSON.parse(localStorage.getItem(NOTIF_READ_KEY) || '[]')
+  } catch { return [] }
+}
+
+const saveReadIds = (ids) => {
+  localStorage.setItem(NOTIF_READ_KEY, JSON.stringify(ids))
+}
+
 const fetchNotifications = async () => {
   try {
     const res = await adminApi.getConsignments({ per_page: 5, status: 'pending' })
     const pending = res.data?.data || []
+    const readIds = getReadIds()
     notifications.value = pending.map(c => ({
+      id: c.id,
       type: 'pending',
       message: `Ký gửi mới "${c.title}" đang chờ duyệt`,
       time: formatTimeAgo(c.created_at),
-      read: false,
+      read: readIds.includes(c.id),
       link: '/consignments'
     }))
   } catch {
@@ -154,11 +168,19 @@ const fetchNotifications = async () => {
 }
 
 const markAllRead = () => {
+  const ids = notifications.value.map(n => n.id)
   notifications.value.forEach(n => n.read = true)
+  const readIds = getReadIds()
+  saveReadIds([...new Set([...readIds, ...ids])])
 }
 
 const handleNotifClick = (notif) => {
   notif.read = true
+  const readIds = getReadIds()
+  if (!readIds.includes(notif.id)) {
+    readIds.push(notif.id)
+    saveReadIds(readIds)
+  }
   showNotifications.value = false
   if (notif.link) router.push(notif.link)
 }
