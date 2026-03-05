@@ -1,4 +1,4 @@
-# 🚀 Hướng dẫn Deploy kyguidatvuon.com lên Ubuntu VPS
+# 🚀 Hướng dẫn Deploy khodat.com lên Ubuntu VPS
 
 ## Yêu cầu VPS
 - Ubuntu 22.04+
@@ -15,13 +15,13 @@
 Internet → Nginx (Host) → Docker Containers
                 ↓
     ┌───────────────────────────────────┐
-    │  kyguidatvuon.com    → :8088     │  san-dat (Laravel)
-    │  api.kyguidatvuon.com → :8080    │  api-gateway (Go)
-    │  admin.kyguidatvuon.com → :8089  │  admin (Vue)
-    │  app.kyguidatvuon.com → :3015   │  frontend (Next.js)
-    │  backend.kyguidatvuon.com → :8015│  backend-nginx → backend
-    │  socket.kyguidatvuon.com → :3020 │  socket (Node.js)
-    │  storage.kyguidatvuon.com → :9000│  minio (S3 Object Storage)
+    │  khodat.com    → :8088     │  san-dat (Laravel)
+    │  api.khodat.com → :8080    │  api-gateway (Go)
+    │  admin.khodat.com → :8089  │  admin (Vue)
+    │  app.khodat.com → :3015   │  frontend (Next.js)
+    │  backend.khodat.com → :8015│  backend-nginx → backend
+    │  socket.khodat.com → :3020 │  socket (Node.js)
+    │  storage.khodat.com → :9000│  minio (S3 Object Storage)
     └───────────────────────────────────┘
               ↓              ↓
           MySQL:3316    Redis (internal)
@@ -78,8 +78,8 @@ Tại nhà cung cấp domain, tạo các bản ghi DNS:
 ⏰ Chờ DNS propagate (5-30 phút). Kiểm tra:
 
 ```bash
-dig +short kyguidatvuon.com
-dig +short api.kyguidatvuon.com
+dig +short khodat.com
+dig +short api.khodat.com
 ```
 
 ---
@@ -126,14 +126,14 @@ MAIL_PORT=587
 MAIL_USERNAME=your-real-email@gmail.com
 MAIL_PASSWORD=xxxx-xxxx-xxxx-xxxx     # Gmail App Password
 MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=noreply@kyguidatvuon.com
+MAIL_FROM_ADDRESS=noreply@khodat.com
 MAIL_FROM_NAME="Ky Gui Dat Vuon"
 
 # --- MinIO / S3 Storage ---
 MINIO_ROOT_USER=khodat_minio
 MINIO_ROOT_PASSWORD=MatKhauMinIoManh2026!
 MINIO_BUCKET=khodat
-MINIO_PUBLIC_URL=https://storage.kyguidatvuon.com/khodat
+MINIO_PUBLIC_URL=https://storage.khodat.com/khodat
 ```
 
 ### Cách tạo Gmail App Password:
@@ -176,13 +176,13 @@ sudo systemctl reload nginx
 
 ```bash
 sudo certbot --nginx \
-  -d kyguidatvuon.com \
-  -d www.kyguidatvuon.com \
-  -d api.kyguidatvuon.com \
-  -d admin.kyguidatvuon.com \
-  -d app.kyguidatvuon.com \
-  -d backend.kyguidatvuon.com \
-  -d socket.kyguidatvuon.com \
+  -d khodat.com \
+  -d www.khodat.com \
+  -d api.khodat.com \
+  -d admin.khodat.com \
+  -d app.khodat.com \
+  -d backend.khodat.com \
+  -d socket.khodat.com \
   --email your-email@gmail.com \
   --agree-tos \
   --no-eff-email \
@@ -281,11 +281,11 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
 
 ### Kiểm tra website:
 ```bash
-curl -I https://kyguidatvuon.com       # → 200
-curl -I https://api.kyguidatvuon.com    # → 200
-curl -I https://app.kyguidatvuon.com    # → 200
-curl -I https://admin.kyguidatvuon.com  # → 200
-curl -I https://backend.kyguidatvuon.com/api/public/consignments  # → 200
+curl -I https://khodat.com       # → 200
+curl -I https://api.khodat.com    # → 200
+curl -I https://app.khodat.com    # → 200
+curl -I https://admin.khodat.com  # → 200
+curl -I https://backend.khodat.com/api/public/consignments  # → 200
 ```
 
 ### Kiểm tra logs nếu lỗi:
@@ -353,7 +353,7 @@ docker logs khodat-backend --tail 50 | grep -i mail
 ```bash
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
   php artisan tinker --execute="
-    \$user = App\Models\User::where('email', 'admin@kyguidatvuon.com')->first();
+    \$user = App\Models\User::where('email', 'admin@khodat.com')->first();
     if (\$user) {
       \$role = App\Models\Role::firstOrCreate(['name' => 'admin', 'display_name' => 'Administrator']);
       \$user->assignRole(\$role);

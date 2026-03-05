@@ -1,14 +1,14 @@
 #!/bin/bash
 # ===========================================
-# SSL Certificate Setup - kyguidatvuon.com
+# SSL Certificate Setup - khodat.com
 # ===========================================
 # Sử dụng certbot trên host (không dùng Docker)
 # Usage: sudo bash init-ssl.sh
 
 set -e
 
-DOMAIN="kyguidatvuon.com"
-EMAIL="${1:-admin@kyguidatvuon.com}"
+DOMAIN="khodat.com"
+EMAIL="${1:-admin@khodat.com}"
 
 echo "============================================="
 echo "  SSL Certificate Setup for $DOMAIN"

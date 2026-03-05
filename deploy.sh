@@ -1,6 +1,6 @@
 #!/bin/bash
 # ===========================================
-# Deployment Script - kyguidatvuon.com
+# Deployment Script - khodat.com
 # ===========================================
 # Usage: bash deploy.sh [--build]
 
@@ -10,7 +10,7 @@ COMPOSE_FILE="docker-compose.prod.yml"
 ENV_FILE=".env.prod"
 
 echo "============================================="
-echo "  🚀 Deploying kyguidatvuon.com"
+echo "  🚀 Deploying khodat.com"
 echo "  $(date '+%Y-%m-%d %H:%M:%S')"
 echo "============================================="
 
@@ -73,9 +73,9 @@ echo "============================================="
 echo "  ✅ Deployment complete!"
 echo "============================================="
 echo ""
-echo "  🌐 https://kyguidatvuon.com"
-echo "  🔧 https://api.kyguidatvuon.com"
-echo "  👤 https://app.kyguidatvuon.com"
-echo "  🛡️  https://admin.kyguidatvuon.com"
-echo "  📡 https://socket.kyguidatvuon.com"
+echo "  🌐 https://khodat.com"
+echo "  🔧 https://api.khodat.com"
+echo "  👤 https://app.khodat.com"
+echo "  🛡️  https://admin.khodat.com"
+echo "  📡 https://socket.khodat.com"
 echo ""

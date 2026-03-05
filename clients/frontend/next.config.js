@@ -21,15 +21,15 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'kyguidatvuon.com',
+        hostname: 'khodat.com',
       },
       {
         protocol: 'https',
-        hostname: 'backend.kyguidatvuon.com',
+        hostname: 'backend.khodat.com',
       },
       {
         protocol: 'https',
-        hostname: '*.kyguidatvuon.com',
+        hostname: '*.khodat.com',
       },
     ],
   },
