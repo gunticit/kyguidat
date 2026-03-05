@@ -1,5 +1,5 @@
 # ===========================================
-# PRODUCTION DOCKER COMPOSE - kyguidatvuon.com
+# PRODUCTION DOCKER COMPOSE - khodat.com
 # ===========================================
 # Sử dụng với Nginx đã cài sẵn trên host Ubuntu
 # Usage: docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
@@ -49,8 +49,8 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
       - APP_KEY=${APP_KEY}
-      - APP_URL=https://kyguidatvuon.com
-      - APP_URL_SANDAT=https://app.kyguidatvuon.com
+      - APP_URL=https://khodat.com
+      - APP_URL_SANDAT=https://app.khodat.com
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
       - DB_CONNECTION=mysql
       - DB_HOST=mysql
@@ -73,8 +73,8 @@ services:
       context: ./admin
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=https://api.kyguidatvuon.com/api
-        - VITE_SANDAT_API_URL=https://kyguidatvuon.com/api
+        - VITE_API_URL=https://api.khodat.com/api
+        - VITE_SANDAT_API_URL=https://khodat.com/api
     container_name: khodat-admin
     restart: always
     ports:
@@ -97,10 +97,10 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
       - APP_KEY=${APP_KEY}
-      - APP_URL=https://backend.kyguidatvuon.com
-      - FRONTEND_URL=https://app.kyguidatvuon.com
-      - APP_URL_SANDAT=https://app.kyguidatvuon.com
-      - APP_URL_ADMIN=https://admin.kyguidatvuon.com
+      - APP_URL=https://backend.khodat.com
+      - FRONTEND_URL=https://app.khodat.com
+      - APP_URL_SANDAT=https://app.khodat.com
+      - APP_URL_ADMIN=https://admin.khodat.com
       - DB_CONNECTION=mysql
       - DB_HOST=mysql
       - DB_PORT=3306
@@ -120,7 +120,7 @@ services:
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-tls}
-      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@kyguidatvuon.com}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@khodat.com}
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Ky Gui Dat Vuon}
       # VNPay
       - VNPAY_TMN_CODE=${VNPAY_TMN_CODE}
@@ -145,7 +145,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-khodat_minio_secret}
       - AWS_DEFAULT_REGION=ap-southeast-1
       - AWS_BUCKET=${MINIO_BUCKET:-khodat}
-      - AWS_URL=${MINIO_PUBLIC_URL:-https://storage.kyguidatvuon.com/khodat}
+      - AWS_URL=${MINIO_PUBLIC_URL:-https://storage.khodat.com/khodat}
       - AWS_ENDPOINT=http://minio:9000
       - AWS_USE_PATH_STYLE_ENDPOINT=true
       - IMAGE_QUALITY=80
@@ -185,16 +185,16 @@ services:
       context: ./clients/frontend
       dockerfile: Dockerfile.prod
       args:
-        - NEXT_PUBLIC_API_URL=https://backend.kyguidatvuon.com/api
-        - NEXT_PUBLIC_SOCKET_URL=https://socket.kyguidatvuon.com
+        - NEXT_PUBLIC_API_URL=https://backend.khodat.com/api
+        - NEXT_PUBLIC_SOCKET_URL=https://socket.khodat.com
     container_name: khodat-frontend
     restart: always
     ports:
       - "127.0.0.1:3015:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://backend.kyguidatvuon.com/api
-      - NEXT_PUBLIC_SOCKET_URL=https://socket.kyguidatvuon.com
+      - NEXT_PUBLIC_API_URL=https://backend.khodat.com/api
+      - NEXT_PUBLIC_SOCKET_URL=https://socket.khodat.com
     networks:
       - khodat-network
     depends_on:
@@ -301,7 +301,7 @@ services:
     environment:
       - PORT=3020
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
-      - CORS_ORIGINS=https://app.kyguidatvuon.com,https://admin.kyguidatvuon.com
+      - CORS_ORIGINS=https://app.khodat.com,https://admin.khodat.com
     networks:
       - khodat-network
     depends_on:

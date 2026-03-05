@@ -15,8 +15,8 @@ return [
     'allowed_origins' => array_filter([
         env('FRONTEND_URL', 'http://localhost:3015'),
         env('APP_URL', 'http://localhost:8015'),
-        env('APP_URL_SANDAT', 'https://kyguidatvuon.com'),
-        env('APP_URL_ADMIN', 'https://admin.kyguidatvuon.com'),
+        env('APP_URL_SANDAT', 'https://khodat.com'),
+        env('APP_URL_ADMIN', 'https://admin.khodat.com'),
         // Dev origins (only available when set in .env)
         env('CORS_DEV_ORIGIN_1'),
         env('CORS_DEV_ORIGIN_2'),

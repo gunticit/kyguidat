@@ -191,7 +191,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Canonical URL</label>
-                  <input v-model="seo.canonicalUrl" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://kyguidatvuon.com" />
+                  <input v-model="seo.canonicalUrl" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://khodat.com" />
                 </div>
               </div>
             </div>
@@ -215,7 +215,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">OG Image URL</label>
-                  <input v-model="seo.ogImage" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://kyguidatvuon.com/images/og-image.jpg" />
+                  <input v-model="seo.ogImage" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://khodat.com/images/og-image.jpg" />
                   <p class="text-xs text-gray-400 mt-1">Khuyến nghị: 1200x630 pixels</p>
                 </div>
               </div>
@@ -255,7 +255,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Organization Logo URL</label>
-                  <input v-model="seo.schemaOrgLogo" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://kyguidatvuon.com/logo.png" />
+                  <input v-model="seo.schemaOrgLogo" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://khodat.com/logo.png" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Custom Schema JSON</label>
@@ -284,7 +284,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Sitemap URL</label>
-                  <input v-model="seo.sitemapUrl" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://kyguidatvuon.com/sitemap.xml" />
+                  <input v-model="seo.sitemapUrl" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://khodat.com/sitemap.xml" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Google Site Verification</label>

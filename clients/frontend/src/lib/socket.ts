@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://socket.kyguidatvuon.com';
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://socket.khodat.com';
 
 let socket: Socket | null = null;
 

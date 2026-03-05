@@ -25,8 +25,8 @@
 
                 <h3 class="text-lg font-semibold mt-4 mb-2">Cách 1: Xóa trực tiếp trên ứng dụng</h3>
                 <ol class="list-decimal pl-6 space-y-2">
-                    <li>Đăng nhập vào tài khoản tại <a href="https://app.kyguidatvuon.com/login"
-                            class="text-blue-600 underline">app.kyguidatvuon.com</a></li>
+                    <li>Đăng nhập vào tài khoản tại <a href="https://app.khodat.com/login"
+                            class="text-blue-600 underline">app.khodat.com</a></li>
                     <li>Vào <strong>Cài đặt tài khoản</strong> → <strong>Xóa tài khoản</strong></li>
                     <li>Xác nhận bằng mật khẩu (hoặc nhập <code>DELETE</code> nếu đăng nhập qua mạng xã hội)</li>
                     <li>Tài khoản sẽ được xóa ngay lập tức</li>

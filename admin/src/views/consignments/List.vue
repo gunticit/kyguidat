@@ -443,7 +443,7 @@
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">SEO URL link sản phẩm</label>
                       <input v-model="form.seo_url" @input="seoUrlManuallyEdited = true" type="text" placeholder="ban-dat-phuong-dong-xoai-1215" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-                      <p v-if="form.seo_url" class="text-xs text-gray-500 mt-1">URL: kyguidatvuon.com/bat-dong-san/<span class="text-indigo-600 font-medium">{{ form.seo_url }}</span></p>
+                      <p v-if="form.seo_url" class="text-xs text-gray-500 mt-1">URL: khodat.com/bat-dong-san/<span class="text-indigo-600 font-medium">{{ form.seo_url }}</span></p>
                     </div>
                   </div>
                 </div>
