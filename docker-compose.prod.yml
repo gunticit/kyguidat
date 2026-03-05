@@ -187,6 +187,11 @@ services:
       args:
         - NEXT_PUBLIC_API_URL=https://backend.khodat.com/api
         - NEXT_PUBLIC_SOCKET_URL=https://socket.khodat.com
+        - NEXT_PUBLIC_APP_NAME=Khodat
+        - NEXT_PUBLIC_GOOGLE_LOGIN_URL=https://api.khodat.com/api/auth/google
+        - NEXT_PUBLIC_FACEBOOK_LOGIN_URL=https://api.khodat.com/api/auth/facebook
+        - NEXT_PUBLIC_ZALO_LOGIN_URL=https://api.khodat.com/api/auth/zalo
+        - NEXT_PUBLIC_GITHUB_LOGIN_URL=https://backend.khodat.com/api/auth/github
     container_name: khodat-frontend
     restart: always
     ports:
@@ -195,6 +200,11 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=https://backend.khodat.com/api
       - NEXT_PUBLIC_SOCKET_URL=https://socket.khodat.com
+      - NEXT_PUBLIC_APP_NAME=Khodat
+      - NEXT_PUBLIC_GOOGLE_LOGIN_URL=https://api.khodat.com/api/auth/google
+      - NEXT_PUBLIC_FACEBOOK_LOGIN_URL=https://api.khodat.com/api/auth/facebook
+      - NEXT_PUBLIC_ZALO_LOGIN_URL=https://api.khodat.com/api/auth/zalo
+      - NEXT_PUBLIC_GITHUB_LOGIN_URL=https://backend.khodat.com/api/auth/github
     networks:
       - khodat-network
     depends_on:
