@@ -97,14 +97,79 @@ func buildQuery(params SearchParams) map[string]interface{} {
 
 	// Full-text search
 	if params.Search != "" {
-		must = append(must, map[string]interface{}{
-			"multi_match": map[string]interface{}{
-				"query":     params.Search,
-				"fields":    []string{"title^3", "address^2", "description", "keywords^2", "code^4"},
-				"type":      "best_fields",
-				"fuzziness": "AUTO",
-			},
-		})
+		searchTerms := strings.Split(params.Search, ",")
+		// Trim whitespace from each term
+		for i := range searchTerms {
+			searchTerms[i] = strings.TrimSpace(searchTerms[i])
+		}
+
+		if len(searchTerms) > 1 {
+			// Multiple terms (comma-separated): match ANY of them
+			shouldClauses := []map[string]interface{}{}
+			for _, term := range searchTerms {
+				if term == "" {
+					continue
+				}
+				// Text field search
+				shouldClauses = append(shouldClauses, map[string]interface{}{
+					"multi_match": map[string]interface{}{
+						"query":     term,
+						"fields":    []string{"title^3", "address^2", "description", "keywords^4", "code^4"},
+						"type":      "best_fields",
+						"fuzziness": "AUTO",
+					},
+				})
+				// Keyword/phone wildcard
+				shouldClauses = append(shouldClauses, map[string]interface{}{
+					"wildcard": map[string]interface{}{"consigner_phone": map[string]interface{}{"value": "*" + term + "*"}},
+				})
+				shouldClauses = append(shouldClauses, map[string]interface{}{
+					"wildcard": map[string]interface{}{"seller_phone": map[string]interface{}{"value": "*" + term + "*"}},
+				})
+				shouldClauses = append(shouldClauses, map[string]interface{}{
+					"wildcard": map[string]interface{}{"keywords": map[string]interface{}{"value": "*" + strings.ToLower(term) + "*"}},
+				})
+				// Order number (integer field)
+				if num, err := strconv.Atoi(term); err == nil {
+					shouldClauses = append(shouldClauses, map[string]interface{}{
+						"term": map[string]interface{}{"order_number": num},
+					})
+				}
+			}
+			must = append(must, map[string]interface{}{
+				"bool": map[string]interface{}{
+					"should":               shouldClauses,
+					"minimum_should_match": 1,
+				},
+			})
+		} else {
+			// Single search term
+			searchShould := []map[string]interface{}{
+				{
+					"multi_match": map[string]interface{}{
+						"query":     params.Search,
+						"fields":    []string{"title^3", "address^2", "description", "keywords^4", "code^4"},
+						"type":      "best_fields",
+						"fuzziness": "AUTO",
+					},
+				},
+				{"wildcard": map[string]interface{}{"consigner_phone": map[string]interface{}{"value": "*" + params.Search + "*"}}},
+				{"wildcard": map[string]interface{}{"seller_phone": map[string]interface{}{"value": "*" + params.Search + "*"}}},
+				{"wildcard": map[string]interface{}{"keywords": map[string]interface{}{"value": "*" + strings.ToLower(params.Search) + "*"}}},
+			}
+			// Order number
+			if num, err := strconv.Atoi(params.Search); err == nil {
+				searchShould = append(searchShould, map[string]interface{}{
+					"term": map[string]interface{}{"order_number": num},
+				})
+			}
+			must = append(must, map[string]interface{}{
+				"bool": map[string]interface{}{
+					"should":               searchShould,
+					"minimum_should_match": 1,
+				},
+			})
+		}
 	}
 
 	// Province filter

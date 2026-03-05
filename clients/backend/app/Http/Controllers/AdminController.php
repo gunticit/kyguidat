@@ -181,11 +181,21 @@ class AdminController extends Controller
         }
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', '%' . $search . '%')
-                    ->orWhere('code', 'like', '%' . $search . '%')
-                    ->orWhere('address', 'like', '%' . $search . '%')
-                    ->orWhere('consigner_phone', 'like', '%' . $search . '%');
+            // Support comma-separated search terms
+            $terms = array_filter(array_map('trim', explode(',', $search)));
+
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->orWhere(function ($sq) use ($term) {
+                        $sq->where('title', 'like', '%' . $term . '%')
+                            ->orWhere('code', 'like', '%' . $term . '%')
+                            ->orWhere('address', 'like', '%' . $term . '%')
+                            ->orWhere('consigner_phone', 'like', '%' . $term . '%')
+                            ->orWhere('seller_phone', 'like', '%' . $term . '%')
+                            ->orWhere('keywords', 'like', '%' . $term . '%')
+                            ->orWhere('order_number', 'like', '%' . $term . '%');
+                    });
+                }
             });
         }
 

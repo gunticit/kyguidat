@@ -51,7 +51,8 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 	query := r.db.Model(&models.Consignment{}).Where("status = ?", "approved")
 
 	if search != "" {
-		query = query.Where("title LIKE ? OR address LIKE ? OR code LIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+		query = query.Where("title LIKE ? OR address LIKE ? OR code LIKE ? OR keywords LIKE ? OR consigner_phone LIKE ? OR seller_phone LIKE ? OR CAST(order_number AS CHAR) LIKE ?",
+			"%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
 	if province != "" {
 		query = query.Where("province = ?", province)
