@@ -14,6 +14,7 @@
     $facebook = $settings['facebook'] ?? '';
     $tiktok = $settings['tiktok'] ?? '';
     $youtube = $settings['youtube'] ?? '';
+    $instagram = $settings['instagram'] ?? '';
     $zalo = $settings['zalo'] ?? '';
 @endphp
 <footer class="bg-navy-900 border-t border-navy-600">
@@ -25,48 +26,55 @@
                     <img src="{{ $logo }}" alt="{{ $siteName }}" class="object-contain"
                         style="width: 100%; height: 80px; margin: 0;">
                 @endif
-                <p class="mt-3 text-gray-400 text-sm leading-relaxed">Nền tảng ký gửi bất động sản uy tín hàng đầu Việt
-                    Nam</p>
 
                 <!-- Social Media Icons -->
-                @if($facebook || $tiktok || $youtube || $zalo)
+                @if($facebook || $tiktok || $youtube || $instagram || $zalo)
                     <div class="flex items-center gap-3 mt-4 justify-center md:justify-start">
+                        @if($youtube)
+                            <a href="{{ $youtube }}" target="_blank" rel="noopener noreferrer"
+                                class="w-10 h-10 rounded-xl bg-navy-700 border border-navy-600 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-200"
+                                title="YouTube">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <rect x="2" y="4" width="20" height="16" rx="4" />
+                                    <path d="M10 9l5 3-5 3V9z" fill="currentColor" stroke="none" />
+                                </svg>
+                            </a>
+                        @endif
                         @if($facebook)
                             <a href="{{ $facebook }}" target="_blank" rel="noopener noreferrer"
-                                class="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-gray-400 hover:bg-blue-600 hover:text-white transition-all duration-200"
+                                class="w-10 h-10 rounded-xl bg-navy-700 border border-navy-600 flex items-center justify-center text-gray-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-200"
                                 title="Facebook">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+                                    <path d="M13.397 20.997v-8.196h2.765l.411-3.209h-3.176V7.548c0-.926.258-1.56 1.587-1.56h1.684V3.127A22.336 22.336 0 0014.201 3c-2.444 0-4.122 1.492-4.122 4.231v2.355H7.332v3.209h2.753v8.202h3.312z" />
+                                </svg>
+                            </a>
+                        @endif
+                        @if($instagram)
+                            <a href="{{ $instagram }}" target="_blank" rel="noopener noreferrer"
+                                class="w-10 h-10 rounded-xl bg-navy-700 border border-navy-600 flex items-center justify-center text-gray-400 hover:bg-gradient-to-br hover:from-purple-600 hover:via-pink-500 hover:to-orange-400 hover:text-white hover:border-pink-500 transition-all duration-200"
+                                title="Instagram">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <rect x="2" y="2" width="20" height="20" rx="5" />
+                                    <circle cx="12" cy="12" r="5" />
+                                    <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
                                 </svg>
                             </a>
                         @endif
                         @if($tiktok)
                             <a href="{{ $tiktok }}" target="_blank" rel="noopener noreferrer"
-                                class="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-gray-400 hover:bg-black hover:text-white transition-all duration-200"
+                                class="w-10 h-10 rounded-xl bg-navy-700 border border-navy-600 flex items-center justify-center text-gray-400 hover:bg-black hover:text-white hover:border-black transition-all duration-200"
                                 title="TikTok">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.27a8.16 8.16 0 004.76 1.52v-3.4a4.85 4.85 0 01-1-.7z" />
-                                </svg>
-                            </a>
-                        @endif
-                        @if($youtube)
-                            <a href="{{ $youtube }}" target="_blank" rel="noopener noreferrer"
-                                class="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-200"
-                                title="YouTube">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                    <path d="M16.6 5.82A4.278 4.278 0 0113.81 3h-3.09v12.4a2.592 2.592 0 01-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 004.3 1.38V7.3s-1.88.09-3.51-1.48z" />
                                 </svg>
                             </a>
                         @endif
                         @if($zalo)
                             <a href="https://zalo.me/{{ $zalo }}" target="_blank" rel="noopener noreferrer"
-                                class="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all duration-200"
+                                class="w-10 h-10 rounded-xl bg-navy-700 border border-navy-600 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-200"
                                 title="Zalo">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 48 48">
-                                    <path d="M12.5 6C8.91 6 6 8.91 6 12.5v23C6 39.09 8.91 42 12.5 42h23c3.59 0 6.5-2.91 6.5-6.5v-23C42 8.91 39.09 6 35.5 6h-23zm2.14 11h18.72c.46 0 .83.37.83.83 0 .23-.09.44-.26.59L21.6 29.5h10.9c.55 0 1 .45 1 1s-.45 1-1 1H13.78c-.46 0-.83-.37-.83-.83 0-.23.09-.44.26-.59L25.54 19H14.64c-.55 0-1-.45-1-1s.45-1 1-1z"/>
+                                    <path d="M12.5 6C8.91 6 6 8.91 6 12.5v23C6 39.09 8.91 42 12.5 42h23c3.59 0 6.5-2.91 6.5-6.5v-23C42 8.91 39.09 6 35.5 6h-23zm2.14 11h18.72c.46 0 .83.37.83.83 0 .23-.09.44-.26.59L21.6 29.5h10.9c.55 0 1 .45 1 1s-.45 1-1 1H13.78c-.46 0-.83-.37-.83-.83 0-.23.09-.44.26-.59L25.54 19H14.64c-.55 0-1-.45-1-1s.45-1 1-1z" />
                                 </svg>
                             </a>
                         @endif

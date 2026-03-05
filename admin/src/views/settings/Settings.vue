@@ -81,6 +81,10 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">YouTube URL</label>
                 <input v-model="settings.youtube" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://youtube.com/@..." />
               </div>
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Instagram URL</label>
+                <input v-model="settings.instagram" type="url" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://instagram.com/..." />
+              </div>
               <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tên website</label>
                 <input v-model="settings.siteName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="SànĐất" />
@@ -390,7 +394,7 @@ const activeTab = ref('contact')
 
 // Contact settings
 const settings = ref({
-  email: '', phone: '', address: '', facebook: '', zalo: '', tiktok: '', youtube: '', siteName: '', logo: '', favicon: '',
+  email: '', phone: '', address: '', facebook: '', zalo: '', tiktok: '', youtube: '', instagram: '', siteName: '', logo: '', favicon: '',
   show_bct_badge: false, bct_image: ''
 })
 const saving = ref(false)
