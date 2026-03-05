@@ -219,7 +219,7 @@ export default function DepositPage() {
                                     className={`${styles.quickBtn} ${amount === value.toString() ? styles.quickBtnActive : ''}`}
                                     onClick={() => handleQuickAmount(value)}
                                 >
-                                    {value.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}đ
+                                    {value.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}đ
                                 </button>
                             ))}
                         </div>
@@ -308,7 +308,7 @@ export default function DepositPage() {
                             ) : selectedMethod === 'bank' ? (
                                 'Xác nhận đã chuyển khoản'
                             ) : (
-                                `Nạp ${amount ? parseInt(amount).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '0'}đ`
+                                `Nạp ${amount ? parseInt(amount).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) : '0'}đ`
                             )}
                         </button>
                     </div>
@@ -341,7 +341,7 @@ export default function DepositPage() {
                                         <div key={payment.id} className={styles.historyItem}>
                                             <div>
                                                 <p className={styles.historyAmount}>
-                                                    +{payment.amount.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}đ
+                                                    +{payment.amount.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}đ
                                                 </p>
                                                 <p className={styles.historyMethod}>
                                                     {getMethodLabel(payment.method)}

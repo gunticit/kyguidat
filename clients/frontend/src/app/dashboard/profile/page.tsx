@@ -206,13 +206,13 @@ export default function ProfilePage() {
                             <div>
                                 <p className={styles.walletLabel}>Số dư ví</p>
                                 <p className={styles.walletBalance}>
-                                    {user.wallet.balance.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}đđ
+                                    {user.wallet.balance.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}đ
                                 </p>
                             </div>
                         </div>
                         {user.wallet.frozen_balance > 0 && (
                             <p className={styles.frozenBalance}>
-                                Tạm giữ: {user.wallet.frozen_balance.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}đ
+                                Tạm giữ: {user.wallet.frozen_balance.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}đ
                             </p>
                         )}
                     </div>

@@ -36,7 +36,7 @@ function formatPrice(price: number): string {
     if (price >= 1_000_000) {
         return (price / 1_000_000).toFixed(0) + ' triệu';
     }
-    return price.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + ' đ';
+    return price.toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + ' đ';
 }
 
 export default function ConsignmentBySlugPage() {
