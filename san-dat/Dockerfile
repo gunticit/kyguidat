@@ -1,7 +1,11 @@
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies
-RUN apk add --no-cache \
+# Use multiple Alpine mirrors for reliability
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1,2)/main" > /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1,2)/community" >> /etc/apk/repositories
+
+# Install system dependencies (with retry)
+RUN apk update && apk add --no-cache \
     git \
     curl \
     libpng-dev \
@@ -12,7 +16,7 @@ RUN apk add --no-cache \
     nginx \
     supervisor
 
-# Install PHP extensions
+# Install PHP extensions (with retry)
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
     && apk del .build-deps
