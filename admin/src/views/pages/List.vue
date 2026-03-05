@@ -97,12 +97,12 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nội dung *</label>
                 <QuillEditor 
                   ref="contentEditor"
-                  v-model:content="form.content" 
                   contentType="html"
                   theme="snow"
                   :toolbar="toolbarOptions"
                   style="min-height: 300px;"
-                  @ready="setupQuillImageHandler"
+                  @ready="onEditorReady"
+                  @update:content="onContentChange"
                 />
               </div>
               <div class="grid grid-cols-2 gap-4">
@@ -150,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Header from '@/components/layout/Header.vue'
 import { adminApi } from '@/services/api'
@@ -172,12 +172,29 @@ const toolbarOptions = [
   ['clean']
 ]
 
-// Quill editor ref
-const contentEditor = ref(null)
+// Quill instance reference
+let quillInstance = null
 
-// Custom image handler for Quill — resize + upload to server
-const setupQuillImageHandler = (editorInstance) => {
+// Handle content changes - always get HTML
+const onContentChange = (htmlContent) => {
+  if (typeof htmlContent === 'string') {
+    form.value.content = htmlContent
+  } else if (quillInstance) {
+    form.value.content = quillInstance.root.innerHTML
+  }
+}
+
+// Editor ready - setup image handler + set initial content
+const onEditorReady = (editorInstance) => {
   const quill = editorInstance.__quill || editorInstance.getQuill?.() || editorInstance
+  quillInstance = quill
+
+  // Set initial content if editing
+  if (form.value.content && form.value.content !== '<p><br></p>') {
+    quill.root.innerHTML = form.value.content
+  }
+
+  // Setup image upload handler
   const toolbar = quill.getModule('toolbar')
   if (!toolbar) return
 
@@ -307,6 +324,9 @@ const openCreate = () => {
   slugUsedBy.value = ''
   slugManuallyEdited.value = false
   showModal.value = true
+  nextTick(() => {
+    if (quillInstance) quillInstance.root.innerHTML = ''
+  })
 }
 
 const openEdit = (p) => {
@@ -317,6 +337,11 @@ const openEdit = (p) => {
   slugUsedBy.value = ''
   slugManuallyEdited.value = true
   showModal.value = true
+  nextTick(() => {
+    if (quillInstance) {
+      quillInstance.root.innerHTML = p.content || ''
+    }
+  })
 }
 
 // Slug helpers
@@ -356,13 +381,16 @@ const savePage = async () => {
   saving.value = true
   formError.value = ''
   try {
-    // Explicitly get HTML content from Quill editor
-    const editorRef = contentEditor.value
-    if (editorRef) {
-      const quill = editorRef.getQuill?.() || editorRef.__quill
-      if (quill) {
-        form.value.content = quill.root.innerHTML
-      }
+    // Always get HTML directly from Quill instance
+    if (quillInstance) {
+      form.value.content = quillInstance.root.innerHTML
+    }
+
+    // Clean up empty Quill content
+    if (form.value.content === '<p><br></p>' || form.value.content === '<p></p>') {
+      formError.value = 'Vui lòng nhập nội dung trang'
+      saving.value = false
+      return
     }
 
     if (editingId.value) {
