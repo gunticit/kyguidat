@@ -1009,8 +1009,7 @@
 
                 <!-- Download App Button -->
                 <button
-                    class="pwa-install-btn items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur text-white rounded-lg font-semibold hover:bg-white/20 transition-all shadow-xl border border-white/20"
-                    style="display: none;"
+                    class="pwa-install-btn inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur text-white rounded-lg font-semibold hover:bg-white/20 transition-all shadow-xl border border-white/20"
                     onclick="if(window.deferredPrompt){window.deferredPrompt.prompt();window.deferredPrompt.userChoice.then(function(){window.deferredPrompt=null})}">
                     <svg class="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
