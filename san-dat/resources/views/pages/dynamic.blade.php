@@ -14,7 +14,8 @@
         <div class="bg-navy-700 rounded-lg shadow-md overflow-hidden border border-navy-600">
             <div class="p-6 md:p-8">
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-100 mb-6 pb-4 border-b border-navy-600">
-                    {{ $page['title'] }}</h1>
+                    {{ $page['title'] }}
+                </h1>
 
                 <!-- Page Content -->
                 <div class="prose prose-invert prose-green max-w-none text-gray-300 leading-relaxed page-content">
@@ -83,6 +84,77 @@
             padding-left: 1em;
             color: #9ca3af;
             font-style: italic;
+            margin: 1em 0;
+        }
+
+        /* Quill editor output styles */
+        .page-content strong {
+            font-weight: 700;
+            color: #f9fafb;
+        }
+
+        .page-content em {
+            font-style: italic;
+        }
+
+        .page-content u {
+            text-decoration: underline;
+        }
+
+        .page-content s {
+            text-decoration: line-through;
+        }
+
+        .page-content pre.ql-syntax {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: monospace;
+        }
+
+        .page-content .ql-size-small {
+            font-size: 0.75em;
+        }
+
+        .page-content .ql-size-large {
+            font-size: 1.5em;
+        }
+
+        .page-content .ql-size-huge {
+            font-size: 2em;
+        }
+
+        .page-content .ql-align-center {
+            text-align: center;
+        }
+
+        .page-content .ql-align-right {
+            text-align: right;
+        }
+
+        .page-content .ql-align-justify {
+            text-align: justify;
+        }
+
+        .page-content .ql-indent-1 {
+            padding-left: 3em;
+        }
+
+        .page-content .ql-indent-2 {
+            padding-left: 6em;
+        }
+
+        .page-content .ql-indent-3 {
+            padding-left: 9em;
+        }
+
+        .page-content .ql-video {
+            width: 100%;
+            max-width: 640px;
+            height: 360px;
+            border-radius: 8px;
             margin: 1em 0;
         }
     </style>

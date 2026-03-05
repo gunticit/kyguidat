@@ -171,5 +171,76 @@
             font-style: italic;
             margin: 1em 0;
         }
+
+        /* Quill editor output styles */
+        .article-content strong {
+            font-weight: 700;
+            color: #f9fafb;
+        }
+
+        .article-content em {
+            font-style: italic;
+        }
+
+        .article-content u {
+            text-decoration: underline;
+        }
+
+        .article-content s {
+            text-decoration: line-through;
+        }
+
+        .article-content pre.ql-syntax {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: monospace;
+        }
+
+        .article-content .ql-size-small {
+            font-size: 0.75em;
+        }
+
+        .article-content .ql-size-large {
+            font-size: 1.5em;
+        }
+
+        .article-content .ql-size-huge {
+            font-size: 2em;
+        }
+
+        .article-content .ql-align-center {
+            text-align: center;
+        }
+
+        .article-content .ql-align-right {
+            text-align: right;
+        }
+
+        .article-content .ql-align-justify {
+            text-align: justify;
+        }
+
+        .article-content .ql-indent-1 {
+            padding-left: 3em;
+        }
+
+        .article-content .ql-indent-2 {
+            padding-left: 6em;
+        }
+
+        .article-content .ql-indent-3 {
+            padding-left: 9em;
+        }
+
+        .article-content .ql-video {
+            width: 100%;
+            max-width: 640px;
+            height: 360px;
+            border-radius: 8px;
+            margin: 1em 0;
+        }
     </style>
 @endsection

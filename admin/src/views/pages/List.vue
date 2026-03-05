@@ -356,6 +356,15 @@ const savePage = async () => {
   saving.value = true
   formError.value = ''
   try {
+    // Explicitly get HTML content from Quill editor
+    const editorRef = contentEditor.value
+    if (editorRef) {
+      const quill = editorRef.getQuill?.() || editorRef.__quill
+      if (quill) {
+        form.value.content = quill.root.innerHTML
+      }
+    }
+
     if (editingId.value) {
       await adminApi.updatePage(editingId.value, form.value)
     } else {
