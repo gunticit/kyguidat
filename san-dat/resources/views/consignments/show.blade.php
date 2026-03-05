@@ -64,12 +64,6 @@
                         </h2>
                         <p class="text-gray-300">
                             {{ $consignment['address'] ?? '' }}
-                            {{ !empty($consignment['address']) && !empty($consignment['ward']) ? ', ' : '' }}
-                            {{ $consignment['ward'] ?? '' }}
-                            {{ !empty($consignment['ward']) && !empty($consignment['district']) ? ', ' : '' }}
-                            {{ $consignment['district'] ?? '' }}
-                            {{ !empty($consignment['district']) && !empty($consignment['province']) ? ', ' : '' }}
-                            {{ $consignment['province'] ?? '' }}
                         </p>
 
                         <!-- Map -->
@@ -170,10 +164,7 @@
                                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span>
-                            {{ $consignment['address'] ?? '' }}{{ !empty($consignment['address']) && (!empty($consignment['ward']) || !empty($consignment['district']) || !empty($consignment['province'])) ? ', ' : '' }}
-                            {{ $consignment['ward'] ?? '' }}{{ !empty($consignment['ward']) && (!empty($consignment['district']) || !empty($consignment['province'])) ? ', ' : '' }}
-                            {{ $consignment['district'] ?? '' }}{{ !empty($consignment['district']) && !empty($consignment['province']) ? ', ' : '' }}
-                            {{ $consignment['province'] ?? 'Chưa xác định' }}
+                            {{ $consignment['address'] ?? '' }}
                         </span>
                     </div>
 
@@ -411,7 +402,7 @@
                         Thông tin chi tiết
                     </h2>
 
-                    <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Area -->
                         @if(!empty($consignment['area']))
                             <div class="bg-navy-700 p-4 rounded-xl border border-navy-600">
