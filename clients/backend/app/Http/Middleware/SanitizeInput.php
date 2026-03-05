@@ -16,6 +16,9 @@ class SanitizeInput
         'password_confirmation',
         'current_password',
         'description',
+        'content',
+        'body',
+        'message',
         'notes',
         'internal_note',
     ];
