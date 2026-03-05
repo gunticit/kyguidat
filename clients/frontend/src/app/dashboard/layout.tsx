@@ -26,14 +26,30 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<{ name?: string; email?: string; avatar?: string } | null>(null);
 
     useEffect(() => {
-        try {
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
+        const loadUser = async () => {
+            try {
+                const storedUser = localStorage.getItem('user');
+                const token = localStorage.getItem('auth_token');
+
+                if (storedUser) {
+                    setUser(JSON.parse(storedUser));
+                }
+
+                // If we have a token but no user data (e.g. just after social login),
+                // or user data might be stale, fetch fresh data
+                if (token && !storedUser) {
+                    const res = await authApi.me();
+                    if (res.data?.success && res.data?.data) {
+                        const userData = res.data.data;
+                        localStorage.setItem('user', JSON.stringify(userData));
+                        setUser(userData);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load user', e);
             }
-        } catch (e) {
-            console.error('Failed to load user from localStorage', e);
-        }
+        };
+        loadUser();
 
         // Listen for storage changes (profile updates)
         const handleStorageChange = () => {
@@ -43,7 +59,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             } catch (e) { }
         };
         window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
+
+        // Also listen for custom event (same-tab updates)
+        window.addEventListener('userUpdated', handleStorageChange);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('userUpdated', handleStorageChange);
+        };
     }, []);
 
     const handleLogout = async () => {
@@ -82,7 +104,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 {/* User Info */}
                 <div className={styles.userInfo}>
                     <div className={styles.userAvatar}>
-                        {user?.avatar ? (
+                        {user?.avatar && user.avatar !== 'null' && user.avatar.startsWith('http') ? (
                             <Image
                                 src={user.avatar}
                                 alt={user.name || 'Avatar'}

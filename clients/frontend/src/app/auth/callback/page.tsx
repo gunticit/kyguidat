@@ -3,6 +3,8 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
 function AuthCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -10,6 +12,7 @@ function AuthCallbackContent() {
     useEffect(() => {
         const token = searchParams.get('token');
         const error = searchParams.get('error');
+        const redirectTo = searchParams.get('redirect') || '/dashboard';
 
         if (error) {
             router.push(`/login?error=${error}`);
@@ -19,7 +22,25 @@ function AuthCallbackContent() {
         if (token) {
             // Save token to localStorage
             localStorage.setItem('auth_token', token);
-            router.push('/dashboard');
+
+            // Fetch user info immediately after social login
+            fetch(`${API_URL}/auth/me`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                },
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        localStorage.setItem('user', JSON.stringify(data.data));
+                    }
+                    router.push(redirectTo);
+                })
+                .catch(() => {
+                    // Even if fetching user fails, still redirect (token is saved)
+                    router.push(redirectTo);
+                });
         } else {
             router.push('/login?error=no_token');
         }
