@@ -107,11 +107,13 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nội dung *</label>
                 <QuillEditor 
+                  ref="contentEditor"
                   v-model:content="form.content" 
                   contentType="html"
                   theme="snow"
                   :toolbar="toolbarOptions"
                   style="min-height: 300px;"
+                  @ready="setupQuillImageHandler"
                 />
               </div>
               <div>
@@ -192,6 +194,93 @@ const toolbarOptions = [
   ['link', 'image', 'video'],
   ['clean']
 ]
+
+// Quill editor ref
+const contentEditor = ref(null)
+
+// Custom image handler for Quill — resize + upload to server
+const setupQuillImageHandler = (editorInstance) => {
+  const quill = editorInstance.__quill || editorInstance.getQuill?.() || editorInstance
+  const toolbar = quill.getModule('toolbar')
+  if (!toolbar) return
+
+  toolbar.addHandler('image', () => {
+    const input = document.createElement('input')
+    input.setAttribute('type', 'file')
+    input.setAttribute('accept', 'image/*')
+    input.click()
+
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+
+      const range = quill.getSelection(true) || { index: quill.getLength() - 1 }
+      quill.insertText(range.index, '⏳ Đang upload ảnh...', { bold: true, color: '#6366f1' })
+      const placeholderLength = '⏳ Đang upload ảnh...'.length
+
+      try {
+        const resizedBlob = await resizeImageFile(file, 1600, 0.85)
+        const token = localStorage.getItem('admin_token')
+        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/admin\/?$/, '')
+        const formData = new FormData()
+        formData.append('image', resizedBlob, file.name.replace(/\.\w+$/, '.jpg'))
+        formData.append('directory', 'articles/content')
+
+        const response = await fetch(`${apiBase}/upload/image-optimized`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        })
+        const data = await response.json()
+        quill.deleteText(range.index, placeholderLength)
+
+        if (data.success && data.data?.url) {
+          quill.insertEmbed(range.index, 'image', data.data.url)
+          quill.setSelection(range.index + 1)
+        } else {
+          quill.insertText(range.index, '[Upload thất bại]', { color: 'red' })
+          alert('Upload ảnh thất bại: ' + (data.message || 'Lỗi không xác định'))
+        }
+      } catch (err) {
+        quill.deleteText(range.index, placeholderLength)
+        quill.insertText(range.index, '[Upload lỗi]', { color: 'red' })
+        alert('Upload ảnh thất bại: ' + err.message)
+      }
+    }
+  })
+}
+
+// Resize image file client-side
+const resizeImageFile = (file, maxDimension = 1600, quality = 0.85) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      let { width, height } = img
+      if (width > maxDimension || height > maxDimension) {
+        const ratio = Math.min(maxDimension / width, maxDimension / height)
+        width = Math.round(width * ratio)
+        height = Math.round(height * ratio)
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error('Canvas toBlob failed')),
+        'image/jpeg',
+        quality
+      )
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Failed to load image'))
+    }
+    img.src = objectUrl
+  })
+}
 
 const articles = ref([])
 const loading = ref(false)
