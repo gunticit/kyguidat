@@ -85,15 +85,27 @@ func (h *ConsignmentHandler) Search(c *gin.Context) {
 	}
 
 	// Fallback: MySQL search (original behavior)
-	search := c.Query("search")
-	province := c.Query("province")
-	phone := c.Query("phone")
-
 	lat, _ := strconv.ParseFloat(c.Query("lat"), 64)
 	lng, _ := strconv.ParseFloat(c.Query("lng"), 64)
 	maxDistance, _ := strconv.ParseFloat(c.Query("max_distance"), 64)
 
-	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, phone, lat, lng, maxDistance, nil)
+	filters := map[string]string{
+		"district":         params.District,
+		"property_type":    params.PropertyType,
+		"house_on_land":    params.HouseOnLand,
+		"price_range":      params.PriceRange,
+		"tho_cu":           params.ThoCu,
+		"road_type":        params.RoadType,
+		"frontage":         params.Frontage,
+		"area_range":       params.AreaRange,
+		"floor_area_range": params.FloorAreaRange,
+		"direction":        params.Direction,
+		"so_to":            params.SoTo,
+		"so_thua":          params.SoThua,
+		"sort":             params.Sort,
+	}
+
+	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, params.Search, params.Province, params.Phone, lat, lng, maxDistance, filters)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch consignments")
 		return
