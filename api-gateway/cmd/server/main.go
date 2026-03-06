@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -43,13 +44,25 @@ func main() {
 		}
 		esSyncer = es.NewSyncer(esClient, db)
 
-		// Auto-sync on startup (background)
+		// Auto-sync on startup + periodic sync every 2 minutes
 		go func() {
 			count, err := esSyncer.FullSync()
 			if err != nil {
 				log.Printf("⚠️  Auto-sync failed: %v", err)
 			} else {
 				log.Printf("✅ Auto-synced %d consignments to Elasticsearch", count)
+			}
+
+			// Periodic sync every 2 minutes
+			ticker := time.NewTicker(2 * time.Minute)
+			defer ticker.Stop()
+			for range ticker.C {
+				count, err := esSyncer.FullSync()
+				if err != nil {
+					log.Printf("⚠️  Periodic sync failed: %v", err)
+				} else {
+					log.Printf("🔄 Periodic sync: %d consignments indexed", count)
+				}
 			}
 		}()
 	}
@@ -81,6 +94,9 @@ func main() {
 	r.POST("/api/auth/login", authHandler.Login)
 	// Proxy handler for Laravel backend
 	proxyHandler := handlers.NewProxyHandler(backendURL)
+
+	// Internal webhook for ES sync (called by Laravel after consignment changes)
+	r.POST("/internal/es-sync", esHandler.Sync)
 
 	// Public routes
 	public := r.Group("/api")

@@ -327,6 +327,9 @@ class AdminController extends Controller
 
         $consignment = Consignment::create($validated);
 
+        // Trigger ES sync
+        $this->triggerEsSync();
+
         return response()->json([
             'success' => true,
             'message' => 'Tạo ký gửi thành công',
@@ -405,6 +408,9 @@ class AdminController extends Controller
 
         $consignment->update($validated);
 
+        // Trigger ES sync
+        $this->triggerEsSync();
+
         return response()->json([
             'success' => true,
             'message' => 'Cập nhật ký gửi thành công',
@@ -419,6 +425,9 @@ class AdminController extends Controller
     {
         $consignment = Consignment::findOrFail($id);
         $consignment->delete();
+
+        // Trigger ES sync
+        $this->triggerEsSync();
 
         return response()->json([
             'success' => true,
@@ -437,6 +446,9 @@ class AdminController extends Controller
             'approved_at' => now(),
             'approved_by' => $request->user()->id,
         ]);
+
+        // Trigger ES sync
+        $this->triggerEsSync();
 
         return response()->json([
             'success' => true,
@@ -457,6 +469,9 @@ class AdminController extends Controller
             'rejected_by' => $request->user()->id,
             'reject_reason' => $request->input('reason'),
         ]);
+
+        // Trigger ES sync
+        $this->triggerEsSync();
 
         return response()->json([
             'success' => true,
@@ -675,5 +690,19 @@ class AdminController extends Controller
             'message' => 'Đã đóng yêu cầu hỗ trợ',
             'data' => $ticket->fresh()
         ]);
+    }
+
+    /**
+     * Trigger Elasticsearch sync via Go API Gateway webhook
+     */
+    private function triggerEsSync(): void
+    {
+        try {
+            $apiGatewayUrl = config('services.golang_api.url', 'http://api-gateway:8080');
+            \Illuminate\Support\Facades\Http::timeout(2)
+                ->post("{$apiGatewayUrl}/internal/es-sync");
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('ES sync trigger failed: ' . $e->getMessage());
+        }
     }
 }
