@@ -188,14 +188,21 @@
         function updateThemeIcon(theme) {
             var sunIcon = document.getElementById('sun-icon');
             var moonIcon = document.getElementById('moon-icon');
-            if (sunIcon && moonIcon) {
-                if (theme === 'day') {
-                    sunIcon.classList.add('hidden');
-                    moonIcon.classList.remove('hidden');
-                } else {
-                    sunIcon.classList.remove('hidden');
-                    moonIcon.classList.add('hidden');
-                }
+            var mobileSun = document.getElementById('mobile-sun-icon');
+            var mobileMoon = document.getElementById('mobile-moon-icon');
+            var mobileLabel = document.getElementById('mobile-theme-label');
+            if (theme === 'day') {
+                if (sunIcon) sunIcon.classList.add('hidden');
+                if (moonIcon) moonIcon.classList.remove('hidden');
+                if (mobileSun) mobileSun.classList.add('hidden');
+                if (mobileMoon) mobileMoon.classList.remove('hidden');
+                if (mobileLabel) mobileLabel.textContent = 'Chế độ tối';
+            } else {
+                if (sunIcon) sunIcon.classList.remove('hidden');
+                if (moonIcon) moonIcon.classList.add('hidden');
+                if (mobileSun) mobileSun.classList.remove('hidden');
+                if (mobileMoon) mobileMoon.classList.add('hidden');
+                if (mobileLabel) mobileLabel.textContent = 'Chế độ sáng';
             }
         }
 
