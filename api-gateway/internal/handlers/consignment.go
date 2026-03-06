@@ -93,7 +93,7 @@ func (h *ConsignmentHandler) Search(c *gin.Context) {
 	lng, _ := strconv.ParseFloat(c.Query("lng"), 64)
 	maxDistance, _ := strconv.ParseFloat(c.Query("max_distance"), 64)
 
-	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, phone, lat, lng, maxDistance)
+	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, phone, lat, lng, maxDistance, nil)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch consignments")
 		return
