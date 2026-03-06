@@ -78,7 +78,17 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 			query = query.Where("residential_type = ?", v)
 		}
 		if v := filters["road_type"]; v != "" {
-			query = query.Where("road_display = ?", v)
+			// Map form slug values to DB road field values
+			roadMap := map[string]string{
+				"mat-tien": "Nhựa",
+				"hem":      "Bê tông",
+				"ngo":      "Đất",
+			}
+			if mapped, ok := roadMap[v]; ok {
+				query = query.Where("road = ?", mapped)
+			} else {
+				query = query.Where("road = ? OR road_display = ?", v, v)
+			}
 		}
 		if v := filters["direction"]; v != "" {
 			query = query.Where("JSON_CONTAINS(land_directions, ?)", `"`+v+`"`)

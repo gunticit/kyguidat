@@ -215,13 +215,9 @@ func buildQuery(params SearchParams) map[string]interface{} {
 
 	// House on land
 	if params.HouseOnLand != "" {
-		val := "no"
-		if params.HouseOnLand == "co" {
-			val = "yes"
-		}
 		filter = append(filter, map[string]interface{}{
 			"term": map[string]interface{}{
-				"has_house": val,
+				"has_house": params.HouseOnLand,
 			},
 		})
 	}
