@@ -2,6 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"khodat/api-gateway/internal/models"
 
@@ -11,7 +13,7 @@ import (
 // Repository interface for database operations
 type Repository interface {
 	// Consignments
-	GetApprovedConsignments(page, limit int, search, province, phone string, lat, lng, maxDistance float64) ([]models.Consignment, int64, error)
+	GetApprovedConsignments(page, limit int, search, province, phone string, lat, lng, maxDistance float64, filters map[string]string) ([]models.Consignment, int64, error)
 	GetConsignmentByID(id uint) (*models.Consignment, error)
 	GetConsignmentBySlug(slug string) (*models.Consignment, error)
 	GetAllConsignments(page, limit int, status string) ([]models.Consignment, int64, error)
@@ -44,7 +46,7 @@ func NewMySQLRepository(db *gorm.DB) *MySQLRepository {
 // GetApprovedConsignments returns approved consignments with pagination
 // When lat/lng are provided (non-zero), sorts by distance using Haversine formula
 // When maxDistance > 0, filters to only show properties within that distance (km)
-func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, province, phone string, lat, lng, maxDistance float64) ([]models.Consignment, int64, error) {
+func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, province, phone string, lat, lng, maxDistance float64, filters map[string]string) ([]models.Consignment, int64, error) {
 	var consignments []models.Consignment
 	var total int64
 
@@ -61,7 +63,70 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 		query = query.Where("CAST(order_number AS CHAR) LIKE ? OR seller_phone LIKE ? OR consigner_phone LIKE ?", "%"+phone+"%", "%"+phone+"%", "%"+phone+"%")
 	}
 
+	// Advanced filters
+	if filters != nil {
+		if v := filters["district"]; v != "" {
+			query = query.Where("ward = ?", v)
+		}
+		if v := filters["property_type"]; v != "" {
+			query = query.Where("JSON_CONTAINS(land_types, ?)", `"`+v+`"`)
+		}
+		if v := filters["house_on_land"]; v != "" {
+			query = query.Where("has_house = ?", v)
+		}
+		if v := filters["tho_cu"]; v != "" {
+			query = query.Where("residential_type = ?", v)
+		}
+		if v := filters["road_type"]; v != "" {
+			query = query.Where("road_display = ?", v)
+		}
+		if v := filters["direction"]; v != "" {
+			query = query.Where("JSON_CONTAINS(land_directions, ?)", `"`+v+`"`)
+		}
+		if v := filters["so_to"]; v != "" {
+			query = query.Where("sheet_number LIKE ?", "%"+v+"%")
+		}
+		if v := filters["so_thua"]; v != "" {
+			query = query.Where("parcel_number LIKE ?", "%"+v+"%")
+		}
+		// Price range filter (values in millions)
+		if v := filters["price_range"]; v != "" {
+			applyRangeFilter(query, v, "price", 1000000, &query)
+		}
+		// Area range filter
+		if v := filters["area_range"]; v != "" {
+			applyRangeFilter(query, v, "CAST(residential_area AS DECIMAL(10,2))", 1, &query)
+		}
+		// Floor area range filter
+		if v := filters["floor_area_range"]; v != "" {
+			applyRangeFilter(query, v, "floor_area", 1, &query)
+		}
+		// Frontage range filter
+		if v := filters["frontage"]; v != "" {
+			applyRangeFilter(query, v, "CAST(frontage_actual AS DECIMAL(10,2))", 1, &query)
+		}
+	}
+
 	offset := (page - 1) * limit
+
+	// Determine sort order
+	sortOrder := "created_at DESC"
+	if filters != nil {
+		switch filters["sort"] {
+		case "newest":
+			sortOrder = "created_at DESC"
+		case "oldest":
+			sortOrder = "created_at ASC"
+		case "price_asc":
+			sortOrder = "price ASC"
+		case "price_desc":
+			sortOrder = "price DESC"
+		case "area_asc":
+			sortOrder = "CAST(residential_area AS DECIMAL(10,2)) ASC"
+		case "area_desc":
+			sortOrder = "CAST(residential_area AS DECIMAL(10,2)) DESC"
+		}
+	}
 
 	// If user location is provided, sort by distance (Haversine formula)
 	if lat != 0 && lng != 0 {
@@ -93,13 +158,28 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 
 	query.Count(&total)
 
-	// Default: sort by created_at
 	err := query.Preload("User").
 		Offset(offset).Limit(limit).
-		Order("created_at DESC").
+		Order(sortOrder).
 		Find(&consignments).Error
 
 	return consignments, total, err
+}
+
+// applyRangeFilter applies a range filter like "0-500", "500-1000", "5000+"
+func applyRangeFilter(_ *gorm.DB, rangeStr, column string, multiplier float64, result **gorm.DB) {
+	if strings.HasSuffix(rangeStr, "+") {
+		minStr := strings.TrimSuffix(rangeStr, "+")
+		if min, err := strconv.ParseFloat(minStr, 64); err == nil {
+			*result = (*result).Where(fmt.Sprintf("%s >= ?", column), min*multiplier)
+		}
+	} else if parts := strings.SplitN(rangeStr, "-", 2); len(parts) == 2 {
+		min, err1 := strconv.ParseFloat(parts[0], 64)
+		max, err2 := strconv.ParseFloat(parts[1], 64)
+		if err1 == nil && err2 == nil {
+			*result = (*result).Where(fmt.Sprintf("%s >= ? AND %s <= ?", column, column), min*multiplier, max*multiplier)
+		}
+	}
 }
 
 // GetConsignmentByID returns single consignment

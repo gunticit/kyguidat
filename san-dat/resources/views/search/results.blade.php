@@ -241,7 +241,7 @@
                         </div>
                         <div class="flex items-end gap-2">
                             <a href="{{ route('search.results') }}"
-                                class="flex-1 px-4 py-2 border-2 border-green-500 text-green-400 font-semibold rounded-lg hover:bg-green-500/10 transition flex items-center justify-center gap-2">
+                                class="flex-1 px-4 py-2 border border-green-500 text-green-400 font-semibold rounded-lg hover:bg-green-500/10 transition flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -249,7 +249,7 @@
                                 Làm mới
                             </a>
                             <button type="submit"
-                                class="flex-1 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 shadow-lg shadow-green-500/25">
+                                class="flex-1 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 shadow-lg shadow-green-500/25 border border-green-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -388,26 +388,29 @@
             </div>
 
             <!-- Pagination -->
-            @if($meta && ($meta['last_page'] ?? $meta['total_pages'] ?? 0) > 1)
+            @php
+                $lastPage = ($meta['last_page'] ?? $meta['total_pages'] ?? 1);
+                $currentPage = ($meta['current_page'] ?? 1);
+            @endphp
+            @if($meta && $lastPage > 1)
                 <div class="mt-8 flex justify-center">
                     <nav class="flex items-center space-x-2">
-                        @php $lastPage = $meta['last_page'] ?? $meta['total_pages'] ?? 1; @endphp
-                        @if($meta['current_page'] > 1)
-                            <a href="{{ route('search.results', array_merge(request()->query(), ['page' => $meta['current_page'] - 1])) }}"
+                        @if($currentPage > 1)
+                            <a href="{{ route('search.results', array_merge(request()->query(), ['page' => $currentPage - 1])) }}"
                                 class="px-3 py-2 rounded-lg bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600 transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                                 </svg>
                             </a>
                         @endif
-                        @for($i = max(1, $meta['current_page'] - 2); $i <= min($lastPage, $meta['current_page'] + 2); $i++)
+                        @for($i = max(1, $currentPage - 2); $i <= min($lastPage, $currentPage + 2); $i++)
                             <a href="{{ route('search.results', array_merge(request()->query(), ['page' => $i])) }}"
-                                class="px-4 py-2 rounded-lg {{ $meta['current_page'] == $i ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600' }} transition">
+                                class="px-4 py-2 rounded-lg {{ $currentPage == $i ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' : 'bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600' }} transition">
                                 {{ $i }}
                             </a>
                         @endfor
-                        @if($meta['current_page'] < $lastPage)
-                            <a href="{{ route('search.results', array_merge(request()->query(), ['page' => $meta['current_page'] + 1])) }}"
+                        @if($currentPage < $lastPage)
+                            <a href="{{ route('search.results', array_merge(request()->query(), ['page' => $currentPage + 1])) }}"
                                 class="px-3 py-2 rounded-lg bg-navy-700 text-gray-300 hover:bg-navy-600 border border-navy-600 transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -551,23 +554,23 @@
             if (property.has_house) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Tình trạng:</span> ${property.has_house === 'co' || property.has_house === 'yes' ? 'Có nhà' : 'Chưa bán'}</p>`;
 
             const infoContent = `
-                    <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
-                        <img src="${property.image}" alt="${property.title}"
-                            style="width:100%;height:160px;object-fit:cover;"
-                            onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                        <div style="padding:12px;">
-                            ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
-                            <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
-                                ${property.title}
-                            </p>
-                            <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
-                            ${popupDetails}
-                            <a href="/bat-dong-san/${property.seo_url || property.id}"
-                                style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
-                                Xem chi tiết
-                            </a>
-                        </div>
-                    </div>`;
+                            <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
+                                <img src="${property.image}" alt="${property.title}"
+                                    style="width:100%;height:160px;object-fit:cover;"
+                                    onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                                <div style="padding:12px;">
+                                    ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
+                                    <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
+                                        ${property.title}
+                                    </p>
+                                    <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
+                                    ${popupDetails}
+                                    <a href="/bat-dong-san/${property.seo_url || property.id}"
+                                        style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
+                                        Xem chi tiết
+                                    </a>
+                                </div>
+                            </div>`;
 
             const infoWindow = new google.maps.InfoWindow({ content: infoContent, maxWidth: 380 });
             marker.addListener('click', () => {

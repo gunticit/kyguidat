@@ -110,12 +110,43 @@ func (h *ConsignmentHandler) List(c *gin.Context) {
 	province := c.Query("province")
 	phone := c.Query("phone")
 
+	// Advanced filter params
+	district := c.Query("district")
+	propertyType := c.Query("property_type")
+	houseOnLand := c.Query("house_on_land")
+	priceRange := c.Query("price_range")
+	thoCu := c.Query("tho_cu")
+	roadType := c.Query("road_type")
+	frontage := c.Query("frontage")
+	areaRange := c.Query("area_range")
+	floorAreaRange := c.Query("floor_area_range")
+	direction := c.Query("direction")
+	soTo := c.Query("so_to")
+	soThua := c.Query("so_thua")
+	sortBy := c.Query("sort")
+
 	// Parse user location for proximity sorting
 	lat, _ := strconv.ParseFloat(c.Query("lat"), 64)
 	lng, _ := strconv.ParseFloat(c.Query("lng"), 64)
 	maxDistance, _ := strconv.ParseFloat(c.Query("max_distance"), 64)
 
-	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, phone, lat, lng, maxDistance)
+	filters := map[string]string{
+		"district":         district,
+		"property_type":    propertyType,
+		"house_on_land":    houseOnLand,
+		"price_range":      priceRange,
+		"tho_cu":           thoCu,
+		"road_type":        roadType,
+		"frontage":         frontage,
+		"area_range":       areaRange,
+		"floor_area_range": floorAreaRange,
+		"direction":        direction,
+		"so_to":            soTo,
+		"so_thua":          soThua,
+		"sort":             sortBy,
+	}
+
+	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, phone, lat, lng, maxDistance, filters)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch consignments")
 		return
