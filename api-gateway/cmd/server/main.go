@@ -46,6 +46,9 @@ func main() {
 
 		// Auto-sync on startup + periodic sync every 2 minutes
 		go func() {
+			// Wait for ES to be fully ready
+			time.Sleep(5 * time.Second)
+
 			count, err := esSyncer.FullSync()
 			if err != nil {
 				log.Printf("⚠️  Auto-sync failed: %v", err)
