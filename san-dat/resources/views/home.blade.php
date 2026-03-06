@@ -770,6 +770,21 @@
             ];
         });
     @endphp
+    <style>
+        /* Override Google Maps InfoWindow container to allow full width */
+        .gm-style-iw-c {
+            max-width: 100% !important;
+            max-height: none !important;
+            padding: 0 !important;
+        }
+        .gm-style-iw-d {
+            overflow: auto !important;
+            max-height: none !important;
+        }
+        .gm-style-iw-t::after {
+            display: none !important;
+        }
+    </style>
     <script>
         // Property data from server
         const properties = @json($propertiesData);
