@@ -460,7 +460,12 @@
                     return number_format($p) . ' đ';
                 })($item['price']) : 'Liên hệ',
                 'address' => $item['address'] ?? '',
-                'area' => $item['area_dimensions'] ?? $item['residential_area'] ?? 0,
+                'area_dimensions' => $item['area_dimensions'] ?? '',
+                'residential_area' => $item['residential_area'] ?? '',
+                'land_directions' => $item['land_directions'] ?? [],
+                'road' => $item['road'] ?? '',
+                'frontage_actual' => $item['frontage_actual'] ?? '',
+                'has_house' => $item['has_house'] ?? '',
                 'seo_url' => $item['seo_url'] ?? '',
                 'order_number' => $item['order_number'] ?? '',
                 'image' => (function ($item) {
@@ -517,6 +522,11 @@
             }
         }
 
+        function mapDirection(d) {
+            const m = { 'dong': 'Đông', 'tay': 'Tây', 'nam': 'Nam', 'bac': 'Bắc', 'dong-nam': 'Đông Nam', 'dong-bac': 'Đông Bắc', 'tay-nam': 'Tây Nam', 'tay-bac': 'Tây Bắc' };
+            return m[d] || d;
+        }
+
         function addMarker(property) {
             const marker = new google.maps.Marker({
                 position: { lat: property.lat, lng: property.lng },
@@ -525,26 +535,41 @@
                 animation: google.maps.Animation.DROP
             });
 
+            // Parse directions
+            let popupDirs = property.land_directions;
+            if (typeof popupDirs === 'string') { try { popupDirs = JSON.parse(popupDirs); } catch (e) { popupDirs = []; } }
+            const popupDirText = Array.isArray(popupDirs) && popupDirs.length > 0 ? popupDirs.map(mapDirection).join(', ') : '';
+
+            // Build detail rows
+            let popupDetails = '';
+            if (property.address) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Địa chỉ:</span> ${property.address}</p>`;
+            if (property.area_dimensions) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Diện tích:</span> ${property.area_dimensions}</p>`;
+            if (property.residential_area) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Thổ cư:</span> ${parseFloat(property.residential_area)} m²</p>`;
+            if (popupDirText) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Hướng:</span> ${popupDirText}</p>`;
+            if (property.road) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Loại đường:</span> ${property.road}</p>`;
+            if (property.frontage_actual && property.frontage_actual !== '0' && property.frontage_actual !== '0.00') popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Mặt tiền:</span> ${parseFloat(property.frontage_actual)} m</p>`;
+            if (property.has_house) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Tình trạng:</span> ${property.has_house === 'co' || property.has_house === 'yes' ? 'Có nhà' : 'Chưa bán'}</p>`;
+
             const infoContent = `
-                    <div style="width: min(80vw, 320px); font-family: Arial, sans-serif; border-radius: 12px; overflow:hidden;">
+                    <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
                         <img src="${property.image}" alt="${property.title}"
-                            style="width: 100%; height: 140px; object-fit: cover;"
-                            onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22140%22%3E%3Crect fill=%22%23334155%22 width=%22280%22 height=%22140%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                        <div style="padding: 12px;">
-                            ${property.order_number ? `<p style="color: #94a3b8; font-size: 12px; margin: 0 0 5px;">STT: ${property.order_number}</p>` : ''}
-                            <p style="font-weight: bold; font-size: 13px; margin: 0 0 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            style="width:100%;height:160px;object-fit:cover;"
+                            onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                        <div style="padding:12px;">
+                            ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
+                            <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
                                 ${property.title}
                             </p>
-                            <p style="color: #22c55e; font-weight: bold; font-size: 16px; margin: 0 0 8px;">${property.priceFormatted}</p>
-                            <p style="color: #94a3b8; font-size: 12px; margin: 0 0 5px;">Địa chỉ: ${property.address}</p>
+                            <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
+                            ${popupDetails}
                             <a href="/bat-dong-san/${property.seo_url || property.id}"
-                                style="display: block; text-align: center; margin-top: 10px; padding: 8px; background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
                                 Xem chi tiết
                             </a>
                         </div>
                     </div>`;
 
-            const infoWindow = new google.maps.InfoWindow({ content: infoContent, maxWidth: 300 });
+            const infoWindow = new google.maps.InfoWindow({ content: infoContent, maxWidth: 380 });
             marker.addListener('click', () => {
                 if (activeInfoWindow) activeInfoWindow.close();
                 infoWindow.open(map, marker);
