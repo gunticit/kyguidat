@@ -219,6 +219,30 @@ func (c *Client) DeleteConsignment(id uint) error {
 	return err
 }
 
+// DeleteAllDocuments removes all documents from the index
+func (c *Client) DeleteAllDocuments() error {
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"match_all": map[string]interface{}{},
+		},
+	}
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		return fmt.Errorf("error encoding delete query: %w", err)
+	}
+
+	path := fmt.Sprintf("/%s/_delete_by_query?conflicts=proceed", IndexName)
+	_, statusCode, err := c.doRequest("POST", path, &buf)
+	if err != nil {
+		return fmt.Errorf("delete all documents error: %w", err)
+	}
+	if statusCode >= 400 {
+		return fmt.Errorf("delete all documents failed with status %d", statusCode)
+	}
+	log.Println("🗑️  Cleared all documents from ES index")
+	return nil
+}
+
 // consignmentToDoc converts a Consignment model to an ES document
 func consignmentToDoc(c models.Consignment) ConsignmentDoc {
 	// Skip base64 image data (too large for ES keyword)

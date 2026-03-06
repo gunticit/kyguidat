@@ -37,6 +37,12 @@ func (s *Syncer) FullSync() (int, error) {
 		return 0, err
 	}
 
+	// Delete all existing documents first to remove stale/deleted ones
+	if err := s.client.DeleteAllDocuments(); err != nil {
+		log.Printf("⚠️  Failed to clear ES index: %v", err)
+		// Continue anyway — index will just have duplicates overwritten
+	}
+
 	if len(consignments) == 0 {
 		log.Println("⚠️  No consignments to sync")
 		return 0, nil
