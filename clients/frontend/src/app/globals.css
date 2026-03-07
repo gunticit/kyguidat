@@ -1,4 +1,5 @@
-:root {
+:root,
+[data-theme="dark"] {
   --primary: #088b0c;
   --primary-dark: #1abf1f;
   --primary-light: #8ef786;
@@ -17,6 +18,25 @@
   --warning: #f59e0b;
 }
 
+[data-theme="light"] {
+  --primary: #088b0c;
+  --primary-dark: #067a09;
+  --primary-light: #4caf50;
+  --secondary: #059669;
+  --secondary-dark: #047857;
+  --accent: #d97706;
+  --background: #f1f5f9;
+  --background-light: #e2e8f0;
+  --card: #ffffff;
+  --card-hover: #f8fafc;
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --border: #e2e8f0;
+  --error: #dc2626;
+  --success: #16a34a;
+  --warning: #d97706;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -29,6 +49,7 @@ body {
   overflow-x: hidden;
   background-color: var(--background);
   color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {

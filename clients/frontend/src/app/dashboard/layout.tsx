@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
     FiHome, FiPackage, FiDollarSign, FiMessageSquare,
-    FiUser, FiLogOut, FiMenu, FiX, FiCreditCard
+    FiUser, FiLogOut, FiMenu, FiX, FiCreditCard, FiSun, FiMoon
 } from 'react-icons/fi';
 import { authApi } from '@/lib/api';
 import styles from './dashboard.module.css';
@@ -24,6 +24,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [user, setUser] = useState<{ name?: string; email?: string; avatar?: string } | null>(null);
+    const [theme, setTheme] = useState('dark');
+
+    // Theme initialization
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('app-theme') || 'dark';
+        setTheme(savedTheme);
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }, []);
+
+    const toggleTheme = () => {
+        const newTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        localStorage.setItem('app-theme', newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
+    };
 
     useEffect(() => {
         const loadUser = async () => {
@@ -142,10 +157,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     })}
                 </nav>
 
-                <button className={styles.logoutBtn} onClick={handleLogout}>
-                    <FiLogOut size={20} />
-                    <span>Đăng xuất</span>
-                </button>
+                <div className={styles.sidebarFooter}>
+                    <button className={styles.themeToggle} onClick={toggleTheme}>
+                        {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
+                        <span>{theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}</span>
+                    </button>
+                    <button className={styles.logoutBtn} onClick={handleLogout}>
+                        <FiLogOut size={20} />
+                        <span>Đăng xuất</span>
+                    </button>
+                </div>
             </aside>
 
             {/* Overlay for mobile */}

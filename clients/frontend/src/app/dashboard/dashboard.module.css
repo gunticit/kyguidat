@@ -137,6 +137,36 @@
     color: var(--error);
 }
 
+.sidebarFooter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 8px;
+}
+
+.themeToggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    width: 100%;
+}
+
+.themeToggle:hover {
+    background: var(--background-light);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
 .main {
     flex: 1;
     margin-left: 260px;
