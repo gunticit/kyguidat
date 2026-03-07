@@ -208,6 +208,8 @@
     .main {
         margin-left: 0;
         padding: 80px 16px 24px;
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
     .mobileMenuBtn {
