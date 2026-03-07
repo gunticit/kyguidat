@@ -243,6 +243,14 @@
 }
 
 @media (max-width: 768px) {
+    .header {
+        margin-bottom: 20px;
+    }
+
+    .pageTitle {
+        font-size: 22px;
+    }
+
     .filters {
         flex-direction: column;
     }
@@ -250,6 +258,30 @@
     .searchBox,
     .filterSelect {
         max-width: none;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .searchBox input,
+    .filterSelect select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .table th,
+    .table td {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    .actions {
+        gap: 4px;
+    }
+
+    .actionBtn {
+        width: 32px;
+        height: 32px;
     }
 }
 
