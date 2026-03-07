@@ -637,9 +637,9 @@ function numberToVietnamese(n) {
   const digits = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín']
   
   // Shorthand for common real estate prices
-  if (n >= 1000000000 && n % 1000000000 === 0) return digits[n / 1000000000] + ' tỷ'
-  if (n >= 1000000 && n % 1000000 === 0) return digits[n / 1000000] + ' triệu'
-  if (n >= 1000 && n % 1000 === 0 && n < 1000000) return digits[n / 1000] + ' nghìn'
+  if (n >= 1000000000 && n % 1000000000 === 0 && n / 1000000000 <= 9) return digits[n / 1000000000] + ' tỷ'
+  if (n >= 1000000 && n % 1000000 === 0 && n / 1000000 <= 9) return digits[n / 1000000] + ' triệu'
+  if (n >= 1000 && n % 1000 === 0 && n < 1000000 && n / 1000 <= 9) return digits[n / 1000] + ' nghìn'
   
   // General formatting
   const parts = []
