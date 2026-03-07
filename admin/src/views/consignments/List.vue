@@ -439,6 +439,11 @@
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">Giá *</label>
                       <input v-model.number="form.price" type="number" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                      <p v-if="form.price" class="text-xs mt-1">
+                        <span class="text-indigo-600 font-medium">{{ formatCurrency(form.price) }}</span>
+                        <span class="text-gray-500"> — </span>
+                        <span class="text-green-600 font-medium italic">{{ priceInWords }}</span>
+                      </p>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1">SEO URL link sản phẩm</label>
@@ -618,6 +623,58 @@ const debouncedSearch = () => {
 const loading = ref(false)
 const error = ref('')
 const seoUrlManuallyEdited = ref(false)
+
+// Price in Vietnamese words
+const priceInWords = computed(() => {
+  const n = form.value?.price
+  if (!n || n <= 0) return ''
+  return numberToVietnamese(n)
+})
+
+function numberToVietnamese(n) {
+  if (!n || n <= 0) return ''
+  const units = ['', 'nghìn', 'triệu', 'tỷ', 'nghìn tỷ', 'triệu tỷ']
+  const digits = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín']
+  
+  // Shorthand for common real estate prices
+  if (n >= 1000000000 && n % 1000000000 === 0) return digits[n / 1000000000] + ' tỷ'
+  if (n >= 1000000 && n % 1000000 === 0) return digits[n / 1000000] + ' triệu'
+  if (n >= 1000 && n % 1000 === 0 && n < 1000000) return digits[n / 1000] + ' nghìn'
+  
+  // General formatting
+  const parts = []
+  let remainder = n
+  let unitIndex = 0
+  while (remainder > 0) {
+    const chunk = remainder % 1000
+    if (chunk > 0) {
+      const chunkText = readThreeDigits(chunk, digits, unitIndex > 0)
+      parts.unshift(chunkText + (units[unitIndex] ? ' ' + units[unitIndex] : ''))
+    }
+    remainder = Math.floor(remainder / 1000)
+    unitIndex++
+  }
+  return parts.join(' ').trim()
+}
+
+function readThreeDigits(n, digits, hasHigherUnit) {
+  const h = Math.floor(n / 100)
+  const t = Math.floor((n % 100) / 10)
+  const u = n % 10
+  let result = ''
+  if (h > 0) result += digits[h] + ' trăm'
+  else if (hasHigherUnit && (t > 0 || u > 0)) result += 'không trăm'
+  if (t > 1) result += ' ' + digits[t] + ' mươi'
+  else if (t === 1) result += ' mười'
+  else if (t === 0 && h > 0 && u > 0) result += ' lẻ'
+  if (u > 0) {
+    if (t >= 2 && u === 1) result += ' mốt'
+    else if (t >= 1 && u === 5) result += ' lăm'
+    else if (t >= 2 && u === 4) result += ' tư'
+    else result += ' ' + digits[u]
+  }
+  return result.trim()
+}
 
 // Vietnamese-to-ASCII slug generator
 function slugify(str) {

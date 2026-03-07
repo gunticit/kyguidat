@@ -6,6 +6,7 @@ import { FiArrowLeft, FiUpload, FiX, FiFile } from 'react-icons/fi';
 import Link from 'next/link';
 import { consignmentApi, uploadApi } from '@/lib/api';
 import { formatCurrencyInput } from '@/lib/formatCurrency';
+import { priceToWords } from '@/lib/priceToWords';
 import styles from '../../new/new.module.css';
 
 interface ImageItem {
@@ -312,6 +313,11 @@ export default function EditConsignmentPage() {
                                 onChange={handlePriceChange}
                             />
                             {errors.price && <p className="error-text">{errors.price}</p>}
+                            {formData.price && (
+                                <p style={{ fontSize: '12px', marginTop: '4px', color: 'var(--success)', fontStyle: 'italic' }}>
+                                    {priceToWords(formData.price)}
+                                </p>
+                            )}
                         </div>
 
                         <div className={styles.formGroup}>
