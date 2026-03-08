@@ -275,9 +275,9 @@
                 const currentProvince = '{{ request('province') }}';
                 provincesData.forEach(p => {
                     const opt = document.createElement('option');
-                    opt.value = p.slug;
+                    opt.value = p.name;
                     opt.textContent = p.name;
-                    if (p.slug === currentProvince) opt.selected = true;
+                    if (p.name === currentProvince) opt.selected = true;
                     select.appendChild(opt);
                 });
                 if (currentProvince) updateWards();
@@ -285,11 +285,11 @@
         })();
 
         function updateWards() {
-            const slug = document.getElementById('provinceSelect').value;
+            const name = document.getElementById('provinceSelect').value;
             const wardSelect = document.getElementById('wardSelect');
             wardSelect.innerHTML = '<option value="">-- Tất cả --</option>';
-            if (!slug) { wardSelect.innerHTML = '<option value="">-- Chọn tỉnh trước --</option>'; return; }
-            const province = provincesData.find(p => p.slug === slug);
+            if (!name) { wardSelect.innerHTML = '<option value="">-- Chọn tỉnh trước --</option>'; return; }
+            const province = provincesData.find(p => p.name === name);
             const currentWard = '{{ request('district') }}';
             if (province && province.wards) {
                 province.wards.forEach(w => {
@@ -554,23 +554,23 @@
             if (property.has_house) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Tình trạng:</span> ${property.has_house === 'co' || property.has_house === 'yes' ? 'Có nhà' : 'Chưa bán'}</p>`;
 
             const infoContent = `
-                            <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
-                                <img src="${property.image}" alt="${property.title}"
-                                    style="width:100%;height:160px;object-fit:cover;"
-                                    onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                                <div style="padding:12px;">
-                                    ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
-                                    <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
-                                        ${property.title}
-                                    </p>
-                                    <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
-                                    ${popupDetails}
-                                    <a href="/bat-dong-san/${property.seo_url || property.id}"
-                                        style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
-                                        Xem chi tiết
-                                    </a>
-                                </div>
-                            </div>`;
+                                <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
+                                    <img src="${property.image}" alt="${property.title}"
+                                        style="width:100%;height:160px;object-fit:cover;"
+                                        onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                                    <div style="padding:12px;">
+                                        ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
+                                        <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
+                                            ${property.title}
+                                        </p>
+                                        <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
+                                        ${popupDetails}
+                                        <a href="/bat-dong-san/${property.seo_url || property.id}"
+                                            style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
+                                            Xem chi tiết
+                                        </a>
+                                    </div>
+                                </div>`;
 
             const infoWindow = new google.maps.InfoWindow({ content: infoContent, maxWidth: 380 });
             marker.addListener('click', () => {
