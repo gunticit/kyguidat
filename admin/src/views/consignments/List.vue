@@ -46,6 +46,7 @@
               <tr>
                 <th class="px-6 py-4">STT</th>
                 <th class="px-6 py-4">Tiêu đề</th>
+                <th class="px-6 py-4">Danh mục</th>
                 <th class="px-6 py-4">Người đăng</th>
                 <th class="px-6 py-4">Giá</th>
                 <th class="px-6 py-4">Trạng thái</th>
@@ -57,6 +58,7 @@
                 <tr v-for="n in 5" :key="'skeleton-'+n" class="border-t animate-pulse">
                   <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-12"></div></td>
                   <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-48"></div></td>
+                  <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
                   <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
                   <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-28"></div></td>
                   <td class="px-6 py-4"><div class="h-5 bg-gray-200 rounded-full w-16"></div></td>
@@ -64,11 +66,12 @@
                 </tr>
               </template>
               <tr v-else-if="consignments.length === 0" class="border-t">
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Chưa có dữ liệu</td>
+                <td colspan="7" class="px-6 py-8 text-center text-gray-500">Chưa có dữ liệu</td>
               </tr>
               <tr v-else v-for="item in consignments" :key="item.id" class="border-t hover:bg-gray-50">
                 <td class="px-6 py-4 text-sm font-semibold text-indigo-600">{{ item.order_number || '—' }}</td>
                 <td class="px-6 py-4">{{ item.title }}</td>
+                <td class="px-6 py-4 text-sm">{{ item.category || '—' }}</td>
                 <td class="px-6 py-4 text-sm">{{ item.user?.name || 'N/A' }}</td>
                 <td class="px-6 py-4">{{ formatCurrency(item.price) }}</td>
                 <td class="px-6 py-4">
