@@ -229,11 +229,22 @@ class ConsignmentService
         // Auto-update featured_image from first image if images changed
         $featuredImage = !empty($images) ? (is_array($images) ? $images[0] : $consignment->featured_image) : $consignment->featured_image;
 
+        // Auto-extract lat/lng from google_map_link
+        $mapLink = $data['google_map_link'] ?? $consignment->google_map_link;
+        $latitude = $consignment->latitude;
+        $longitude = $consignment->longitude;
+        if ($mapLink && empty($latitude) && preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
+            $latitude = $matches[1];
+            $longitude = $matches[2];
+        }
+
         $consignment->update([
             'title' => $data['title'] ?? $consignment->title,
             'description' => $data['description'] ?? $consignment->description,
             'address' => $data['address'] ?? $consignment->address,
-            'google_map_link' => $data['google_map_link'] ?? $consignment->google_map_link,
+            'google_map_link' => $mapLink,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
             'price' => $data['price'] ?? $consignment->price,
             'min_price' => $data['min_price'] ?? $consignment->min_price,
             'seller_phone' => $data['seller_phone'] ?? $consignment->seller_phone,
