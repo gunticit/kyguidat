@@ -98,7 +98,7 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 		}
 		// Area range filter
 		if v := filters["area_range"]; v != "" {
-			applyRangeFilter(query, v, "CAST(residential_area AS DECIMAL(10,2))", 1, &query)
+			query = query.Where("area_range = ?", v)
 		}
 		// Floor area range filter
 		if v := filters["floor_area_range"]; v != "" {

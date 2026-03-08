@@ -145,10 +145,14 @@
                             <select name="frontage"
                                 class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
-                                <option value="duoi_5m" {{ request('frontage') == 'duoi_5m' ? 'selected' : '' }}>Dưới 5 mét</option>
-                                <option value="5_10m" {{ request('frontage') == '5_10m' ? 'selected' : '' }}>Từ 5 - 10 mét</option>
-                                <option value="10_20m" {{ request('frontage') == '10_20m' ? 'selected' : '' }}>Từ 10 - 20 mét</option>
-                                <option value="tren_20m" {{ request('frontage') == 'tren_20m' ? 'selected' : '' }}>Trên 20 mét</option>
+                                <option value="duoi_5m" {{ request('frontage') == 'duoi_5m' ? 'selected' : '' }}>Dưới 5 mét
+                                </option>
+                                <option value="5_10m" {{ request('frontage') == '5_10m' ? 'selected' : '' }}>Từ 5 - 10 mét
+                                </option>
+                                <option value="10_20m" {{ request('frontage') == '10_20m' ? 'selected' : '' }}>Từ 10 - 20 mét
+                                </option>
+                                <option value="tren_20m" {{ request('frontage') == 'tren_20m' ? 'selected' : '' }}>Trên 20 mét
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -160,16 +164,16 @@
                             <select name="area_range"
                                 class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
-                                <option value="0-100" {{ request('area_range') == '0-100' ? 'selected' : '' }}>Dưới 100 m²
-                                </option>
-                                <option value="100-200" {{ request('area_range') == '100-200' ? 'selected' : '' }}>100 - 200
+                                <option value="duoi_100" {{ request('area_range') == 'duoi_100' ? 'selected' : '' }}>Dưới 100
                                     m²</option>
-                                <option value="200-500" {{ request('area_range') == '200-500' ? 'selected' : '' }}>200 - 500
-                                    m²</option>
-                                <option value="500-1000" {{ request('area_range') == '500-1000' ? 'selected' : '' }}>500 -
+                                <option value="100_200" {{ request('area_range') == '100_200' ? 'selected' : '' }}>Từ 100 -
+                                    200 m²</option>
+                                <option value="200_500" {{ request('area_range') == '200_500' ? 'selected' : '' }}>Từ 200 -
+                                    500 m²</option>
+                                <option value="500_1000" {{ request('area_range') == '500_1000' ? 'selected' : '' }}>Từ 500 -
                                     1000 m²</option>
-                                <option value="1000+" {{ request('area_range') == '1000+' ? 'selected' : '' }}>Trên 1000 m²
-                                </option>
+                                <option value="tren_1000" {{ request('area_range') == 'tren_1000' ? 'selected' : '' }}>Trên
+                                    1000 m²</option>
                             </select>
                         </div>
                         <div>
@@ -558,23 +562,23 @@
             if (property.has_house) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Tình trạng:</span> ${property.has_house === 'co' || property.has_house === 'yes' ? 'Có nhà' : 'Chưa bán'}</p>`;
 
             const infoContent = `
-                                            <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
-                                                <img src="${property.image}" alt="${property.title}"
-                                                    style="width:100%;height:160px;object-fit:cover;"
-                                                    onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                                                <div style="padding:12px;">
-                                                    ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
-                                                    <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
-                                                        ${property.title}
-                                                    </p>
-                                                    <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
-                                                    ${popupDetails}
-                                                    <a href="/bat-dong-san/${property.seo_url || property.id}"
-                                                        style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
-                                                        Xem chi tiết
-                                                    </a>
-                                                </div>
-                                            </div>`;
+                                                <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
+                                                    <img src="${property.image}" alt="${property.title}"
+                                                        style="width:100%;height:160px;object-fit:cover;"
+                                                        onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                                                    <div style="padding:12px;">
+                                                        ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
+                                                        <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
+                                                            ${property.title}
+                                                        </p>
+                                                        <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
+                                                        ${popupDetails}
+                                                        <a href="/bat-dong-san/${property.seo_url || property.id}"
+                                                            style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
+                                                            Xem chi tiết
+                                                        </a>
+                                                    </div>
+                                                </div>`;
 
             const infoWindow = new google.maps.InfoWindow({ content: infoContent, maxWidth: 380 });
             marker.addListener('click', () => {
