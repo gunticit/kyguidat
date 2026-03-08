@@ -161,6 +161,7 @@ class AdminController extends Controller
             'code',
             'order_number',
             'title',
+            'category',
             'price',
             'status',
             'consigner_name',
