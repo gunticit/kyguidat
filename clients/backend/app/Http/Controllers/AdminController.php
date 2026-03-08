@@ -242,7 +242,7 @@ class AdminController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'category_id' => 'nullable|integer',
+            'category' => 'nullable|string|max:255',
             'order_number' => ['nullable', 'integer', \Illuminate\Validation\Rule::unique('consignments', 'order_number')->whereNull('deleted_at')],
             'notification_date' => 'nullable|date',
             'description' => 'nullable|string',
@@ -350,7 +350,7 @@ class AdminController extends Controller
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
-            'category_id' => 'nullable|integer',
+            'category' => 'nullable|string|max:255',
             'order_number' => ['nullable', 'integer', \Illuminate\Validation\Rule::unique('consignments', 'order_number')->ignore($id)->whereNull('deleted_at')],
             'notification_date' => 'nullable|date',
             'description' => 'nullable|string',
