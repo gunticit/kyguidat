@@ -26,6 +26,7 @@ type SearchParams struct {
 	SoTo           string
 	SoThua         string
 	Sort           string
+	Category       string
 	Page           int
 	Limit          int
 }
@@ -209,6 +210,15 @@ func buildQuery(params SearchParams) map[string]interface{} {
 		filter = append(filter, map[string]interface{}{
 			"term": map[string]interface{}{
 				"land_types": params.PropertyType,
+			},
+		})
+	}
+
+	// Category filter
+	if params.Category != "" {
+		filter = append(filter, map[string]interface{}{
+			"term": map[string]interface{}{
+				"category": params.Category,
 			},
 		})
 	}

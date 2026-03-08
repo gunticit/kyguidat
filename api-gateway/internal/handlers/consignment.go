@@ -44,6 +44,7 @@ func (h *ConsignmentHandler) Search(c *gin.Context) {
 		SoTo:           c.Query("so_to"),
 		SoThua:         c.Query("so_thua"),
 		Sort:           c.Query("sort"),
+		Category:       c.Query("category"),
 		Page:           page,
 		Limit:          limit,
 	}
@@ -103,6 +104,7 @@ func (h *ConsignmentHandler) Search(c *gin.Context) {
 		"so_to":            params.SoTo,
 		"so_thua":          params.SoThua,
 		"sort":             params.Sort,
+		"category":         params.Category,
 	}
 
 	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, params.Search, params.Province, params.Phone, lat, lng, maxDistance, filters)
@@ -156,6 +158,7 @@ func (h *ConsignmentHandler) List(c *gin.Context) {
 		"so_to":            soTo,
 		"so_thua":          soThua,
 		"sort":             sortBy,
+		"category":         c.Query("category"),
 	}
 
 	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, phone, lat, lng, maxDistance, filters)

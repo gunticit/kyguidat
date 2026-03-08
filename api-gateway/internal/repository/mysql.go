@@ -99,6 +99,9 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 		if v := filters["so_thua"]; v != "" {
 			query = query.Where("parcel_number LIKE ?", "%"+v+"%")
 		}
+		if v := filters["category"]; v != "" {
+			query = query.Where("category = ?", v)
+		}
 		// Price range filter (values in millions)
 		if v := filters["price_range"]; v != "" {
 			applyRangeFilter(query, v, "price", 1000000, &query)

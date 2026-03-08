@@ -25,6 +25,11 @@
             <option v-for="prov in provinces" :key="prov.id" :value="prov.name">{{ prov.name }}</option>
           </select>
 
+          <select v-model="filters.category" @change="filters.page = 1; fetchData()" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="">Danh mục</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.name">{{ cat.name }}</option>
+          </select>
+
           <select v-model="filters.consigner_name" @change="filters.page = 1; fetchData()" class="px-3 py-2 border rounded-lg text-sm">
             <option value="">Người đăng</option>
             <option v-for="name in uniqueConsigners" :key="name" :value="name">{{ name }}</option>
@@ -133,9 +138,9 @@
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Danh mục *</label>
-                    <select v-model="form.category_id" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <select v-model="form.category" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                       <option value="">-- Chọn danh mục --</option>
-                      <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                      <option v-for="cat in categories" :key="cat.id" :value="cat.name">{{ cat.name }}</option>
                     </select>
                   </div>
                   <div>
@@ -571,7 +576,7 @@ const handleLightboxKeydown = (e) => {
 const store = useConsignmentStore()
 const authStore = useAuthStore()
 const consignments = ref([])
-const filters = ref({ status: '', province: '', consigner_name: '', search: '', page: 1 })
+const filters = ref({ status: '', province: '', category: '', consigner_name: '', search: '', page: 1 })
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
@@ -992,6 +997,7 @@ const defaultForm = {
   price: '',
   seo_url: '',
   status: 'pending',
+  category: '',
   display_order: 1
 }
 const form = ref({ ...defaultForm })
@@ -1208,6 +1214,7 @@ const openEditModal = async (item) => {
     price: data.price || '',
     seo_url: data.seo_url || '',
     status: data.status || 'pending',
+    category: data.category || '',
     display_order: data.display_order || 1
   }
   

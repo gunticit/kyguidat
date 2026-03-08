@@ -49,6 +49,7 @@ type Consignment struct {
 	Latitude        string          `json:"latitude"`
 	Longitude       string          `json:"longitude"`
 	SeoUrl          string          `json:"seo_url"`
+	Category        string          `json:"category"`
 	Status          string          `json:"status" gorm:"default:pending"` // pending, approved, rejected, sold
 	OrderNumber     int             `json:"order_number"`
 	DisplayOrder    int             `json:"display_order"`

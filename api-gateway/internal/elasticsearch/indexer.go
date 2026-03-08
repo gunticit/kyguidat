@@ -65,6 +65,7 @@ var indexMapping = `{
 			"latitude":         { "type": "keyword" },
 			"longitude":        { "type": "keyword" },
 			"seo_url":          { "type": "keyword" },
+			"category":         { "type": "keyword" },
 			"status":           { "type": "keyword" },
 			"display_order":    { "type": "integer" },
 			"consigner_name":  { "type": "keyword" },
@@ -111,6 +112,7 @@ type ConsignmentDoc struct {
 	Latitude        string      `json:"latitude"`
 	Longitude       string      `json:"longitude"`
 	SeoUrl          string      `json:"seo_url"`
+	Category        string      `json:"category"`
 	Status          string      `json:"status"`
 	DisplayOrder    int         `json:"display_order"`
 	ConsignerName   string      `json:"consigner_name"`
@@ -283,6 +285,7 @@ func consignmentToDoc(c models.Consignment) ConsignmentDoc {
 		Latitude:        c.Latitude,
 		Longitude:       c.Longitude,
 		SeoUrl:          c.SeoUrl,
+		Category:        c.Category,
 		Status:          c.Status,
 		DisplayOrder:    c.DisplayOrder,
 		CreatedAt:       c.CreatedAt.Format("2006-01-02T15:04:05-07:00"),
