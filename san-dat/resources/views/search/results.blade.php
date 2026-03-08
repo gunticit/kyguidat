@@ -145,10 +145,10 @@
                             <select name="frontage"
                                 class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
-                                <option value="0-5" {{ request('frontage') == '0-5' ? 'selected' : '' }}>Dưới 5m</option>
-                                <option value="5-10" {{ request('frontage') == '5-10' ? 'selected' : '' }}>5 - 10m</option>
-                                <option value="10-20" {{ request('frontage') == '10-20' ? 'selected' : '' }}>10 - 20m</option>
-                                <option value="20+" {{ request('frontage') == '20+' ? 'selected' : '' }}>Trên 20m</option>
+                                <option value="duoi_5m" {{ request('frontage') == 'duoi_5m' ? 'selected' : '' }}>Dưới 5 mét</option>
+                                <option value="5_10m" {{ request('frontage') == '5_10m' ? 'selected' : '' }}>Từ 5 - 10 mét</option>
+                                <option value="10_20m" {{ request('frontage') == '10_20m' ? 'selected' : '' }}>Từ 10 - 20 mét</option>
+                                <option value="tren_20m" {{ request('frontage') == 'tren_20m' ? 'selected' : '' }}>Trên 20 mét</option>
                             </select>
                         </div>
                     </div>

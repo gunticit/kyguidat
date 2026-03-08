@@ -260,10 +260,11 @@ func buildQuery(params SearchParams) map[string]interface{} {
 
 	// Frontage range
 	if params.Frontage != "" {
-		frontageFilter := parseRangeFilter("frontage_actual", params.Frontage)
-		if frontageFilter != nil {
-			filter = append(filter, frontageFilter)
-		}
+		filter = append(filter, map[string]interface{}{
+			"term": map[string]interface{}{
+				"frontage_range": params.Frontage,
+			},
+		})
 	}
 
 	// Area range

@@ -106,7 +106,7 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 		}
 		// Frontage range filter
 		if v := filters["frontage"]; v != "" {
-			applyRangeFilter(query, v, "CAST(frontage_actual AS DECIMAL(10,2))", 1, &query)
+			query = query.Where("frontage_range = ?", v)
 		}
 	}
 
