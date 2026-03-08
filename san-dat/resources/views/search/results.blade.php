@@ -71,15 +71,21 @@
                             <select name="property_type"
                                 class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
                                 <option value="">-- Tất cả --</option>
-                                <option value="dat-nen" {{ request('property_type') == 'dat-nen' ? 'selected' : '' }}>Đất nền
+                                <option value="dat_nen" {{ request('property_type') == 'dat_nen' ? 'selected' : '' }}>Đất nền
                                 </option>
-                                <option value="dat-nong-nghiep" {{ request('property_type') == 'dat-nong-nghiep' ? 'selected' : '' }}>Đất nông nghiệp</option>
-                                <option value="dat-vuon" {{ request('property_type') == 'dat-vuon' ? 'selected' : '' }}>Đất
-                                    vườn</option>
-                                <option value="nha-pho" {{ request('property_type') == 'nha-pho' ? 'selected' : '' }}>Nhà phố
+                                <option value="dat_tai_dinh_cu" {{ request('property_type') == 'dat_tai_dinh_cu' ? 'selected' : '' }}>Đất tái định cư</option>
+                                <option value="dat_sao" {{ request('property_type') == 'dat_sao' ? 'selected' : '' }}>Đất sào
                                 </option>
-                                <option value="biet-thu" {{ request('property_type') == 'biet-thu' ? 'selected' : '' }}>Biệt
-                                    thự</option>
+                                <option value="dat_ray" {{ request('property_type') == 'dat_ray' ? 'selected' : '' }}>Đất rẫy
+                                </option>
+                                <option value="bat_dong_san_nghi_duong" {{ request('property_type') == 'bat_dong_san_nghi_duong' ? 'selected' : '' }}>Bất động sản
+                                    nghỉ dưỡng</option>
+                                <option value="dat_phan_lo_du_an" {{ request('property_type') == 'dat_phan_lo_du_an' ? 'selected' : '' }}>Đất phân lô dự án</option>
+                                <option value="chung_cu" {{ request('property_type') == 'chung_cu' ? 'selected' : '' }}>Chung
+                                    cư</option>
+                                <option value="dang_su_dung_kinh_doanh" {{ request('property_type') == 'dang_su_dung_kinh_doanh' ? 'selected' : '' }}>Đang sử dụng
+                                    kinh doanh</option>
+                                <option value="khac" {{ request('property_type') == 'khac' ? 'selected' : '' }}>Khác</option>
                             </select>
                         </div>
                         <div>
@@ -554,23 +560,23 @@
             if (property.has_house) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Tình trạng:</span> ${property.has_house === 'co' || property.has_house === 'yes' ? 'Có nhà' : 'Chưa bán'}</p>`;
 
             const infoContent = `
-                                <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
-                                    <img src="${property.image}" alt="${property.title}"
-                                        style="width:100%;height:160px;object-fit:cover;"
-                                        onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                                    <div style="padding:12px;">
-                                        ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
-                                        <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
-                                            ${property.title}
-                                        </p>
-                                        <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
-                                        ${popupDetails}
-                                        <a href="/bat-dong-san/${property.seo_url || property.id}"
-                                            style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
-                                            Xem chi tiết
-                                        </a>
-                                    </div>
-                                </div>`;
+                                    <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
+                                        <img src="${property.image}" alt="${property.title}"
+                                            style="width:100%;height:160px;object-fit:cover;"
+                                            onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                                        <div style="padding:12px;">
+                                            ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
+                                            <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
+                                                ${property.title}
+                                            </p>
+                                            <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
+                                            ${popupDetails}
+                                            <a href="/bat-dong-san/${property.seo_url || property.id}"
+                                                style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>`;
 
             const infoWindow = new google.maps.InfoWindow({ content: infoContent, maxWidth: 380 });
             marker.addListener('click', () => {
