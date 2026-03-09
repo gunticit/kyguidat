@@ -135,6 +135,9 @@ func main() {
 		publicProxy.GET("/pages/:slug", proxyHandler.ProxyRequest)
 	}
 
+	// Webhooks proxy
+	r.POST("/api/sepay/webhook", proxyHandler.ProxyRequest)
+
 	// Upload routes - proxy to Laravel backend (authenticated)
 	uploadProxy := r.Group("/api/upload")
 	{
