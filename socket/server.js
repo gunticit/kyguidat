@@ -298,8 +298,14 @@ io.on('connection', (socket) => {
         const { guestId, text, platform } = data;
         if (!guestId || !text) return;
 
-        const platformName = platform || 'Sàn Web';
-        const messageText = `💬 KHÁCH HÀNG (${platformName}):\n\n${text}\n\n#ID:${guestId}`;
+        let platformLabel = 'Khách hàng (sàn):';
+        if (platform === 'App Next.js') {
+            platformLabel = 'Khách hàng (đăng tin):';
+        } else if (platform === 'Sàn Web') {
+            platformLabel = 'Khách hàng (sàn):';
+        }
+
+        const messageText = `💬 ${platformLabel}\n\n${text}\n\n#ID:${guestId}`;
 
         try {
             await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
