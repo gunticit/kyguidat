@@ -269,6 +269,9 @@
 
     @stack('scripts')
 
+    <!-- Telegram Chat Widget -->
+    @include('components.telegram-chat')
+
     <!-- PWA Service Worker & Install Prompt -->
     <script>
         // Register service worker

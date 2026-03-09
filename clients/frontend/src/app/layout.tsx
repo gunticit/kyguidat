@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
+import TelegramChat from '@/components/TelegramChat';
 
 export const metadata: Metadata = {
     title: 'Khodat - Nền tảng Ký gửi',
@@ -28,6 +29,7 @@ export default function RootLayout({
             </head>
             <body style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
                 {children}
+                <TelegramChat />
                 <Toaster
                     position="top-right"
                     toastOptions={{
