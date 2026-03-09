@@ -68,7 +68,7 @@ class SepayController extends Controller
                 $this->paymentService->processSuccessfulPayment($payment);
                 $payment->update([
                     'transaction_id' => $referenceCode ?: $payment->transaction_id,
-                    'method' => 'sepay'
+                    'method' => \App\Models\Payment::METHOD_BANK_TRANSFER
                 ]);
                 return response()->json(['success' => true, 'message' => 'Payment processed by TXN ID']);
             } else {
@@ -106,7 +106,7 @@ class SepayController extends Controller
                 if ($payment) {
                     $payment->update([
                         'transaction_id' => $referenceCode ?: ('SEPAY_' . $transactionId),
-                        'method' => 'sepay'
+                        'method' => \App\Models\Payment::METHOD_BANK_TRANSFER
                     ]);
                     $this->paymentService->processSuccessfulPayment($payment);
                     return response()->json(['success' => true, 'message' => 'Payment processed by Phone (Matched Pending)']);
@@ -114,7 +114,7 @@ class SepayController extends Controller
                     // Create a new payment if no pending one is found
                     $payment = $user->payments()->create([
                         'transaction_id' => $referenceCode ?: ('SEPAY_' . $transactionId),
-                        'method' => 'sepay',
+                        'method' => \App\Models\Payment::METHOD_BANK_TRANSFER,
                         'amount' => $transferAmount,
                         'fee' => 0,
                         'net_amount' => $transferAmount,
