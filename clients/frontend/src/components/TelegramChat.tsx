@@ -11,11 +11,65 @@ export default function TelegramChat() {
     const [inputText, setInputText] = useState('');
     const [isSending, setIsSending] = useState(false);
 
+    // Lưu trữ guestId duy nhất
+    const [guestId, setGuestId] = useState('');
+    const [socketReady, setSocketReady] = useState(false);
+    const socketRef = useRef<any>(null);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const TELEGRAM_BOT_TOKEN = "6855103341:AAEoQEk3pqczDJ4knFw-Q-WBIDC9uRd4QRA";
-    const TELEGRAM_CHAT_ID = "887533682"; // Thay bằng Chat ID thật
+    useEffect(() => {
+        // Init guest session
+        let tcwGuestId = localStorage.getItem('tcw_session_id');
+        if (!tcwGuestId) {
+            tcwGuestId = 'GUEST_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('tcw_session_id', tcwGuestId);
+        }
+        setGuestId(tcwGuestId);
+
+        // Dynamically import socket.io-client to avoid SSR issues
+        import('socket.io-client').then(({ io }) => {
+            const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://socket.khodat.com';
+            const socket = io(socketUrl, {
+                transports: ['websocket', 'polling']
+            });
+
+            socketRef.current = socket;
+
+            socket.on('connect', () => {
+                setSocketReady(true);
+                socket.emit('join_guest_chat', { guestId: tcwGuestId });
+            });
+
+            socket.on('telegram_admin_reply', (data: any) => {
+                setMessages(prev => [...prev, { id: Date.now(), text: data.text, sender: 'bot' }]);
+
+                // Show floating bounce if closed
+                setIsOpen(currentIsOpen => {
+                    return currentIsOpen;
+                });
+            });
+
+            socket.on('guest_message_sent', () => {
+                setIsSending(false);
+                if (inputRef.current) inputRef.current.focus();
+            });
+
+            socket.on('guest_message_error', (data: any) => {
+                setMessages(prev => [...prev, { id: Date.now(), text: "Hệ thống gián đoạn: " + (data.message || 'Lỗi gửi tin lên Telegram'), sender: 'bot' }]);
+                setIsSending(false);
+            });
+
+            socket.on('disconnect', () => {
+                setSocketReady(false);
+            });
+
+            return () => {
+                socket.disconnect();
+            };
+        });
+    }, []);
 
     useEffect(() => {
         if (isOpen && messagesEndRef.current) {
@@ -29,7 +83,7 @@ export default function TelegramChat() {
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
         const text = inputText.trim();
-        if (!text || isSending) return;
+        if (!text || isSending || !socketRef.current || !socketReady) return;
 
         // User message
         const newMsgId = Date.now();
@@ -37,31 +91,14 @@ export default function TelegramChat() {
         setInputText('');
         setIsSending(true);
 
-        try {
-            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-            const payload = {
-                chat_id: TELEGRAM_CHAT_ID,
-                text: `💬 Tin nhắn KHÁCH HÀNG (App Khodat):\n\n${text}`
-            };
+        socketRef.current.emit('guest_message', {
+            guestId,
+            text: text,
+            platform: 'App Next.js',
+        });
 
-            const res = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-
-            if (data.ok) {
-                setMessages(prev => [...prev, { id: Date.now() + 1, text: "Cảm ơn bạn! Chúng tôi đã nhận được tin nhắn và sẽ phản hồi sớm nhất.", sender: 'bot' }]);
-            } else {
-                throw new Error(data.description || "Lỗi khi gửi");
-            }
-        } catch (error) {
-            console.error("Telegram send error:", error);
-            setMessages(prev => [...prev, { id: Date.now() + 2, text: "Xin lỗi, hệ thống bị lỗi khi gửi tin nhắn. (Lưu ý Admin: Vui lòng thay nội dung YOUR_CHAT_ID_HERE bằng Chat ID thực)", sender: 'bot' }]);
-        } finally {
-            setIsSending(false);
-        }
+        // Timeout unlock in case socket hangs
+        setTimeout(() => setIsSending(false), 5000);
     };
 
     return (

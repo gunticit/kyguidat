@@ -84,13 +84,58 @@
     </div>
 </div>
 
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script>
-    const TCW_BOT_TOKEN = "6855103341:AAEoQEk3pqczDJ4knFw-Q-WBIDC9uRd4QRA";
-    const TCW_CHAT_ID = "887533682"; // Vui lòng thay YOUR_CHAT_ID_HERE bằng Chat ID thực của bạn!
-
     let tcwIsOpen = false;
+    let tcwSocket = null;
+    let tcwGuestId = localStorage.getItem('tcw_session_id');
+
+    if (!tcwGuestId) {
+        tcwGuestId = 'GUEST_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        localStorage.setItem('tcw_session_id', tcwGuestId);
+    }
+
+    function initTcwSocket() {
+        if (tcwSocket) return;
+        
+        tcwSocket = io("https://socket.khodat.com", {
+            transports: ['websocket', 'polling']
+        });
+
+        tcwSocket.on('connect', () => {
+            console.log('🔗 Connected to Live Chat Server');
+            tcwSocket.emit('join_guest_chat', { guestId: tcwGuestId });
+        });
+
+        tcwSocket.on('telegram_admin_reply', (data) => {
+            tcwRenderMsg(data.text, 'bot');
+            
+            // Auto open box when unread message come
+            if(!tcwIsOpen) {
+                const btn = document.getElementById('tcwToggleBtn');
+                btn.classList.add('animate-bounce');
+                setTimeout(() => btn.classList.remove('animate-bounce'), 3000);
+            }
+        });
+
+        tcwSocket.on('guest_message_sent', () => {
+            const input = document.getElementById('tcwInput');
+            input.disabled = false;
+            input.focus();
+        });
+
+        tcwSocket.on('guest_message_error', (data) => {
+            tcwRenderMsg("Hệ thống gián đoạn: " + (data.message || 'Lỗi gửi tin lên Telegram'), 'bot');
+            const input = document.getElementById('tcwInput');
+            input.disabled = false;
+        });
+    }
 
     function tcwToggleChat() {
+        if (!tcwSocket) {
+            initTcwSocket();
+        }
+
         const chatBox = document.getElementById('tcwChatBox');
         if (tcwIsOpen) {
             chatBox.classList.replace('scale-100', 'scale-95');
@@ -109,43 +154,27 @@
         }
     }
 
-    async function tcwSendMessage(e) {
+    function tcwSendMessage(e) {
         e.preventDefault();
         const input = document.getElementById('tcwInput');
         const text = input.value.trim();
         if (!text) return;
 
-        // Render user message locally
+        // Bật connect nếu user Enter mà box lỗi ko tự connect
+        if (!tcwSocket || !tcwSocket.connected) initTcwSocket();
+
         tcwRenderMsg(text, 'user');
         input.value = '';
         input.disabled = true;
 
-        const url = `https://api.telegram.org/bot${TCW_BOT_TOKEN}/sendMessage`;
-        const payload = {
-            chat_id: TCW_CHAT_ID,
-            text: "💬 Tin nhắn KHÁCH HÀNG (Sàn Khodat):\n\n" + text
-        };
-
-        try {
-            const res = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-
-            if (data.ok) {
-                setTimeout(() => tcwRenderMsg("Cảm ơn bạn! Chúng tôi đã nhận được tin nhắn và sẽ phản hồi sớm nhất.", 'bot'), 500);
-            } else {
-                throw new Error(data.description || "Lỗi khi gửi");
-            }
-        } catch (err) {
-            console.error("Telegram send error:", err);
-            tcwRenderMsg(`Xin lỗi, hệ thống có lỗi khi gửi tin nhắn. (Lưu ý Admin: Vui lòng cấu hình đúng YOUR_CHAT_ID_HERE)`, 'bot');
-        } finally {
-            input.disabled = false;
-            input.focus();
-        }
+        tcwSocket.emit('guest_message', { 
+            guestId: tcwGuestId, 
+            text: text,
+            platform: 'Sàn Web',
+        });
+        
+        // Timeout unlock in case socket hangs
+        setTimeout(() => { if(input.disabled) input.disabled = false; }, 5000);
     }
 
     function tcwRenderMsg(text, sender) {
@@ -155,14 +184,17 @@
             html = `
             <div class="flex items-end justify-end gap-2 pl-6 mb-2">
                 <div class="bg-green-500 text-white p-3 rounded-2xl rounded-br-sm shadow-sm">
-                    <p class="text-sm">${text}</p>
+                    <p class="text-sm" style="white-space: pre-wrap; word-wrap: break-word;">${text}</p>
                 </div>
             </div>`;
         } else {
             html = `
             <div class="flex items-end gap-2 pr-6 mb-2">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0 text-green-600 dark:text-green-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                </div>
                 <div class="bg-white dark:bg-navy-700 border border-gray-100 dark:border-navy-600 p-3 rounded-2xl rounded-bl-sm shadow-sm text-gray-700 dark:text-gray-200">
-                    <p class="text-sm">${text}</p>
+                    <p class="text-sm" style="white-space: pre-wrap; word-wrap: break-word;">${text}</p>
                 </div>
             </div>`;
         }

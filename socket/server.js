@@ -2,20 +2,77 @@ const { Server } = require('socket.io');
 const { createClient } = require('redis');
 const { createAdapter } = require('@socket.io/redis-adapter');
 const http = require('http');
+const axios = require('axios');
 
 const PORT = process.env.PORT || 3020;
 const REDIS_URL = process.env.REDIS_URL || 'redis://redis:6379';
 const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3015,http://localhost:8089').split(',');
 
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '6855103341:AAEoQEk3pqczDJ4knFw-Q-WBIDC9uRd4QRA';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '887533682';
+
 const server = http.createServer((req, res) => {
+    // CORS handling for custom API
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
+    }
+
     if (req.url === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
         return;
     }
+
+    // TELEGRAM WEBHOOK ENDPOINT
+    if (req.url === '/telegram-webhook' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        req.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                handleTelegramWebhook(data);
+                res.writeHead(200);
+                res.end('OK');
+            } catch (err) {
+                console.error('Webhook parsing error:', err);
+                res.writeHead(400);
+                res.end('Bad Request');
+            }
+        });
+        return;
+    }
+
     res.writeHead(404);
     res.end();
 });
+
+// Function to process incoming Telegram messages (Admin replied)
+function handleTelegramWebhook(data) {
+    if (data.message && data.message.reply_to_message && data.message.text) {
+        const originalText = data.message.reply_to_message.text;
+        const replyText = data.message.text;
+
+        // Lấy đoạn "#ID:xxx" hoặc "ID: xxx"
+        const match = originalText.match(/#ID:([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            const guestId = match[1];
+            // Admin replies to Guest via socket room
+            io.to(`guest_room_${guestId}`).emit('telegram_admin_reply', {
+                text: replyText,
+                timestamp: new Date().toISOString()
+            });
+            console.log(`✉️ Chuyển tiếp tin nhắn từ Telegram Admin tới Khách ${guestId}`);
+        }
+    }
+}
 
 const io = new Server(server, {
     cors: {
@@ -224,6 +281,38 @@ io.on('connection', (socket) => {
     socket.on('disconnect', (reason) => {
         console.log(`❌ Client disconnected: ${socket.userName || socket.id} (${reason})`);
         removeUserSocket(socket.id);
+    });
+
+    // ============================================
+    // TELEGRAM GUEST LIVECHAT
+    // ============================================
+    socket.on('join_guest_chat', (data) => {
+        const guestId = data?.guestId;
+        if (guestId) {
+            socket.join(`guest_room_${guestId}`);
+            console.log(`💬 Khách vãng lai ${guestId} vào phòng chat.`);
+        }
+    });
+
+    socket.on('guest_message', async (data) => {
+        const { guestId, text, platform } = data;
+        if (!guestId || !text) return;
+
+        const platformName = platform || 'Sàn Web';
+        const messageText = `💬 KHÁCH HÀNG (${platformName}):\n\n${text}\n\n#ID:${guestId}`;
+
+        try {
+            await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                chat_id: TELEGRAM_CHAT_ID,
+                text: messageText
+            });
+            // Gửi lại tín hiệu thành công cho Client báo đang rảnh tay
+            socket.emit('guest_message_sent', { status: 'success' });
+            console.log(`🚀 Đã chuyển tin Khách ${guestId} lên Telegram.`);
+        } catch (error) {
+            console.error('Telegram send error from socket:', error?.response?.data || error.message);
+            socket.emit('guest_message_error', { message: 'Lỗi khi chuyển tin cho Admin.' });
+        }
     });
 });
 
