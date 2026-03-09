@@ -44,6 +44,14 @@ class SepayController extends Controller
             return response()->json(['success' => true, 'message' => 'Ignored non-incoming transfer']);
         }
 
+        // Idempotency Check (Chống trùng lặp giao dịch)
+        $txId = $referenceCode ?: ('SEPAY_' . $transactionId);
+        $existingPayment = Payment::where('transaction_id', $txId)->first();
+        if ($existingPayment && $existingPayment->status === Payment::STATUS_COMPLETED) {
+            Log::info('Sepay Webhook: Transaction already processed', ['txId' => $txId]);
+            return response()->json(['success' => true, 'message' => 'Transaction already processed']);
+        }
+
         // Match pending transaction by transaction_id in content
         $payment = Payment::where('status', Payment::STATUS_PENDING)
             ->get()
