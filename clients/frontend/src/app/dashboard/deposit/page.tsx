@@ -73,7 +73,7 @@ export default function DepositPage() {
         const userStr = localStorage.getItem('user');
         if (userStr) {
             const user = JSON.parse(userStr);
-            setUserPhone(user.phone || '0901234567');
+            setUserPhone(user.phone || '');
         }
     }, []);
 
@@ -123,6 +123,11 @@ export default function DepositPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!userPhone) {
+            setError('Bạn cần cập nhật số điện thoại trong Trang Cá Nhân trước khi nạp tiền.');
+            return;
+        }
+
         if (!amount || parseInt(amount) < 10000) {
             setError('Số tiền tối thiểu là 10,000đ');
             return;
@@ -286,10 +291,10 @@ export default function DepositPage() {
                                     <div className={styles.bankRow}>
                                         <span>Nội dung CK:</span>
                                         <div className={styles.copyField}>
-                                            <strong className={styles.transferContent}>KHODAT {transactionId || userPhone}</strong>
+                                            <strong className={styles.transferContent}>KHODAT {userPhone} {amount || '...'}</strong>
                                             <button
                                                 type="button"
-                                                onClick={() => handleCopy(`KHODAT ${transactionId || userPhone}`, 'content')}
+                                                onClick={() => handleCopy(`KHODAT ${userPhone} ${amount}`, 'content')}
                                             >
                                                 {copied === 'content' ? <FiCheck color="#22c55e" /> : <FiCopy />}
                                             </button>
@@ -310,7 +315,7 @@ export default function DepositPage() {
                                 </h4>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0' }}>
                                     <img
-                                        src={`https://img.vietqr.io/image/${bankInfo.bank_name}-${bankInfo.account_number}-compact2.png?amount=${amount}&addInfo=KHODAT%20${transactionId || userPhone}&accountName=${encodeURIComponent(bankInfo.account_name)}`}
+                                        src={`https://img.vietqr.io/image/${bankInfo.bank_name}-${bankInfo.account_number}-compact2.png?amount=${amount}&addInfo=KHODAT%20${userPhone}%20${amount}&accountName=${encodeURIComponent(bankInfo.account_name)}`}
                                         alt="VietQR"
                                         style={{ width: '250px', height: '250px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
                                     />
@@ -327,8 +332,8 @@ export default function DepositPage() {
                                     <div className={styles.bankRow}>
                                         <span>Nội dung CK:</span>
                                         <div className={styles.copyField}>
-                                            <strong className={styles.transferContent}>KHODAT {transactionId || userPhone}</strong>
-                                            <button type="button" onClick={() => handleCopy(`KHODAT ${transactionId || userPhone}`, 'content')}>
+                                            <strong className={styles.transferContent}>KHODAT {userPhone} {amount}</strong>
+                                            <button type="button" onClick={() => handleCopy(`KHODAT ${userPhone} ${amount}`, 'content')}>
                                                 {copied === 'content' ? <FiCheck color="#22c55e" /> : <FiCopy />}
                                             </button>
                                         </div>
