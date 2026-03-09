@@ -101,7 +101,7 @@ export default function DepositPage() {
             console.error('Error loading bank info:', error);
             // Use default bank info
             setBankInfo({
-                bank_name: 'Vietcombank',
+                bank_name: 'BIDV',
                 account_number: '962474QLAG',
                 account_name: 'CONG TY TNHH KHODAT',
                 branch: 'Chi nhánh Hồ Chí Minh',
