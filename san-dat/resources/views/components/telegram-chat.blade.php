@@ -66,7 +66,7 @@
         <div class="p-3 bg-white dark:bg-navy-800 border-t border-gray-100 dark:border-navy-600">
             <form id="tcwForm" onsubmit="tcwSendMessage(event)" class="relative flex items-center">
                 <input type="text" id="tcwInput" autocomplete="off" placeholder="Nhập tin nhắn..."
-                    class="w-full bg-gray-100 dark:bg-navy-900 text-gray-800 dark:text-gray-200 text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-transparent transition-all"
+                    class="w-full bg-gray-100 dark:bg-navy-700 text-gray-800 dark:text-white text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-gray-200 dark:border-navy-600 transition-all"
                     required>
                 <button type="submit" id="tcwSendBtn"
                     class="absolute right-1 w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/50">

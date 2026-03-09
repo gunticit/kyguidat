@@ -138,7 +138,7 @@ export default function TelegramChat() {
                             onChange={(e) => setInputText(e.target.value)}
                             placeholder="Nhập tin nhắn..."
                             disabled={isSending}
-                            className="w-full bg-gray-100 dark:bg-[#0b1121] text-gray-800 dark:text-gray-200 text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-transparent disabled:opacity-70"
+                            className="w-full bg-gray-100 dark:bg-[#1a2332] text-gray-800 dark:text-white text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-gray-200 dark:border-gray-700 transition-all disabled:opacity-70"
                         />
                         <button
                             type="submit"
