@@ -102,7 +102,7 @@ export default function DepositPage() {
             // Use default bank info
             setBankInfo({
                 bank_name: 'Vietcombank',
-                account_number: '0441000780153',
+                account_number: '962474QLAG',
                 account_name: 'CONG TY TNHH KHODAT',
                 branch: 'Chi nhánh Hồ Chí Minh',
             });
