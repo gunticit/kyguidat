@@ -64,6 +64,7 @@ export default function DepositPage() {
     const [error, setError] = useState<string | null>(null);
     const [userPhone, setUserPhone] = useState('');
     const [showSepayQr, setShowSepayQr] = useState(false);
+    const [transactionId, setTransactionId] = useState<string | null>(null);
 
     useEffect(() => {
         loadPaymentHistory();
@@ -147,6 +148,7 @@ export default function DepositPage() {
                 case 'sepay':
                     response = await paymentApi.createBankTransfer(amountValue);
                     if (response.data.success) {
+                        setTransactionId(response.data.data.transaction_id);
                         setShowSepayQr(true);
                         loadPaymentHistory();
                     }
@@ -156,6 +158,7 @@ export default function DepositPage() {
                     response = await paymentApi.createBankTransfer(amountValue);
                     if (response.data.success) {
                         alert('Yêu cầu nạp tiền đã được tạo. Vui lòng chuyển khoản theo thông tin bên dưới.');
+                        setTransactionId(response.data.data.transaction_id);
                         loadPaymentHistory();
                         setAmount('');
                     }
@@ -283,10 +286,10 @@ export default function DepositPage() {
                                     <div className={styles.bankRow}>
                                         <span>Nội dung CK:</span>
                                         <div className={styles.copyField}>
-                                            <strong className={styles.transferContent}>KHODAT {userPhone}</strong>
+                                            <strong className={styles.transferContent}>KHODAT {transactionId || userPhone}</strong>
                                             <button
                                                 type="button"
-                                                onClick={() => handleCopy(`KHODAT ${userPhone}`, 'content')}
+                                                onClick={() => handleCopy(`KHODAT ${transactionId || userPhone}`, 'content')}
                                             >
                                                 {copied === 'content' ? <FiCheck color="#22c55e" /> : <FiCopy />}
                                             </button>
@@ -307,7 +310,7 @@ export default function DepositPage() {
                                 </h4>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0' }}>
                                     <img
-                                        src={`https://img.vietqr.io/image/${bankInfo.bank_name}-${bankInfo.account_number}-compact2.png?amount=${amount}&addInfo=KHODAT%20${userPhone}&accountName=${encodeURIComponent(bankInfo.account_name)}`}
+                                        src={`https://img.vietqr.io/image/${bankInfo.bank_name}-${bankInfo.account_number}-compact2.png?amount=${amount}&addInfo=KHODAT%20${transactionId || userPhone}&accountName=${encodeURIComponent(bankInfo.account_name)}`}
                                         alt="VietQR"
                                         style={{ width: '250px', height: '250px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
                                     />
@@ -324,8 +327,8 @@ export default function DepositPage() {
                                     <div className={styles.bankRow}>
                                         <span>Nội dung CK:</span>
                                         <div className={styles.copyField}>
-                                            <strong className={styles.transferContent}>KHODAT {userPhone}</strong>
-                                            <button type="button" onClick={() => handleCopy(`KHODAT ${userPhone}`, 'content')}>
+                                            <strong className={styles.transferContent}>KHODAT {transactionId || userPhone}</strong>
+                                            <button type="button" onClick={() => handleCopy(`KHODAT ${transactionId || userPhone}`, 'content')}>
                                                 {copied === 'content' ? <FiCheck color="#22c55e" /> : <FiCopy />}
                                             </button>
                                         </div>
