@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\Payment;
+use App\Services\PaymentService;
+use Illuminate\Support\Facades\Log;
+
+class SepayController extends Controller
+{
+    protected $paymentService;
+
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
+
+    public function webhook(Request $request)
+    {
+        $sepayApiKey = env('SEPAY_API_KEY', 'ANlxGJkKFDoB6uy5BEGjfTjsbUEJPOxu6MBvuEjklS4=');
+
+        // Verify Authorization header
+        $authHeader = $request->header('Authorization');
+        if (!$authHeader || (!str_contains($authHeader, $sepayApiKey))) {
+            Log::warning('Sepay Webhook: Unauthorized', ['header' => $authHeader]);
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $data = $request->all();
+
+        Log::info('Sepay Webhook Received:', $data);
+
+        // Sepay payload
+        $transferAmount = $data['transferAmount'] ?? 0;
+        $transferType = $data['transferType'] ?? '';
+        $content = strtoupper($data['content'] ?? '');
+        $transactionId = $data['id'] ?? '';
+        $referenceCode = $data['referenceCode'] ?? '';
+
+        if ($transferType !== 'in' || $transferAmount <= 0) {
+            return response()->json(['success' => true, 'message' => 'Ignored non-incoming transfer']);
+        }
+
+        // Match pending transaction by transaction_id in content
+        $payment = Payment::where('status', Payment::STATUS_PENDING)
+            ->get()
+            ->filter(function ($p) use ($content) {
+                return str_contains($content, strtoupper($p->transaction_id));
+            })
+            ->first();
+
+        if ($payment) {
+            if ($transferAmount >= $payment->net_amount) {
+                $this->paymentService->processSuccessfulPayment($payment);
+                $payment->update([
+                    'transaction_id' => $referenceCode ?: $payment->transaction_id,
+                    'method' => 'sepay'
+                ]);
+                return response()->json(['success' => true, 'message' => 'Payment processed by TXN ID']);
+            } else {
+                return response()->json(['success' => true, 'message' => 'Ignored due to insufficient amount']);
+            }
+        }
+
+        // Alternative fallback: find the user by phone number in content
+        $phone = null;
+        if (preg_match('/(0[3|5|7|8|9])+([0-9]{8})\b/', $content, $phoneMatches)) {
+            $phone = $phoneMatches[0];
+        }
+
+        if ($phone) {
+            $user = clone User::where('phone', $phone)->first();
+            if ($user) {
+                $payment = $user->payments()->create([
+                    'transaction_id' => $referenceCode ?: ('SEPAY_' . $transactionId),
+                    'method' => 'sepay',
+                    'amount' => $transferAmount,
+                    'fee' => 0,
+                    'net_amount' => $transferAmount,
+                    'status' => Payment::STATUS_PENDING,
+                ]);
+
+                $this->paymentService->processSuccessfulPayment($payment);
+                return response()->json(['success' => true, 'message' => 'Payment processed by Phone']);
+            }
+        }
+
+        Log::info('Sepay Webhook: Unmatched transaction', $data);
+        return response()->json(['success' => true, 'message' => 'Unmatched transaction recorded']);
+    }
+}

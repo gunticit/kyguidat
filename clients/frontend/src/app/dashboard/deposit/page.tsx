@@ -22,8 +22,8 @@ interface BankInfo {
 
 const paymentMethods = [
     { id: 'vnpay', name: 'VNPay', icon: FiCreditCard, description: 'Thanh toán qua ATM/Internet Banking', disabled: false },
-    { id: 'bank', name: 'Chuyển khoản', icon: FiDollarSign, description: 'Chuyển khoản ngân hàng trực tiếp', disabled: false },
-    { id: 'momo', name: 'Momo', icon: FiSmartphone, description: 'Ví điện tử Momo (Sắp ra mắt)', disabled: true },
+    { id: 'bank', name: 'Chuyển khoản thủ công', icon: FiDollarSign, description: 'Cần chờ admin xác nhận', disabled: false },
+    { id: 'sepay', name: 'QR Code (Tự động)', icon: FiSmartphone, description: 'Xác nhận tự động trong 1 phút', disabled: false },
 ];
 
 const quickAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000];
@@ -42,6 +42,7 @@ const getMethodLabel = (method: string) => {
     const methodMap: Record<string, string> = {
         vnpay: 'VNPay',
         momo: 'Momo',
+        sepay: 'QR Tự động',
         bank_transfer: 'Chuyển khoản',
     };
     return methodMap[method] || method;
@@ -62,6 +63,7 @@ export default function DepositPage() {
     const [loadingHistory, setLoadingHistory] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [userPhone, setUserPhone] = useState('');
+    const [showSepayQr, setShowSepayQr] = useState(false);
 
     useEffect(() => {
         loadPaymentHistory();
@@ -142,12 +144,11 @@ export default function DepositPage() {
                     }
                     break;
 
-                case 'momo':
-                    response = await paymentApi.createMomo(amountValue);
-                    if (response.data.success && response.data.data.payment_url) {
-                        // Redirect to Momo
-                        window.location.href = response.data.data.payment_url;
-                        return;
+                case 'sepay':
+                    response = await paymentApi.createBankTransfer(amountValue);
+                    if (response.data.success) {
+                        setShowSepayQr(true);
+                        loadPaymentHistory();
                     }
                     break;
 
@@ -192,6 +193,7 @@ export default function DepositPage() {
                                         if (!method.disabled) {
                                             setSelectedMethod(method.id);
                                             setError(null);
+                                            setShowSepayQr(false);
                                         }
                                     }}
                                     style={method.disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
@@ -235,6 +237,7 @@ export default function DepositPage() {
                                     onChange={(e) => {
                                         setAmount(e.target.value);
                                         setError(null);
+                                        setShowSepayQr(false);
                                     }}
                                     min="10000"
                                     step="1000"
@@ -251,7 +254,7 @@ export default function DepositPage() {
                         {/* Bank Transfer Info */}
                         {selectedMethod === 'bank' && bankInfo && (
                             <div className={styles.bankInfo}>
-                                <h4>Thông tin chuyển khoản</h4>
+                                <h4>Thông tin chuyển khoản thủ công</h4>
                                 <div className={styles.bankDetails}>
                                     <div className={styles.bankRow}>
                                         <span>Ngân hàng:</span>
@@ -291,26 +294,68 @@ export default function DepositPage() {
                                     </div>
                                 </div>
                                 <p className={styles.bankNote}>
-                                    * Sau khi chuyển khoản, số dư sẽ được cộng trong vòng 5-15 phút (giờ hành chính)
+                                    * Sau khi chuyển khoản, vui lòng chờ Admin xác nhận thủ công (trong giờ hành chính).
                                 </p>
                             </div>
                         )}
 
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                            style={{ width: '100%', marginTop: '24px' }}
-                            disabled={isLoading || !amount || parseInt(amount) < 10000}
-                            onClick={handleSubmit}
-                        >
-                            {isLoading ? (
-                                <span className="spinner" />
-                            ) : selectedMethod === 'bank' ? (
-                                'Xác nhận đã chuyển khoản'
-                            ) : (
-                                `Nạp ${amount ? parseInt(amount).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) : '0'}đ`
-                            )}
-                        </button>
+                        {/* Sepay QR Info */}
+                        {selectedMethod === 'sepay' && bankInfo && showSepayQr && amount && (
+                            <div className={styles.bankInfo} style={{ borderTop: '3px solid #22c55e' }}>
+                                <h4 style={{ color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                    <FiCheck /> Đã tạo mã QR tự động
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0' }}>
+                                    <img
+                                        src={`https://img.vietqr.io/image/${bankInfo.bank_name}-${bankInfo.account_number}-compact2.png?amount=${amount}&addInfo=KHODAT%20${userPhone}&accountName=${encodeURIComponent(bankInfo.account_name)}`}
+                                        alt="VietQR"
+                                        style={{ width: '250px', height: '250px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                                    />
+                                    <p style={{ marginTop: '16px', fontSize: '14px', color: 'var(--text-light)', textAlign: 'center' }}>
+                                        Quét mã QR bằng ứng dụng ngân hàng để thanh toán chính xác số tiền và nội dung. <br />
+                                        <strong>Lưu ý: Không thay đổi nội dung chuyển khoản.</strong>
+                                    </p>
+                                </div>
+                                <div className={styles.bankDetails}>
+                                    <div className={styles.bankRow}>
+                                        <span>Số tiền:</span>
+                                        <strong style={{ color: '#ef4444', fontSize: '18px' }}>{parseInt(amount).toLocaleString('vi-VN')}đ</strong>
+                                    </div>
+                                    <div className={styles.bankRow}>
+                                        <span>Nội dung CK:</span>
+                                        <div className={styles.copyField}>
+                                            <strong className={styles.transferContent}>KHODAT {userPhone}</strong>
+                                            <button type="button" onClick={() => handleCopy(`KHODAT ${userPhone}`, 'content')}>
+                                                {copied === 'content' ? <FiCheck color="#22c55e" /> : <FiCopy />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className={styles.bankNote} style={{ color: '#16a34a', fontWeight: '500' }}>
+                                    * Hệ thống sẽ tự động xác nhận và cộng tiền vào tài khoản trong 1-3 phút.
+                                </p>
+                            </div>
+                        )}
+
+                        {!showSepayQr && (
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{ width: '100%', marginTop: '24px' }}
+                                disabled={isLoading || !amount || parseInt(amount) < 10000}
+                                onClick={handleSubmit}
+                            >
+                                {isLoading ? (
+                                    <span className="spinner" />
+                                ) : selectedMethod === 'bank' ? (
+                                    'Xác nhận đã chuyển khoản'
+                                ) : selectedMethod === 'sepay' ? (
+                                    'Tạo mã QR Nạp Tiền'
+                                ) : (
+                                    `Nạp ${amount ? parseInt(amount).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) : '0'}đ`
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
 

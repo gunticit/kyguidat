@@ -10,6 +10,7 @@ use App\Http\Controllers\ConsignmentWebhookController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Api\SepayController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\AdministrativeDivisionController;
@@ -43,11 +44,13 @@ Route::prefix('public')->middleware('throttle:60,1')->group(function () {
     Route::get('/consignments/{id}', [PublicConsignmentController::class, 'show']);
 });
 
-// Webhook routes - Consignment events
+// Webhook routes - Consignment events and Payments
 Route::prefix('webhooks')->group(function () {
     // Incoming webhook handler (from external systems)
     Route::post('/consignment', [ConsignmentWebhookController::class, 'handle']);
 });
+
+Route::post('/sepay/webhook', [SepayController::class, 'webhook']);
 
 // Public routes - Auth (rate limited to prevent brute force)
 Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
