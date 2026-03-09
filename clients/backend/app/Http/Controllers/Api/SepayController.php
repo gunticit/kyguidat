@@ -48,7 +48,10 @@ class SepayController extends Controller
         $payment = Payment::where('status', Payment::STATUS_PENDING)
             ->get()
             ->filter(function ($p) use ($content) {
-                return str_contains($content, strtoupper($p->transaction_id));
+                $txnId = (string) $p->transaction_id;
+                if (empty($txnId))
+                    return false;
+                return str_contains($content, strtoupper($txnId));
             })
             ->first();
 
@@ -72,7 +75,7 @@ class SepayController extends Controller
         }
 
         if ($phone) {
-            $user = clone User::where('phone', $phone)->first();
+            $user = User::where('phone', $phone)->first();
             if ($user) {
                 $payment = $user->payments()->create([
                     'transaction_id' => $referenceCode ?: ('SEPAY_' . $transactionId),
