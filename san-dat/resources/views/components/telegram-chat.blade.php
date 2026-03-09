@@ -64,9 +64,18 @@
 
         <!-- Input Area -->
         <div class="p-3 bg-white dark:bg-navy-800 border-t border-gray-100 dark:border-navy-600">
+            <style>
+                #tcwInput {
+                    color: #000 !important;
+                }
+
+                .dark #tcwInput {
+                    color: #fff !important;
+                }
+            </style>
             <form id="tcwForm" onsubmit="tcwSendMessage(event)" class="relative flex items-center">
                 <input type="text" id="tcwInput" autocomplete="off" placeholder="Nhập tin nhắn..."
-                    class="w-full bg-gray-100 dark:bg-navy-700 text-gray-800 dark:text-white text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-gray-200 dark:border-navy-600 transition-all"
+                    class="w-full bg-gray-100 dark:bg-navy-700 text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-gray-200 dark:border-navy-600 transition-all"
                     required>
                 <button type="submit" id="tcwSendBtn"
                     class="absolute right-1 w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/50">
@@ -97,7 +106,7 @@
 
     function initTcwSocket() {
         if (tcwSocket) return;
-        
+
         tcwSocket = io("https://socket.khodat.com", {
             transports: ['websocket', 'polling']
         });
@@ -109,9 +118,9 @@
 
         tcwSocket.on('telegram_admin_reply', (data) => {
             tcwRenderMsg(data.text, 'bot');
-            
+
             // Auto open box when unread message come
-            if(!tcwIsOpen) {
+            if (!tcwIsOpen) {
                 const btn = document.getElementById('tcwToggleBtn');
                 btn.classList.add('animate-bounce');
                 setTimeout(() => btn.classList.remove('animate-bounce'), 3000);
@@ -167,14 +176,14 @@
         input.value = '';
         input.disabled = true;
 
-        tcwSocket.emit('guest_message', { 
-            guestId: tcwGuestId, 
+        tcwSocket.emit('guest_message', {
+            guestId: tcwGuestId,
             text: text,
             platform: 'Sàn Web',
         });
-        
+
         // Timeout unlock in case socket hangs
-        setTimeout(() => { if(input.disabled) input.disabled = false; }, 5000);
+        setTimeout(() => { if (input.disabled) input.disabled = false; }, 5000);
     }
 
     function tcwRenderMsg(text, sender) {

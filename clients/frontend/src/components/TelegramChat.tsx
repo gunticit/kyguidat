@@ -257,6 +257,16 @@ export default function TelegramChat() {
                     backgroundColor: 'var(--card, #ffffff)',
                     borderTop: '1px solid var(--border, #f1f5f9)'
                 }}>
+                    <style>
+                        {`
+                            .tcw-app-input {
+                                color: #000 !important;
+                            }
+                            [data-theme="dark"] .tcw-app-input {
+                                color: #fff !important;
+                            }
+                        `}
+                    </style>
                     <form onSubmit={handleSend} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input
                             ref={inputRef}
@@ -265,10 +275,10 @@ export default function TelegramChat() {
                             onChange={(e) => setInputText(e.target.value)}
                             placeholder="Nhập tin nhắn..."
                             disabled={isSending}
+                            className="tcw-app-input"
                             style={{
                                 width: '100%',
                                 backgroundColor: 'var(--background, #f1f5f9)',
-                                color: 'var(--text, #1e293b)',
                                 fontSize: '14px',
                                 borderRadius: '9999px',
                                 padding: '10px 48px 10px 16px',
