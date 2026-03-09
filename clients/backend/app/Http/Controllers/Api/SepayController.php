@@ -78,24 +78,52 @@ class SepayController extends Controller
 
         // Alternative fallback: find the user by phone number in content
         $phone = null;
-        if (preg_match('/(0[3|5|7|8|9])+([0-9]{8})\b/', $content, $phoneMatches)) {
-            $phone = $phoneMatches[0];
+
+        // The expected format is "KHODAT {phone_number}"
+        // We match this specifically so we don't accidentally match the sender's phone number added by the bank
+        if (preg_match('/KHODAT\s*(0[3|5|7|8|9][0-9]{8})\b/i', $content, $matches)) {
+            $phone = $matches[1];
+        } else if (preg_match_all('/(0[3|5|7|8|9][0-9]{8})\b/', $content, $matches)) {
+            // Fallback: If "KHODAT" is missing, check all phone numbers and use the first one that belongs to a user
+            foreach ($matches[1] as $p) {
+                if (User::where('phone', $p)->exists()) {
+                    $phone = $p;
+                    break;
+                }
+            }
         }
 
         if ($phone) {
             $user = User::where('phone', $phone)->first();
             if ($user) {
-                $payment = $user->payments()->create([
-                    'transaction_id' => $referenceCode ?: ('SEPAY_' . $transactionId),
-                    'method' => 'sepay',
-                    'amount' => $transferAmount,
-                    'fee' => 0,
-                    'net_amount' => $transferAmount,
-                    'status' => Payment::STATUS_PENDING,
-                ]);
+                // Try to find the pending payment for this user
+                $payment = Payment::where('user_id', $user->id)
+                    ->where('status', Payment::STATUS_PENDING)
+                    ->where('net_amount', '<=', $transferAmount)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
 
-                $this->paymentService->processSuccessfulPayment($payment);
-                return response()->json(['success' => true, 'message' => 'Payment processed by Phone']);
+                if ($payment) {
+                    $payment->update([
+                        'transaction_id' => $referenceCode ?: ('SEPAY_' . $transactionId),
+                        'method' => 'sepay'
+                    ]);
+                    $this->paymentService->processSuccessfulPayment($payment);
+                    return response()->json(['success' => true, 'message' => 'Payment processed by Phone (Matched Pending)']);
+                } else {
+                    // Create a new payment if no pending one is found
+                    $payment = $user->payments()->create([
+                        'transaction_id' => $referenceCode ?: ('SEPAY_' . $transactionId),
+                        'method' => 'sepay',
+                        'amount' => $transferAmount,
+                        'fee' => 0,
+                        'net_amount' => $transferAmount,
+                        'status' => Payment::STATUS_PENDING,
+                    ]);
+
+                    $this->paymentService->processSuccessfulPayment($payment);
+                    return response()->json(['success' => true, 'message' => 'Payment processed by Phone (Created New)']);
+                }
             }
         }
 
