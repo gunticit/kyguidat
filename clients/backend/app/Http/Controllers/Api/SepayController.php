@@ -53,9 +53,15 @@ class SepayController extends Controller
         }
 
         // Match pending transaction by transaction_id in content
+        $payment = clone $existingPayment; // Or we just do a fresh query
         $payment = Payment::where('status', Payment::STATUS_PENDING)
-            ->whereNotNull('transaction_id')
-            ->whereRaw('? LIKE CONCAT("%", transaction_id, "%")', [$content])
+            ->get()
+            ->filter(function ($p) use ($content) {
+                $txnId = (string) ($p->transaction_id ?? '');
+                if (empty($txnId))
+                    return false;
+                return str_contains($content, strtoupper($txnId));
+            })
             ->first();
 
         if ($payment) {
