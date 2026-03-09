@@ -102,39 +102,92 @@ export default function TelegramChat() {
     };
 
     return (
-        <div className="fixed bottom-24 right-4 z-[9999] md:bottom-6 md:right-6 font-sans">
+        <div style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 9999,
+            fontFamily: "'Inter', sans-serif"
+        }}>
             {/* Toggle Button */}
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center text-white shadow-[0_4px_12px_rgba(34,197,94,0.4)] hover:bg-green-600 transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-green-500/30"
+                    style={{
+                        width: '56px',
+                        height: '56px',
+                        backgroundColor: '#22c55e',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        boxShadow: '0 4px 12px rgba(34,197,94,0.4)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                    <FaTelegramPlane size={24} className="mr-1 mt-1" />
+                    <FaTelegramPlane size={24} style={{ marginRight: '2px', marginTop: '2px' }} />
                 </button>
             )}
 
             {/* Chat Box */}
             <div
-                className={`flex flex-col absolute bottom-0 right-0 w-[320px] md:w-[360px] bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden transform transition-all origin-bottom-right ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
-                    }`}
+                style={{
+                    display: isOpen ? 'flex' : 'none',
+                    flexDirection: 'column',
+                    position: 'absolute',
+                    bottom: '0',
+                    right: '0',
+                    width: '320px',
+                    backgroundColor: 'var(--card, #ffffff)',
+                    borderRadius: '16px',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    border: '1px solid var(--border, #e2e8f0)',
+                    overflow: 'hidden',
+                    transformOrigin: 'bottom right',
+                    transition: 'all 0.3s ease',
+                    opacity: isOpen ? 1 : 0,
+                    transform: isOpen ? 'scale(1)' : 'scale(0.95)'
+                }}
             >
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 text-white flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <div style={{
+                    background: 'linear-gradient(to right, #22c55e, #16a34a)',
+                    padding: '16px',
+                    color: 'white',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
                             <FaTelegramPlane size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-sm m-0">Hỗ Trợ Trực Tuyến</h3>
-                            <p className="text-xs text-green-100 flex items-center gap-1 m-0 mt-0.5">
-                                <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
+                            <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>Hỗ Trợ Trực Tuyến</h3>
+                            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#dcfce7', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ width: '8px', height: '8px', backgroundColor: '#86efac', borderRadius: '50%' }}></span>
                                 Đang hoạt động
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="text-white hover:text-gray-200 transition focus:outline-none"
+                        style={{
+                            background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px'
+                        }}
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -144,20 +197,53 @@ export default function TelegramChat() {
                 </div>
 
                 {/* Messages */}
-                <div className="h-72 p-4 overflow-y-auto bg-gray-50 dark:bg-[#0b1121] flex flex-col gap-3">
+                <div style={{
+                    height: '280px',
+                    padding: '16px',
+                    overflowY: 'auto',
+                    backgroundColor: 'var(--background, #f8fafc)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                }}>
                     {messages.map((msg) => (
-                        <div key={msg.id} className={`flex items-end gap-2 w-full ${msg.sender === 'user' ? 'justify-end pl-6' : 'pr-6'}`}>
+                        <div key={msg.id} style={{
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            gap: '8px',
+                            width: '100%',
+                            justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                            paddingLeft: msg.sender === 'user' ? '24px' : '0',
+                            paddingRight: msg.sender === 'user' ? '0' : '24px'
+                        }}>
                             {msg.sender === 'bot' && (
-                                <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0 text-green-600 dark:text-green-400">
+                                <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#dcfce7',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    color: '#16a34a'
+                                }}>
                                     <FaTelegramPlane size={14} />
                                 </div>
                             )}
-                            <div
-                                className={`p-3 rounded-2xl shadow-sm text-sm ${msg.sender === 'user'
-                                    ? 'bg-green-500 text-white rounded-br-sm'
-                                    : 'bg-white dark:bg-[#1a2332] text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-800 rounded-bl-sm'
-                                    }`}
-                            >
+                            <div style={{
+                                padding: '12px',
+                                fontSize: '14px',
+                                whiteSpace: 'pre-wrap',
+                                wordWrap: 'break-word',
+                                backgroundColor: msg.sender === 'user' ? '#22c55e' : 'var(--card, #ffffff)',
+                                color: msg.sender === 'user' ? 'white' : 'var(--text, #1e293b)',
+                                borderRadius: '16px',
+                                borderBottomRightRadius: msg.sender === 'user' ? '4px' : '16px',
+                                borderBottomLeftRadius: msg.sender === 'user' ? '16px' : '4px',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                border: msg.sender === 'bot' ? '1px solid var(--border, #f1f5f9)' : 'none'
+                            }}>
                                 {msg.text}
                             </div>
                         </div>
@@ -166,8 +252,12 @@ export default function TelegramChat() {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-3 bg-white dark:bg-[#111827] border-t border-gray-100 dark:border-gray-800">
-                    <form onSubmit={handleSend} className="relative flex items-center">
+                <div style={{
+                    padding: '12px',
+                    backgroundColor: 'var(--card, #ffffff)',
+                    borderTop: '1px solid var(--border, #f1f5f9)'
+                }}>
+                    <form onSubmit={handleSend} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input
                             ref={inputRef}
                             type="text"
@@ -175,18 +265,41 @@ export default function TelegramChat() {
                             onChange={(e) => setInputText(e.target.value)}
                             placeholder="Nhập tin nhắn..."
                             disabled={isSending}
-                            className="w-full bg-gray-100 dark:bg-[#1a2332] text-gray-800 dark:text-white text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-gray-200 dark:border-gray-700 transition-all disabled:opacity-70"
+                            style={{
+                                width: '100%',
+                                backgroundColor: 'var(--background, #f1f5f9)',
+                                color: 'var(--text, #1e293b)',
+                                fontSize: '14px',
+                                borderRadius: '9999px',
+                                padding: '10px 48px 10px 16px',
+                                border: '1px solid var(--border, transparent)',
+                                outline: 'none',
+                                opacity: isSending ? 0.7 : 1
+                            }}
                         />
                         <button
                             type="submit"
                             disabled={isSending || !inputText.trim()}
-                            className="absolute right-1 w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            style={{
+                                position: 'absolute',
+                                right: '4px',
+                                width: '32px',
+                                height: '32px',
+                                backgroundColor: (isSending || !inputText.trim()) ? '#9ca3af' : '#22c55e',
+                                color: 'white',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: 'none',
+                                cursor: (isSending || !inputText.trim()) ? 'not-allowed' : 'pointer'
+                            }}
                         >
-                            <FaTelegramPlane size={14} className="ml-0.5 mt-0.5" />
+                            <FaTelegramPlane size={14} style={{ marginLeft: '2px', marginTop: '2px' }} />
                         </button>
                     </form>
                 </div>
             </div>
         </div>
     );
-}
+};
