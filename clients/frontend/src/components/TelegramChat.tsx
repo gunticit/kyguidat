@@ -15,7 +15,7 @@ export default function TelegramChat() {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const TELEGRAM_BOT_TOKEN = "6855103341:AAEoQEk3pqczDJ4knFw-Q-WBIDC9uRd4QRA";
-    const TELEGRAM_CHAT_ID = "YOUR_CHAT_ID_HERE"; // Thay bằng Chat ID thật
+    const TELEGRAM_CHAT_ID = "887533682"; // Thay bằng Chat ID thật
 
     useEffect(() => {
         if (isOpen && messagesEndRef.current) {
@@ -117,8 +117,8 @@ export default function TelegramChat() {
                             )}
                             <div
                                 className={`p-3 rounded-2xl shadow-sm text-sm ${msg.sender === 'user'
-                                        ? 'bg-green-500 text-white rounded-br-sm'
-                                        : 'bg-white dark:bg-[#1a2332] text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-800 rounded-bl-sm'
+                                    ? 'bg-green-500 text-white rounded-br-sm'
+                                    : 'bg-white dark:bg-[#1a2332] text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-800 rounded-bl-sm'
                                     }`}
                             >
                                 {msg.text}

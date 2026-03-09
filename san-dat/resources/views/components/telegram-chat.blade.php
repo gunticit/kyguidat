@@ -86,7 +86,7 @@
 
 <script>
     const TCW_BOT_TOKEN = "6855103341:AAEoQEk3pqczDJ4knFw-Q-WBIDC9uRd4QRA";
-    const TCW_CHAT_ID = "YOUR_CHAT_ID_HERE"; // Vui lòng thay YOUR_CHAT_ID_HERE bằng Chat ID thực của bạn!
+    const TCW_CHAT_ID = "887533682"; // Vui lòng thay YOUR_CHAT_ID_HERE bằng Chat ID thực của bạn!
 
     let tcwIsOpen = false;
 
