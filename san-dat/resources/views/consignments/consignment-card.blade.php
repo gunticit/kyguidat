@@ -102,11 +102,23 @@
                             {{ floatval(data_get($consignment, 'frontage_actual')) }} m
                         </p>
                     @endif
-                    @if(data_get($consignment, 'has_house'))
-                        <p><span class="text-gray-400">Tình trạng:</span>
-                            {{ data_get($consignment, 'has_house') === 'co' ? 'Có nhà' : (data_get($consignment, 'has_house') === 'yes' ? 'Có nhà' : 'Chưa bán') }}
-                        </p>
-                    @endif
+
+                    @php
+                        $createdAt = data_get($consignment, 'created_at');
+                        $statusText = 'Chưa bán';
+                        if ($createdAt) {
+                            $createdDate = \Carbon\Carbon::parse($createdAt);
+                            if ($createdDate->diffInDays(now()) >= 5) {
+                                $statusText = 'Đã bán';
+                            } else {
+                                $statusText = $createdDate->locale('vi')->diffForHumans(now(), [
+                                    'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW,
+                                    'options' => \Carbon\Carbon::JUST_NOW | \Carbon\Carbon::ONE_DAY_WORDS
+                                ]);
+                            }
+                        }
+                    @endphp
+                    <p><span class="text-gray-400">Tình trạng:</span> {{ $statusText }}</p>
                     <p><span class="text-orange-500 font-bold">Giá: {{ $formatted }}</span></p>
                 </div>
             </div>

@@ -101,9 +101,6 @@ class ConsignmentController extends Controller
                 } catch (\Exception $e) {
                 }
             }
-            if (($item['has_house'] ?? '') === 'co' || ($item['has_house'] ?? '') === 'yes') {
-                $status = 'Có nhà';
-            }
             $item['statusText'] = $status;
             return $item;
         })->toArray();

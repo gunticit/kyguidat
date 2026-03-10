@@ -105,27 +105,22 @@
                             {{ floatval(data_get($consignment, 'frontage_actual')) }} m
                         </p>
                     @endif
-                    @if(data_get($consignment, 'has_house'))
-                        @php
-                            $createdAt = data_get($consignment, 'created_at');
-                            $statusText = 'Chưa bán';
-                            if ($createdAt) {
-                                $createdDate = \Carbon\Carbon::parse($createdAt);
-                                if ($createdDate->diffInDays(now()) >= 5) {
-                                    $statusText = 'Đã bán';
-                                } else {
-                                    $statusText = $createdDate->locale('vi')->diffForHumans(now(), [
-                                        'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW,
-                                        'options' => \Carbon\Carbon::JUST_NOW | \Carbon\Carbon::ONE_DAY_WORDS
-                                    ]);
-                                }
+                    @php
+                        $createdAt = data_get($consignment, 'created_at');
+                        $statusText = 'Chưa bán';
+                        if ($createdAt) {
+                            $createdDate = \Carbon\Carbon::parse($createdAt);
+                            if ($createdDate->diffInDays(now()) >= 5) {
+                                $statusText = 'Đã bán';
+                            } else {
+                                $statusText = $createdDate->locale('vi')->diffForHumans(now(), [
+                                    'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW,
+                                    'options' => \Carbon\Carbon::JUST_NOW | \Carbon\Carbon::ONE_DAY_WORDS
+                                ]);
                             }
-                            if (data_get($consignment, 'has_house') === 'co' || data_get($consignment, 'has_house') === 'yes') {
-                                $statusText = 'Có nhà';
-                            }
-                        @endphp
-                        <p><span class="text-gray-400">Tình trạng:</span> {{ $statusText }}</p>
-                    @endif
+                        }
+                    @endphp
+                    <p><span class="text-gray-400">Tình trạng:</span> {{ $statusText }}</p>
                     <p><span class="text-orange-500 font-bold">Giá: {{ $formatted }}</span></p>
                 </div>
             </div>
