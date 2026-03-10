@@ -394,7 +394,7 @@ export default function DepositPage() {
                                         <div key={payment.id} className={styles.historyItem}>
                                             <div>
                                                 <p className={styles.historyAmount}>
-                                                    +{payment.amount.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}đ
+                                                    +{Math.floor(Number(payment.amount)).toLocaleString('vi-VN')}đ
                                                 </p>
                                                 <p className={styles.historyMethod}>
                                                     {getMethodLabel(payment.method)}
