@@ -108,7 +108,7 @@
                         $statusText = 'Chưa bán';
                         if ($createdAt) {
                             $createdDate = \Carbon\Carbon::parse($createdAt);
-                            if ($createdDate->diffInDays(now()) < 5) {
+                            if ($createdDate->diffInDays(now('Asia/Ho_Chi_Minh')) < 5) {
                                 $statusText = $createdDate->locale('vi')->diffForHumans();
                             }
                         }
