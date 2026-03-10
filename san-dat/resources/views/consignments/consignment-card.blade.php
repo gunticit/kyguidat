@@ -109,10 +109,7 @@
                         if ($createdAt) {
                             $createdDate = \Carbon\Carbon::parse($createdAt);
                             if ($createdDate->diffInDays(now()) < 5) {
-                                $statusText = $createdDate->locale('vi')->diffForHumans(now(), [
-                                    'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW,
-                                    'options' => \Carbon\Carbon::JUST_NOW | \Carbon\Carbon::ONE_DAY_WORDS
-                                ]);
+                                $statusText = $createdDate->locale('vi')->diffForHumans();
                             }
                         }
                     @endphp
