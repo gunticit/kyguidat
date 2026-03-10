@@ -83,8 +83,33 @@ class ConsignmentController extends Controller
 
         $response = $this->apiService->getConsignments(array_filter($params));
 
+        $data = $response['data'] ?? [];
+        $data = collect($data)->map(function ($item) {
+            $createdAt = $item['created_at'] ?? null;
+            $status = 'Chưa bán';
+            if ($createdAt) {
+                try {
+                    $createdDate = \Carbon\Carbon::parse($createdAt);
+                    if ($createdDate->diffInDays(now()) >= 5) {
+                        $status = 'Đã bán';
+                    } else {
+                        $status = $createdDate->locale('vi')->diffForHumans(now(), [
+                            'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW,
+                            'options' => \Carbon\Carbon::JUST_NOW | \Carbon\Carbon::ONE_DAY_WORDS
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                }
+            }
+            if (($item['has_house'] ?? '') === 'co' || ($item['has_house'] ?? '') === 'yes') {
+                $status = 'Có nhà';
+            }
+            $item['statusText'] = $status;
+            return $item;
+        })->toArray();
+
         return response()->json([
-            'data' => $response['data'] ?? [],
+            'data' => $data,
             'total' => $response['meta']['total'] ?? 0,
             'page' => $params['page'],
             'limit' => $params['limit'],
