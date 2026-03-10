@@ -90,9 +90,7 @@ class ConsignmentController extends Controller
             if ($createdAt) {
                 try {
                     $createdDate = \Carbon\Carbon::parse($createdAt);
-                    if ($createdDate->diffInDays(now()) >= 5) {
-                        $status = 'Đã bán';
-                    } else {
+                    if ($createdDate->diffInDays(now()) < 5) {
                         $status = $createdDate->locale('vi')->diffForHumans(now(), [
                             'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW,
                             'options' => \Carbon\Carbon::JUST_NOW | \Carbon\Carbon::ONE_DAY_WORDS
