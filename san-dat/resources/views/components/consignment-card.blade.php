@@ -83,7 +83,8 @@
                         <p><span class="text-gray-400">Diện tích:</span> {{ data_get($consignment, 'area_dimensions') }}</p>
                     @endif
                     @if(data_get($consignment, 'residential_area'))
-                        <p><span class="text-gray-400">Thổ cư:</span> {{ rtrim(rtrim(number_format(data_get($consignment, 'residential_area'), 2), '0'), '.') }} m²
+                        <p><span class="text-gray-400">Thổ cư:</span>
+                            {{ rtrim(rtrim(number_format(data_get($consignment, 'residential_area'), 2), '0'), '.') }} m²
                         </p>
                     @endif
                     @php
@@ -105,9 +106,25 @@
                         </p>
                     @endif
                     @if(data_get($consignment, 'has_house'))
-                        <p><span class="text-gray-400">Tình trạng:</span>
-                            {{ data_get($consignment, 'has_house') === 'co' ? 'Có nhà' : (data_get($consignment, 'has_house') === 'yes' ? 'Có nhà' : 'Chưa bán') }}
-                        </p>
+                        @php
+                            $createdAt = data_get($consignment, 'created_at');
+                            $statusText = 'Chưa bán';
+                            if ($createdAt) {
+                                $createdDate = \Carbon\Carbon::parse($createdAt);
+                                if ($createdDate->diffInDays(now()) >= 5) {
+                                    $statusText = 'Đã bán';
+                                } else {
+                                    $statusText = $createdDate->locale('vi')->diffForHumans(now(), [
+                                        'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW,
+                                        'options' => \Carbon\Carbon::JUST_NOW | \Carbon\Carbon::ONE_DAY_WORDS
+                                    ]);
+                                }
+                            }
+                            if (data_get($consignment, 'has_house') === 'co' || data_get($consignment, 'has_house') === 'yes') {
+                                $statusText = 'Có nhà';
+                            }
+                        @endphp
+                        <p><span class="text-gray-400">Tình trạng:</span> {{ $statusText }}</p>
                     @endif
                     <p><span class="text-orange-500 font-bold">Giá: {{ $formatted }}</span></p>
                 </div>
