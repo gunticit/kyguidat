@@ -89,7 +89,7 @@ class ConsignmentController extends Controller
             $status = 'Chưa bán';
             if ($createdAt) {
                 try {
-                    $createdDate = \Carbon\Carbon::parse($createdAt);
+                    $createdDate = \Carbon\Carbon::parse($createdAt, 'Asia/Ho_Chi_Minh');
                     if ($createdDate->diffInDays(now('Asia/Ho_Chi_Minh')) < 5) {
                         $status = $createdDate->locale('vi')->diffForHumans();
                     }

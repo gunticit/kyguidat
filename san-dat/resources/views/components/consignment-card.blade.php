@@ -109,7 +109,7 @@
                         $createdAt = data_get($consignment, 'created_at');
                         $statusText = 'Chưa bán';
                         if ($createdAt) {
-                            $createdDate = \Carbon\Carbon::parse($createdAt);
+                            $createdDate = \Carbon\Carbon::parse($createdAt, 'Asia/Ho_Chi_Minh');
                             if ($createdDate->diffInDays(now('Asia/Ho_Chi_Minh')) < 5) {
                                 $statusText = $createdDate->locale('vi')->diffForHumans();
                             }
