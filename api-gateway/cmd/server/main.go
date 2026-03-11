@@ -154,26 +154,61 @@ func main() {
 	// Authenticated user routes - proxy to Laravel backend
 	userProxy := r.Group("/api")
 	{
-		// User profile
-		userProxy.GET("/user", proxyHandler.ProxyRequest)
-		userProxy.PUT("/user/profile", proxyHandler.ProxyRequest)
-		userProxy.PUT("/user/password", proxyHandler.ProxyRequest)
+		// Auth routes (me, forgot-password, reset-password, delete account)
+		userProxy.GET("/auth/me", proxyHandler.ProxyRequest)
+		userProxy.POST("/auth/forgot-password", proxyHandler.ProxyRequest)
+		userProxy.POST("/auth/reset-password", proxyHandler.ProxyRequest)
+		userProxy.DELETE("/auth/account", proxyHandler.ProxyRequest)
 		userProxy.POST("/auth/logout", proxyHandler.ProxyRequest)
 		userProxy.POST("/auth/register", proxyHandler.ProxyRequest)
+
+		// User profile
+		userProxy.GET("/user", proxyHandler.ProxyRequest)
+		userProxy.GET("/user/profile", proxyHandler.ProxyRequest)
+		userProxy.PUT("/user/profile", proxyHandler.ProxyRequest)
+		userProxy.PUT("/user/password", proxyHandler.ProxyRequest)
+
+		// Dashboard
+		userProxy.GET("/dashboard", proxyHandler.ProxyRequest)
+		userProxy.GET("/dashboard/stats", proxyHandler.ProxyRequest)
+		userProxy.GET("/dashboard/recent-activities", proxyHandler.ProxyRequest)
 
 		// User consignments (POST/PUT/DELETE - GET already registered in public group)
 		userProxy.POST("/consignments", proxyHandler.ProxyRequest)
 		userProxy.PUT("/consignments/:id", proxyHandler.ProxyRequest)
 		userProxy.DELETE("/consignments/:id", proxyHandler.ProxyRequest)
 		userProxy.POST("/consignments/:id/cancel", proxyHandler.ProxyRequest)
+		userProxy.GET("/consignments/:id/history", proxyHandler.ProxyRequest)
+		userProxy.POST("/consignments/:id/reactivate", proxyHandler.ProxyRequest)
+
+		// Posting quota & packages
+		userProxy.GET("/posting-quota", proxyHandler.ProxyRequest)
+		userProxy.GET("/posting-packages", proxyHandler.ProxyRequest)
+		userProxy.GET("/posting-packages/:id", proxyHandler.ProxyRequest)
+		userProxy.POST("/posting-packages/purchase", proxyHandler.ProxyRequest)
+		userProxy.GET("/my-packages", proxyHandler.ProxyRequest)
+		userProxy.GET("/my-packages/current", proxyHandler.ProxyRequest)
+
+		// Payments
+		userProxy.GET("/payments", proxyHandler.ProxyRequest)
+		userProxy.GET("/payments/:id", proxyHandler.ProxyRequest)
+		userProxy.POST("/payments/vnpay/create", proxyHandler.ProxyRequest)
+		userProxy.POST("/payments/momo/create", proxyHandler.ProxyRequest)
+		userProxy.POST("/payments/bank-transfer/create", proxyHandler.ProxyRequest)
+		userProxy.GET("/payments/bank-info", proxyHandler.ProxyRequest)
 
 		// Support tickets
 		userProxy.GET("/supports", proxyHandler.ProxyRequest)
 		userProxy.GET("/supports/:id", proxyHandler.ProxyRequest)
 		userProxy.POST("/supports", proxyHandler.ProxyRequest)
+		userProxy.PUT("/supports/:id", proxyHandler.ProxyRequest)
+		userProxy.DELETE("/supports/:id", proxyHandler.ProxyRequest)
+		userProxy.POST("/supports/:id/messages", proxyHandler.ProxyRequest)
+		userProxy.GET("/supports/:id/messages", proxyHandler.ProxyRequest)
+		userProxy.POST("/supports/:id/close", proxyHandler.ProxyRequest)
 		userProxy.POST("/supports/:id/reply", proxyHandler.ProxyRequest)
 
-		// Packages & transactions
+		// Packages & transactions (legacy routes)
 		userProxy.GET("/packages", proxyHandler.ProxyRequest)
 		userProxy.POST("/packages/:id/subscribe", proxyHandler.ProxyRequest)
 		userProxy.GET("/transactions", proxyHandler.ProxyRequest)
