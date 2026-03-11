@@ -833,9 +833,10 @@
         function initMap() {
             map = new trackasiagl.Map({
                 container: 'property-map',
-                style: `https://maps.track-asia.com/styles/v2/night.json?key=${TRACKASIA_KEY}`,
+                style: `https://maps.track-asia.com/styles/v2/streets.json?key=${TRACKASIA_KEY}`,
                 center: [108.5, 12.5], // [lng, lat]
                 zoom: 5,
+                cooperativeGestures: true, // Scroll = cuộn trang, Ctrl+Scroll = zoom map
                 attributionControl: true
             });
 
