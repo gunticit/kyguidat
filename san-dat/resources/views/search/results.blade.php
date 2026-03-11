@@ -481,8 +481,8 @@
                     $status = 'Chưa bán';
                     if ($createdAt) {
                         try {
-                            $createdDate = \Carbon\Carbon::parse($createdAt);
-                            if ($createdDate->diffInDays(now()) < 5) {
+                            $createdDate = \Carbon\Carbon::parse($createdAt)->shiftTimezone('Asia/Ho_Chi_Minh');
+                            if ($createdDate->diffInDays(now('Asia/Ho_Chi_Minh')) < 5) {
                                 $status = $createdDate->locale('vi')->diffForHumans();
                             }
                         } catch (\Exception $e) { }
