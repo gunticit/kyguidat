@@ -785,117 +785,82 @@
             ];
         });
     @endphp
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/trackasia-gl@latest/dist/trackasia-gl.css" />
     <style>
-        /* Leaflet popup style overrides */
-        .leaflet-popup-content-wrapper {
+        /* TrackAsia popup style overrides */
+        .trackasiagl-popup-content {
             padding: 0 !important;
             border-radius: 12px !important;
             overflow: hidden;
             background: var(--navy-800) !important;
         }
-        .leaflet-popup-content {
-            margin: 0 !important;
-            width: auto !important;
-        }
-        .leaflet-popup-close-button {
+        .trackasiagl-popup-close-button {
             color: #94a3b8 !important;
             font-size: 20px !important;
             z-index: 10;
+            right: 4px !important;
+            top: 4px !important;
         }
-        /* Cluster icon styling */
-        .marker-cluster-custom {
-            background: rgba(34,197,94,0.3);
-            border-radius: 50%;
+        .trackasiagl-popup-tip {
+            border-top-color: var(--navy-800) !important;
         }
-        .marker-cluster-custom div {
+        /* Custom marker dot */
+        .property-marker {
+            width: 20px;
+            height: 20px;
             background: #22c55e;
-            color: white;
-            font-weight: bold;
-            font-size: 13px;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            line-height: 36px;
-            text-align: center;
             border: 2px solid #16a34a;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .property-marker:hover {
+            transform: scale(1.3);
         }
     </style>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/trackasia-gl@latest/dist/trackasia-gl.js"></script>
     <script>
         // Property data from server
         const properties = @json($propertiesData);
 
         let map;
         let markers = [];
-        let markerClusterGroup;
+        let activePopup = null;
 
-        // Custom green circle icon for markers
-        const greenIcon = L.divIcon({
-            className: '',
-            html: '<div style="width:20px;height:20px;background:#22c55e;border:2px solid #16a34a;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>',
-            iconSize: [20, 20],
-            iconAnchor: [10, 10],
-            popupAnchor: [0, -12]
-        });
+        const TRACKASIA_KEY = '971e6177325091860b1421d11bb47d79d4';
 
         function initMap() {
-            map = L.map('property-map', {
-                center: [12.5, 108.5],
+            map = new trackasiagl.Map({
+                container: 'property-map',
+                style: `https://maps.track-asia.com/styles/v2/night.json?key=${TRACKASIA_KEY}`,
+                center: [108.5, 12.5], // [lng, lat]
                 zoom: 5,
-                zoomControl: true,
                 attributionControl: true
             });
 
-            // OpenStreetMap tile layer
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 19
-            }).addTo(map);
+            // Add navigation controls
+            map.addControl(new trackasiagl.NavigationControl(), 'top-left');
+            map.addControl(new trackasiagl.FullscreenControl(), 'top-right');
 
-            // Create marker cluster group
-            markerClusterGroup = L.markerClusterGroup({
-                iconCreateFunction: function(cluster) {
-                    return L.divIcon({
-                        html: '<div>' + cluster.getChildCount() + '</div>',
-                        className: 'marker-cluster-custom',
-                        iconSize: L.point(44, 44)
-                    });
-                },
-                maxClusterRadius: 60,
-                spiderfyOnMaxZoom: true,
-                showCoverageOnHover: false
+            map.on('load', () => {
+                // Add markers for each property with valid coordinates
+                properties.filter(p => p.lat && p.lng).forEach(property => {
+                    addMarker(property);
+                });
+
+                // Fit bounds if markers exist
+                fitMapToMarkers();
             });
-
-            // Add markers for each property with valid coordinates
-            properties.filter(p => p.lat && p.lng).forEach(property => {
-                addMarker(property);
-            });
-
-            map.addLayer(markerClusterGroup);
-
-            // Fit bounds if markers exist
-            if (markers.length > 0) {
-                const group = L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.1));
-            }
         }
 
-        function addMarker(property) {
-            const marker = L.marker([property.lat, property.lng], {
-                icon: greenIcon,
-                title: property.title
-            });
-
+        function buildPopupHTML(property) {
             // Parse directions for popup
             let popupDirs = property.land_directions;
             if (typeof popupDirs === 'string') { try { popupDirs = JSON.parse(popupDirs); } catch (e) { popupDirs = []; } }
             const popupDirText = Array.isArray(popupDirs) && popupDirs.length > 0 ? popupDirs.map(mapDirection).join(', ') : '';
 
-            // Build detail rows in 2-column grid (same fields as property card)
+            // Build detail rows
             let popupDetails = '';
             if (property.address) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 6px;grid-column:1/-1"><span style="color:#6b7280">Địa chỉ:</span> ' + property.address + '</p>';
             if (property.area_dimensions) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Diện tích:</span> ' + property.area_dimensions + '</p>';
@@ -905,8 +870,7 @@
             if (property.frontage_actual && property.frontage_actual !== '0' && property.frontage_actual !== '0.00') popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Mặt tiền:</span> ' + parseFloat(property.frontage_actual) + ' m</p>';
             if (property.statusText) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Tình trạng:</span> ' + property.statusText + '</p>';
 
-            // Create popup content (same as before)
-            const popupContent = `
+            return `
                 <div style="width:320px;max-width:90vw;font-family:Arial,sans-serif;background:var(--navy-800);">
                     <img src="${property.image}" alt="${property.title}"
                         style="width:100%;height:160px;object-fit:cover;"
@@ -926,22 +890,41 @@
                         </a>
                     </div>
                 </div>`;
+        }
 
-            marker.bindPopup(popupContent, {
-                maxWidth: 380,
-                minWidth: 280,
-                className: ''
-            });
+        function addMarker(property) {
+            // Create custom DOM element for marker
+            const el = document.createElement('div');
+            el.className = 'property-marker';
 
-            markerClusterGroup.addLayer(marker);
+            // Create popup
+            const popup = new trackasiagl.Popup({
+                offset: 15,
+                maxWidth: '380px',
+                closeButton: true
+            }).setHTML(buildPopupHTML(property));
+
+            // Create marker and attach popup
+            const marker = new trackasiagl.Marker({ element: el })
+                .setLngLat([property.lng, property.lat])
+                .setPopup(popup)
+                .addTo(map);
+
             markers.push(marker);
+        }
+
+        function fitMapToMarkers() {
+            if (markers.length === 0) return;
+            const bounds = new trackasiagl.LngLatBounds();
+            markers.forEach(m => bounds.extend(m.getLngLat()));
+            map.fitBounds(bounds, { padding: 50, maxZoom: 14 });
         }
 
         // Update map markers to match current filtered results
         function updateMapMarkers(items) {
             if (!map) return;
             // Clear existing markers
-            markerClusterGroup.clearLayers();
+            markers.forEach(m => m.remove());
             markers = [];
 
             // Add markers for items with valid coordinates
@@ -975,11 +958,7 @@
             });
 
             // Fit map bounds to visible markers
-            if (markers.length > 0) {
-                const group = L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.1));
-                if (markers.length === 1) map.setZoom(14);
-            }
+            fitMapToMarkers();
         }
 
         // Initialize map when DOM is ready
@@ -1071,5 +1050,5 @@
         </div>
     </section>
 
-    <!-- Map: Leaflet + OpenStreetMap (free, no API key needed) -->
+    <!-- Map: TrackAsia GL JS (Vietnamese map platform) -->
 @endsection
