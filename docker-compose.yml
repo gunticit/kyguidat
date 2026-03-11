@@ -11,6 +11,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - TZ=Asia/Ho_Chi_Minh
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_DATABASE=khodat
@@ -41,6 +42,8 @@ services:
       - ./san-dat:/var/www/html
       - sandat-vendor:/var/www/html/vendor
     environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - APP_TIMEZONE=Asia/Ho_Chi_Minh
       - GOLANG_API_URL=http://api-gateway:8080
     networks:
       - khodat-network
@@ -62,6 +65,7 @@ services:
       - ./admin:/app
       - /app/node_modules
     environment:
+      - TZ=Asia/Ho_Chi_Minh
       - VITE_API_URL=http://localhost:8080/api
     networks:
       - khodat-network
@@ -84,6 +88,9 @@ services:
       - ./clients/backend:/var/www
       - backend-vendor:/var/www/vendor
       - ./clients/backend/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - APP_TIMEZONE=Asia/Ho_Chi_Minh
     networks:
       - khodat-network
     depends_on:
@@ -108,6 +115,7 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
+      - TZ=Asia/Ho_Chi_Minh
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8015/api
     networks:
@@ -124,6 +132,7 @@ services:
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password
     environment:
+      TZ: Asia/Ho_Chi_Minh
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: khodat
       MYSQL_USER: khodat
@@ -167,6 +176,7 @@ services:
       - ./socket:/app
       - /app/node_modules
     environment:
+      - TZ=Asia/Ho_Chi_Minh
       - PORT=3020
       - REDIS_URL=redis://redis:6379
       - CORS_ORIGINS=http://localhost:3015,http://localhost:8089
@@ -187,6 +197,7 @@ services:
     container_name: khodat-elasticsearch
     restart: unless-stopped
     environment:
+      - TZ=Asia/Ho_Chi_Minh
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
@@ -213,6 +224,7 @@ services:
       - "9000:9000"
       - "9002:9001"
     environment:
+      TZ: Asia/Ho_Chi_Minh
       MINIO_ROOT_USER: khodat_minio
       MINIO_ROOT_PASSWORD: khodat_minio_secret
     volumes:
