@@ -116,7 +116,7 @@ services:
     environment:
       - TZ=Asia/Ho_Chi_Minh
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:8015/api
+      - NEXT_PUBLIC_API_URL=https://api.khodat.com/api
     networks:
       - khodat-network
     depends_on:
