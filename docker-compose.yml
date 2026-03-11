@@ -11,7 +11,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - TZ=Asia/Ho_Chi_Minh
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_DATABASE=khodat
@@ -132,7 +131,6 @@ services:
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      TZ: Asia/Ho_Chi_Minh
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: khodat
       MYSQL_USER: khodat
