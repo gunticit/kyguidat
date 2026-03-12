@@ -38,12 +38,12 @@ Route::get('/xoa-tai-khoan', function () {
     return view('pages.delete-account');
 })->name('delete-account');
 
-// Settings API
+// Settings API (exempt from CSRF — called cross-origin from admin.khodat.com)
 Route::get('/api/settings', [SettingsController::class, 'index']);
-Route::post('/api/settings', [SettingsController::class, 'store']);
-Route::post('/api/settings/upload', [SettingsController::class, 'upload']);
-Route::post('/api/settings/api-keys', [SettingsController::class, 'storeApiKeys']);
-Route::post('/api/settings/seo', [SettingsController::class, 'storeSeo']);
+Route::post('/api/settings', [SettingsController::class, 'store'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+Route::post('/api/settings/upload', [SettingsController::class, 'upload'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+Route::post('/api/settings/api-keys', [SettingsController::class, 'storeApiKeys'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+Route::post('/api/settings/seo', [SettingsController::class, 'storeSeo'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
 
 // API Consignments (for AJAX pagination)
 Route::get('/api/consignments', [ConsignmentController::class, 'apiIndex']);
