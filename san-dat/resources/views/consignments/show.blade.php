@@ -423,6 +423,35 @@
                             color: var(--gray-100);
                             font-weight: 600;
                         }
+
+                        /* Quill Editor alignment classes */
+                        .description-content .ql-align-right {
+                            text-align: right;
+                        }
+
+                        .description-content .ql-align-center {
+                            text-align: center;
+                        }
+
+                        .description-content .ql-align-justify {
+                            text-align: justify;
+                        }
+
+                        .description-content .ql-align-left {
+                            text-align: left;
+                        }
+
+                        /* Quill indent classes */
+                        .description-content .ql-indent-1 { padding-left: 3em; }
+                        .description-content .ql-indent-2 { padding-left: 6em; }
+                        .description-content .ql-indent-3 { padding-left: 9em; }
+                        .description-content .ql-indent-4 { padding-left: 12em; }
+                        .description-content .ql-indent-5 { padding-left: 15em; }
+
+                        /* Quill font size classes */
+                        .description-content .ql-size-small { font-size: 0.75em; }
+                        .description-content .ql-size-large { font-size: 1.5em; }
+                        .description-content .ql-size-huge { font-size: 2.5em; }
                     </style>
                 </div>
 
