@@ -27,7 +27,7 @@ export default function RootLayout({
                     })();
                 `}} />
             </head>
-            <body style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+            <body className="font-body">
                 {children}
                 <TelegramChat />
                 <Toaster
