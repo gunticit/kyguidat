@@ -16,6 +16,7 @@ import styles from './detail.module.css';
 
 interface Consignment {
     id: number;
+    user_id?: number;
     code: string;
     title: string;
     description?: string;
@@ -264,10 +265,21 @@ export default function ConsignmentDetailPage() {
     const status = statusConfig[consignment.status] || { label: consignment.status, class: 'badge-info', icon: FiClock, color: '#6b7280' };
     const StatusIcon = status.icon;
     const daysRemaining = getDaysRemaining(consignment);
-    const canUpdatePrice = ['approved', 'selling', 'deactivated'].includes(consignment.status);
-    const canDelete = ['pending', 'rejected', 'cancelled', 'approved', 'selling', 'deactivated'].includes(consignment.status);
-    const canReactivate = consignment.status === 'deactivated';
-    const canEdit = consignment.status === 'pending';
+
+    // Check ownership: only the consignment owner can edit/delete/update price
+    let isOwner = false;
+    try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const currentUser = JSON.parse(storedUser);
+            isOwner = currentUser?.id === consignment.user_id;
+        }
+    } catch { /* ignore */ }
+
+    const canUpdatePrice = isOwner && ['approved', 'selling', 'deactivated'].includes(consignment.status);
+    const canDelete = isOwner && ['pending', 'rejected', 'cancelled', 'approved', 'selling', 'deactivated'].includes(consignment.status);
+    const canReactivate = isOwner && consignment.status === 'deactivated';
+    const canEdit = isOwner && consignment.status === 'pending';
 
     return (
         <div className={styles.container}>
