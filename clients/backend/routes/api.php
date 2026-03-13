@@ -153,7 +153,8 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
     Route::post('/consignments/{id}/reactivate', [ConsignmentController::class, 'reactivate']);
     Route::get('/consignments/{id}/history', [ConsignmentController::class, 'history']);
-    Route::apiResource('/consignments', ConsignmentController::class);
+    Route::apiResource('/consignments', ConsignmentController::class)
+        ->where(['consignment' => '[0-9]+']);
     Route::get('/posting-quota', [ConsignmentController::class, 'postingQuota']);
 
     // Payments (Nạp tiền)
