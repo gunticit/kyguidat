@@ -31,6 +31,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.khodat.com',
       },
+      {
+        protocol: 'https',
+        hostname: '*.zadn.vn',
+      },
     ],
   },
   // Webpack configuration for path alias (fallback for non-Turbopack builds)

@@ -19,6 +19,9 @@ func CORSMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// Prevent browser caching of API responses (ensures fresh data after updates)
+		c.Writer.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+
 		c.Next()
 	}
 }

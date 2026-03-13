@@ -43,7 +43,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
     gap: 16px;
 }
@@ -64,64 +64,147 @@
 
 .headerActions {
     display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Status Banner */
+.statusBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+    border-left: 4px solid;
+    flex-wrap: wrap;
     gap: 12px;
+}
+
+.statusBannerLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.statusLabel {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statusValue {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.daysRemaining {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Reject Banner */
+.rejectBanner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #ef4444;
+    font-size: 14px;
+    padding: 14px 20px;
+    background: rgba(239, 68, 68, 0.08);
+    border-radius: 10px;
+    border-left: 3px solid #ef4444;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.rejectBanner svg {
+    flex-shrink: 0;
+    margin-top: 2px;
 }
 
 /* Content */
 .content {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
 }
 
 /* Title Card */
 .titleCard {
-    padding: 32px !important;
+    padding: 28px 32px !important;
 }
 
 .codeStatus {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
 }
 
 .code {
     font-family: 'Monaco', 'Menlo', monospace;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--primary);
     background: rgba(99, 102, 241, 0.1);
     padding: 4px 12px;
     border-radius: 6px;
+    font-weight: 600;
+}
+
+.orderNum {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.categoryBadge {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
 }
 
 .title {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 16px;
-    line-height: 1.3;
+    margin-bottom: 14px;
+    line-height: 1.35;
 }
 
 .meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 24px;
+    gap: 20px;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .meta span {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 /* Grid Layout */
 .grid {
     display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 24px;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
 }
 
 @media (max-width: 1024px) {
@@ -133,13 +216,13 @@
 .leftColumn {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
 }
 
 .rightColumn {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
 }
 
 /* Section Title */
@@ -147,7 +230,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 16px;
@@ -159,33 +242,100 @@
 .description {
     color: var(--text-secondary);
     line-height: 1.8;
-    white-space: pre-wrap;
+    font-size: 14px;
+}
+
+.description p {
+    margin-bottom: 8px;
 }
 
 /* Image Grid */
 .imageGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
 }
 
 .imageItem {
     aspect-ratio: 1;
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
     background: var(--bg-tertiary);
     cursor: pointer;
     transition: transform 0.2s;
+    position: relative;
 }
 
 .imageItem:hover {
-    transform: scale(1.02);
+    transform: scale(1.03);
+}
+
+.imageItem:hover .imageOverlay {
+    opacity: 1;
 }
 
 .imageItem img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.imageOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+/* Property Grid */
+.propertyGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+
+.propertyItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.15s;
+}
+
+.propertyItem:hover {
+    background: var(--bg-tertiary);
+}
+
+.propertyItem:nth-last-child(-n+2) {
+    border-bottom: none;
+}
+
+.propertyIcon {
+    flex-shrink: 0;
+    color: var(--primary);
+    margin-top: 2px;
+    font-size: 16px;
+}
+
+.propertyLabel {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.propertyValue {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 /* File List */
@@ -224,40 +374,43 @@
     padding: 16px;
     border-radius: 8px;
     border-left: 3px solid var(--warning);
+    line-height: 1.6;
 }
 
 /* Price Card */
 .priceCard {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.1) 100%) !important;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.08) 100%) !important;
 }
 
 .priceMain {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .priceLabel {
     display: block;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
     margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .priceValue {
     display: block;
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 700;
     color: var(--primary);
     line-height: 1.2;
 }
 
 .priceMin {
-    padding-top: 16px;
+    padding-top: 14px;
     border-top: 1px dashed var(--border-color);
 }
 
 .priceMinValue {
     display: block;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--text-secondary);
 }
@@ -266,7 +419,8 @@
 .address {
     color: var(--text-secondary);
     line-height: 1.6;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+    font-size: 14px;
 }
 
 .mapLink {
@@ -276,6 +430,7 @@
     color: var(--primary);
     text-decoration: none;
     font-weight: 500;
+    font-size: 14px;
     transition: opacity 0.2s;
 }
 
@@ -284,10 +439,36 @@
     text-decoration: underline;
 }
 
+/* Consigner Info */
+.consignerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.consignerRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 14px;
+}
+
+.consignerRow:last-child {
+    border-bottom: none;
+}
+
+.consignerLabel {
+    color: var(--text-secondary);
+    min-width: 50px;
+    font-size: 13px;
+}
+
 /* Phone */
 .phoneLink {
     display: inline-block;
-    font-size: 24px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--success);
     text-decoration: none;
@@ -298,10 +479,55 @@
     opacity: 0.8;
 }
 
+/* Actions List */
+.actionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 /* Full Width Button */
 .fullWidthBtn {
     width: 100%;
     justify-content: center;
+}
+
+/* Price Input */
+.priceInputGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.priceInput {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+.priceInput:focus {
+    border-color: var(--primary);
+}
+
+.priceUnit {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.pricePreview {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 16px !important;
 }
 
 /* Modal */
@@ -311,24 +537,28 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.65);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
+    animation: fadeIn 0.15s ease;
 }
 
 .modal {
     background: var(--bg-secondary);
     border-radius: 16px;
     padding: 32px;
-    max-width: 400px;
-    width: 90%;
+    max-width: 440px;
+    width: 92%;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
 .modal h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 20px;
     color: var(--text-primary);
     margin-bottom: 12px;
@@ -336,8 +566,9 @@
 
 .modal p {
     color: var(--text-secondary);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     line-height: 1.6;
+    font-size: 14px;
 }
 
 .modalActions {
@@ -353,21 +584,43 @@
         align-items: flex-start;
     }
 
+    .headerActions {
+        width: 100%;
+    }
+
+    .headerActions .btn {
+        flex: 1;
+        font-size: 13px;
+    }
+
     .titleCard {
-        padding: 24px !important;
+        padding: 20px !important;
     }
 
     .title {
-        font-size: 22px;
+        font-size: 20px;
     }
 
     .priceValue {
-        font-size: 26px;
+        font-size: 24px;
     }
 
     .meta {
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
+    }
+
+    .propertyGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .statusBanner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .imageGrid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     }
 }
 
