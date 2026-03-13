@@ -117,6 +117,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=https://api.khodat.com/api
+    command: sh -c "npm run build && npm run start"
     networks:
       - khodat-network
     depends_on:
