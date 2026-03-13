@@ -110,6 +110,13 @@ export const adminApi = {
     updateWard: (id, data) => api.put(`/admin/wards/${id}`, data),
     deleteWard: (id) => api.delete(`/admin/wards/${id}`),
 
+    // Posting Packages — CRUD
+    getPostingPackages: (params) => api.get('/admin/posting-packages', { params }),
+    getPostingPackage: (id) => api.get(`/admin/posting-packages/${id}`),
+    createPostingPackage: (data) => api.post('/admin/posting-packages', data),
+    updatePostingPackage: (id, data) => api.put(`/admin/posting-packages/${id}`, data),
+    deletePostingPackage: (id) => api.delete(`/admin/posting-packages/${id}`),
+
     // Upload - Optimized Image (WebP conversion)
     uploadOptimizedImage: (file, directory = 'consignments') => {
         const formData = new FormData()

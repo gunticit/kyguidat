@@ -272,6 +272,13 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/wards', [AdministrativeDivisionController::class, 'wardStore']);
         Route::put('/wards/{id}', [AdministrativeDivisionController::class, 'wardUpdate']);
         Route::delete('/wards/{id}', [AdministrativeDivisionController::class, 'wardDestroy']);
+
+        // Posting Packages — CRUD
+        Route::get('/posting-packages', [App\Http\Controllers\AdminController::class, 'postingPackages']);
+        Route::get('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'showPostingPackage']);
+        Route::post('/posting-packages', [App\Http\Controllers\AdminController::class, 'storePostingPackage']);
+        Route::put('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'updatePostingPackage']);
+        Route::delete('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'destroyPostingPackage']);
     });
 });
 

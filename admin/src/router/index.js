@@ -15,6 +15,7 @@ import Customers from '@/views/customers/Customers.vue'
 import ArticleList from '@/views/articles/List.vue'
 import PageList from '@/views/pages/List.vue'
 import LocationList from '@/views/locations/List.vue'
+import PackageList from '@/views/packages/List.vue'
 
 const routes = [
     {
@@ -93,6 +94,12 @@ const routes = [
         path: '/pages',
         name: 'pages',
         component: PageList,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/packages',
+        name: 'packages',
+        component: PackageList,
         meta: { requiresAuth: true }
     }
 ]

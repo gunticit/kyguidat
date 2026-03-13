@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Consignment;
+use App\Models\PostingPackage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -737,6 +738,169 @@ class AdminController extends Controller
 
     /**
      * Trigger Elasticsearch sync via Go API Gateway webhook
+    // ==========================================
+    // Posting Packages Management
+    // ==========================================
+
+    /**
+     * List all posting packages (admin)
+     */
+    public function postingPackages(Request $request): JsonResponse
+    {
+        $query = PostingPackage::query()->orderBy('sort_order')->orderBy('id');
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('is_active') && $request->get('is_active') !== '') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        $packages = $query->get()->map(function ($pkg) {
+            return [
+                'id' => $pkg->id,
+                'name' => $pkg->name,
+                'slug' => $pkg->slug,
+                'description' => $pkg->description,
+                'duration_months' => $pkg->duration_months,
+                'price' => $pkg->price,
+                'original_price' => $pkg->original_price,
+                'formatted_price' => $pkg->formatted_price,
+                'post_limit' => $pkg->post_limit,
+                'featured_posts' => $pkg->featured_posts,
+                'priority_support' => $pkg->priority_support,
+                'features' => $pkg->features,
+                'is_active' => $pkg->is_active,
+                'is_popular' => $pkg->is_popular,
+                'sort_order' => $pkg->sort_order,
+                'subscribers' => $pkg->userPackages()->count(),
+                'created_at' => $pkg->created_at,
+                'updated_at' => $pkg->updated_at,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $packages,
+        ]);
+    }
+
+    /**
+     * Show a posting package
+     */
+    public function showPostingPackage($id): JsonResponse
+    {
+        $pkg = PostingPackage::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $pkg,
+        ]);
+    }
+
+    /**
+     * Create a posting package
+     */
+    public function storePostingPackage(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:posting_packages,slug',
+            'description' => 'nullable|string',
+            'duration_months' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
+            'post_limit' => 'required|integer|min:-1',
+            'featured_posts' => 'nullable|integer|min:0',
+            'priority_support' => 'boolean',
+            'features' => 'nullable|array',
+            'is_active' => 'boolean',
+            'is_popular' => 'boolean',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        // Auto-generate slug if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+            // Ensure unique
+            $originalSlug = $validated['slug'];
+            $i = 1;
+            while (PostingPackage::where('slug', $validated['slug'])->exists()) {
+                $validated['slug'] = $originalSlug . '-' . $i++;
+            }
+        }
+
+        $package = PostingPackage::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tạo gói thành công',
+            'data' => $package,
+        ], 201);
+    }
+
+    /**
+     * Update a posting package
+     */
+    public function updatePostingPackage(Request $request, $id): JsonResponse
+    {
+        $package = PostingPackage::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'slug' => 'sometimes|string|max:255|unique:posting_packages,slug,' . $id,
+            'description' => 'nullable|string',
+            'duration_months' => 'sometimes|integer|min:1',
+            'price' => 'sometimes|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
+            'post_limit' => 'sometimes|integer|min:-1',
+            'featured_posts' => 'nullable|integer|min:0',
+            'priority_support' => 'boolean',
+            'features' => 'nullable|array',
+            'is_active' => 'boolean',
+            'is_popular' => 'boolean',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        $package->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật gói thành công',
+            'data' => $package->fresh(),
+        ]);
+    }
+
+    /**
+     * Delete a posting package
+     */
+    public function destroyPostingPackage($id): JsonResponse
+    {
+        $package = PostingPackage::findOrFail($id);
+
+        // Check if any users are using this package
+        $activeCount = $package->userPackages()->where('status', 'active')->count();
+        if ($activeCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "Không thể xóa gói đang có {$activeCount} người dùng đang sử dụng. Hãy tắt gói (is_active = false) thay vì xóa.",
+            ], 400);
+        }
+
+        $package->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Xóa gói thành công',
+        ]);
+    }
+
+    /**
+     * Trigger Elasticsearch resync
      */
     private function triggerEsSync(): void
     {

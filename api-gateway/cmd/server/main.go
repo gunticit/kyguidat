@@ -271,6 +271,13 @@ func main() {
 		admin.PUT("/wards/:id", proxyHandler.ProxyRequest)
 		admin.DELETE("/wards/:id", proxyHandler.ProxyRequest)
 
+		// Posting Packages — CRUD
+		admin.GET("/posting-packages", proxyHandler.ProxyRequest)
+		admin.GET("/posting-packages/:id", proxyHandler.ProxyRequest)
+		admin.POST("/posting-packages", proxyHandler.ProxyRequest)
+		admin.PUT("/posting-packages/:id", proxyHandler.ProxyRequest)
+		admin.DELETE("/posting-packages/:id", proxyHandler.ProxyRequest)
+
 		// Reports (handled directly by Go, not proxied)
 		admin.GET("/reports/overview", reportHandler.Overview)
 		admin.GET("/reports/export", reportHandler.ExportExcel)
