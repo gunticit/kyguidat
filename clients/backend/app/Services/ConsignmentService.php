@@ -267,10 +267,17 @@ class ConsignmentService
 
     /**
      * Update only the price of a consignment (for approved/selling/deactivated)
+     * Admin can update any consignment, regular users only their own
      */
     public function updatePrice(User $user, int $id, float $price): ?Consignment
     {
-        $consignment = $user->consignments()
+        $isAdmin = $user->hasRole('admin');
+
+        $query = $isAdmin
+            ? Consignment::query()
+            : $user->consignments();
+
+        $consignment = $query
             ->whereIn('status', [
                 Consignment::STATUS_APPROVED,
                 Consignment::STATUS_SELLING,
@@ -301,10 +308,17 @@ class ConsignmentService
 
     /**
      * Delete consignment
+     * Admin can delete any consignment, regular users only their own
      */
     public function delete(User $user, int $id): bool
     {
-        $consignment = $user->consignments()
+        $isAdmin = $user->hasRole('admin');
+
+        $query = $isAdmin
+            ? Consignment::query()
+            : $user->consignments();
+
+        $consignment = $query
             ->whereIn('status', [
                 Consignment::STATUS_PENDING,
                 Consignment::STATUS_REJECTED,
