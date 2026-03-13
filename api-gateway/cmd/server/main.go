@@ -156,10 +156,8 @@ func main() {
 	// Authenticated user routes - proxy to Laravel backend
 	userProxy := r.Group("/api")
 	{
-		// Auth routes (me, forgot-password, reset-password, delete account)
+		// Auth routes (me, delete account)
 		userProxy.GET("/auth/me", proxyHandler.ProxyRequest)
-		userProxy.POST("/auth/forgot-password", proxyHandler.ProxyRequest)
-		userProxy.POST("/auth/reset-password", proxyHandler.ProxyRequest)
 		userProxy.DELETE("/auth/account", proxyHandler.ProxyRequest)
 		userProxy.POST("/auth/logout", proxyHandler.ProxyRequest)
 		userProxy.POST("/auth/register", proxyHandler.ProxyRequest)
