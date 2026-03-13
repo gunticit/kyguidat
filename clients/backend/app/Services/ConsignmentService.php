@@ -266,17 +266,63 @@ class ConsignmentService
     }
 
     /**
+     * Update only the price of a consignment (for approved/selling/deactivated)
+     */
+    public function updatePrice(User $user, int $id, float $price): ?Consignment
+    {
+        $consignment = $user->consignments()
+            ->whereIn('status', [
+                Consignment::STATUS_APPROVED,
+                Consignment::STATUS_SELLING,
+                Consignment::STATUS_DEACTIVATED,
+            ])
+            ->find($id);
+
+        if (!$consignment) {
+            return null;
+        }
+
+        $oldPrice = $consignment->price;
+        $consignment->update(['price' => $price]);
+
+        $this->createHistory(
+            $consignment,
+            $consignment->status,
+            'Cập nhật giá: ' . number_format($oldPrice) . ' → ' . number_format($price),
+            $user->id
+        );
+
+        // Dispatch webhook for ES sync
+        $updatedConsignment = $consignment->fresh();
+        $this->webhookService?->dispatchUpdated($updatedConsignment, ['price']);
+
+        return $updatedConsignment;
+    }
+
+    /**
      * Delete consignment
      */
     public function delete(User $user, int $id): bool
     {
         $consignment = $user->consignments()
-            ->whereIn('status', [Consignment::STATUS_PENDING, Consignment::STATUS_REJECTED, Consignment::STATUS_CANCELLED])
+            ->whereIn('status', [
+                Consignment::STATUS_PENDING,
+                Consignment::STATUS_REJECTED,
+                Consignment::STATUS_CANCELLED,
+                Consignment::STATUS_APPROVED,
+                Consignment::STATUS_SELLING,
+                Consignment::STATUS_DEACTIVATED,
+            ])
             ->find($id);
 
         if (!$consignment) {
             return false;
         }
+
+        $this->createHistory($consignment, 'deleted', 'Người dùng xóa bài đăng', $user->id);
+
+        // Dispatch webhook for ES sync
+        $this->webhookService?->dispatchStatusChanged($consignment, $consignment->status, 'deleted');
 
         return $consignment->delete();
     }

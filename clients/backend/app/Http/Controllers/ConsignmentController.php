@@ -155,6 +155,35 @@ class ConsignmentController extends Controller
     }
 
     /**
+     * Update price of an approved/selling consignment
+     */
+    public function updatePrice(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        $consignment = $this->consignmentService->updatePrice(
+            $request->user(),
+            $id,
+            $request->input('price')
+        );
+
+        if (!$consignment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy hoặc không thể cập nhật giá'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật giá thành công',
+            'data' => $consignment
+        ]);
+    }
+
+    /**
      * Reactivate a deactivated consignment
      */
     public function reactivate(Request $request, int $id): JsonResponse

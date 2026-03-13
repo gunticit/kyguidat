@@ -152,6 +152,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::apiResource('/consignments', ConsignmentController::class);
     Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
     Route::post('/consignments/{id}/reactivate', [ConsignmentController::class, 'reactivate']);
+    Route::put('/consignments/{id}/price', [ConsignmentController::class, 'updatePrice']);
     Route::get('/consignments/{id}/history', [ConsignmentController::class, 'history']);
     Route::get('/posting-quota', [ConsignmentController::class, 'postingQuota']);
 
@@ -232,6 +233,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::delete('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'destroyConsignment']);
         Route::put('/consignments/{id}/approve', [App\Http\Controllers\AdminController::class, 'approveConsignment']);
         Route::put('/consignments/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectConsignment']);
+        Route::post('/consignments/{id}/reactivate', [App\Http\Controllers\AdminController::class, 'reactivateConsignment']);
 
         // Support Tickets - Admin Management
         Route::get('/supports', [App\Http\Controllers\AdminController::class, 'supportTickets']);

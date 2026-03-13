@@ -180,6 +180,7 @@ func main() {
 		userProxy.POST("/consignments/:id/cancel", proxyHandler.ProxyRequest)
 		userProxy.GET("/consignments/:id/history", proxyHandler.ProxyRequest)
 		userProxy.POST("/consignments/:id/reactivate", proxyHandler.ProxyRequest)
+		userProxy.PUT("/consignments/:id/price", proxyHandler.ProxyRequest)
 
 		// Posting quota & packages
 		userProxy.GET("/posting-quota", proxyHandler.ProxyRequest)
@@ -231,6 +232,7 @@ func main() {
 		admin.DELETE("/consignments/:id", proxyHandler.ProxyRequest)
 		admin.PUT("/consignments/:id/approve", proxyHandler.ProxyRequest)
 		admin.PUT("/consignments/:id/reject", proxyHandler.ProxyRequest)
+		admin.POST("/consignments/:id/reactivate", proxyHandler.ProxyRequest)
 
 		// Support Tickets
 		admin.GET("/supports", proxyHandler.ProxyRequest)

@@ -109,6 +109,8 @@ export const consignmentApi = {
         api.post('/consignments', data),
     update: (id: number, data: ConsignmentUpdateData) =>
         api.put(`/consignments/${id}`, data),
+    updatePrice: (id: number, price: number) =>
+        api.put(`/consignments/${id}/price`, { price }),
     delete: (id: number) =>
         api.delete(`/consignments/${id}`),
     cancel: (id: number) =>

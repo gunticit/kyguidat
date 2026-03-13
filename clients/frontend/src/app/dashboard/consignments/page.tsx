@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiPlus, FiSearch, FiFilter, FiEye, FiEdit, FiTrash2, FiX, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiFilter, FiEye, FiEdit, FiTrash2, FiX, FiRefreshCw, FiDollarSign, FiClock } from 'react-icons/fi';
 import { consignmentApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/formatCurrency';
 import styles from './consignments.module.css';
@@ -20,6 +20,9 @@ interface Consignment {
     status: string;
     reject_reason?: string;
     created_at: string;
+    published_at?: string;
+    deactivated_at?: string;
+    auto_deactivated?: boolean;
     images?: string[];
     description_files?: string[];
     note_to_admin?: string;
@@ -60,6 +63,18 @@ const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('vi-VN');
 };
 
+/** Calculate days remaining before auto-deactivation (30-day rule) */
+const getDaysRemaining = (item: Consignment): number | null => {
+    if (!['approved', 'selling'].includes(item.status)) return null;
+    const refDate = item.published_at || item.created_at;
+    if (!refDate) return null;
+    const publishDate = new Date(refDate);
+    const expireDate = new Date(publishDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const diff = Math.ceil((expireDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diff;
+};
+
 export default function ConsignmentsPage() {
     const [consignments, setConsignments] = useState<Consignment[]>([]);
     const [pagination, setPagination] = useState<PaginationData | null>(null);
@@ -70,6 +85,10 @@ export default function ConsignmentsPage() {
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
     const [deleting, setDeleting] = useState(false);
     const [reactivating, setReactivating] = useState<number | null>(null);
+    // Price update modal state
+    const [priceModal, setPriceModal] = useState<{ id: number; currentPrice: number } | null>(null);
+    const [newPrice, setNewPrice] = useState('');
+    const [updatingPrice, setUpdatingPrice] = useState(false);
 
     useEffect(() => {
         loadConsignments();
@@ -142,6 +161,31 @@ export default function ConsignmentsPage() {
         } finally {
             setReactivating(null);
         }
+    };
+
+    const handleUpdatePrice = async () => {
+        if (!priceModal || !newPrice) return;
+        try {
+            setUpdatingPrice(true);
+            const response = await consignmentApi.updatePrice(priceModal.id, parseFloat(newPrice));
+            if (response.data.success) {
+                setPriceModal(null);
+                setNewPrice('');
+                loadConsignments();
+            } else {
+                alert(response.data.message || 'Không thể cập nhật giá');
+            }
+        } catch (error) {
+            console.error('Error updating price:', error);
+            alert('Có lỗi xảy ra khi cập nhật giá');
+        } finally {
+            setUpdatingPrice(false);
+        }
+    };
+
+    const openPriceModal = (item: Consignment) => {
+        setPriceModal({ id: item.id, currentPrice: item.price });
+        setNewPrice(String(item.price));
     };
 
     if (loading && consignments.length === 0) {
@@ -221,6 +265,7 @@ export default function ConsignmentsPage() {
                         <tbody>
                             {consignments.map((item) => {
                                 const status = getStatusBadge(item.status);
+                                const daysRemaining = getDaysRemaining(item);
                                 return (
                                     <tr key={item.id}>
                                         <td className={styles.code}>{item.code}</td>
@@ -234,6 +279,17 @@ export default function ConsignmentsPage() {
                                                     Lý do: {item.reject_reason}
                                                 </div>
                                             )}
+                                            {daysRemaining !== null && (
+                                                <div style={{ fontSize: '11px', color: daysRemaining <= 7 ? '#ef4444' : '#f59e0b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <FiClock size={11} />
+                                                    {daysRemaining > 0 ? `Còn ${daysRemaining} ngày` : 'Sắp bị tắt'}
+                                                </div>
+                                            )}
+                                            {item.status === 'deactivated' && item.auto_deactivated && (
+                                                <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>
+                                                    Tắt tự động sau 30 ngày
+                                                </div>
+                                            )}
                                         </td>
                                         <td>{formatDate(item.created_at)}</td>
                                         <td>
@@ -245,6 +301,7 @@ export default function ConsignmentsPage() {
                                                 >
                                                     <FiEye />
                                                 </Link>
+                                                {/* Pending: edit + delete */}
                                                 {item.status === 'pending' && (
                                                     <>
                                                         <Link
@@ -263,16 +320,54 @@ export default function ConsignmentsPage() {
                                                         </button>
                                                     </>
                                                 )}
+                                                {/* Approved/Selling: update price + delete */}
+                                                {['approved', 'selling'].includes(item.status) && (
+                                                    <>
+                                                        <button
+                                                            className={styles.actionBtn}
+                                                            title="Cập nhật giá"
+                                                            onClick={() => openPriceModal(item)}
+                                                            style={{ color: '#3b82f6' }}
+                                                        >
+                                                            <FiDollarSign />
+                                                        </button>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                                                            title="Xóa bài"
+                                                            onClick={() => setDeleteConfirm(item.id)}
+                                                        >
+                                                            <FiTrash2 />
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {/* Deactivated: reactivate + update price + delete */}
                                                 {item.status === 'deactivated' && (
-                                                    <button
-                                                        className={`${styles.actionBtn}`}
-                                                        title="Mở lại"
-                                                        onClick={() => handleReactivate(item.id)}
-                                                        disabled={reactivating === item.id}
-                                                        style={{ color: '#22c55e' }}
-                                                    >
-                                                        <FiRefreshCw className={reactivating === item.id ? styles.spinning : ''} />
-                                                    </button>
+                                                    <>
+                                                        <button
+                                                            className={styles.actionBtn}
+                                                            title="Bật lại"
+                                                            onClick={() => handleReactivate(item.id)}
+                                                            disabled={reactivating === item.id}
+                                                            style={{ color: '#22c55e' }}
+                                                        >
+                                                            <FiRefreshCw className={reactivating === item.id ? styles.spinning : ''} />
+                                                        </button>
+                                                        <button
+                                                            className={styles.actionBtn}
+                                                            title="Cập nhật giá"
+                                                            onClick={() => openPriceModal(item)}
+                                                            style={{ color: '#3b82f6' }}
+                                                        >
+                                                            <FiDollarSign />
+                                                        </button>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                                                            title="Xóa bài"
+                                                            onClick={() => setDeleteConfirm(item.id)}
+                                                        >
+                                                            <FiTrash2 />
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
                                         </td>
@@ -315,7 +410,7 @@ export default function ConsignmentsPage() {
                             <FiX />
                         </button>
                         <h3>Xác nhận xóa</h3>
-                        <p>Bạn có chắc chắn muốn xóa yêu cầu ký gửi này không?</p>
+                        <p>Bạn có chắc chắn muốn xóa bài đăng này không? Hành động này không thể hoàn tác.</p>
                         <div className={styles.modalActions}>
                             <button
                                 className="btn btn-secondary"
@@ -329,6 +424,49 @@ export default function ConsignmentsPage() {
                                 disabled={deleting}
                             >
                                 {deleting ? 'Đang xóa...' : 'Xóa'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Price Update Modal */}
+            {priceModal && (
+                <div className={styles.modalOverlay} onClick={() => setPriceModal(null)}>
+                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                        <button className={styles.modalClose} onClick={() => setPriceModal(null)}>
+                            <FiX />
+                        </button>
+                        <h3>Cập nhật giá</h3>
+                        <p style={{ color: '#94a3b8', marginBottom: '16px' }}>
+                            Giá hiện tại: <strong>{formatCurrency(priceModal.currentPrice, { showBillion: true })}</strong>
+                        </p>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Giá mới (VNĐ)</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={newPrice}
+                                onChange={(e) => setNewPrice(e.target.value)}
+                                placeholder="Nhập giá mới..."
+                                min="0"
+                                step="1000000"
+                                autoFocus
+                            />
+                        </div>
+                        <div className={styles.modalActions}>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setPriceModal(null)}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleUpdatePrice}
+                                disabled={updatingPrice || !newPrice || parseFloat(newPrice) <= 0}
+                            >
+                                {updatingPrice ? 'Đang cập nhật...' : 'Cập nhật giá'}
                             </button>
                         </div>
                     </div>

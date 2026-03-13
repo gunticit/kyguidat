@@ -17,7 +17,9 @@
             <option value="">Tất cả trạng thái</option>
             <option value="pending">Chờ duyệt</option>
             <option value="approved">Đã duyệt</option>
+            <option value="selling">Đang bán</option>
             <option value="rejected">Từ chối</option>
+            <option value="deactivated">Đã tắt</option>
           </select>
 
           <select v-model="filters.province" @change="filters.page = 1; fetchData()" class="px-3 py-2 border rounded-lg text-sm">
@@ -81,11 +83,20 @@
                   <p v-if="item.status === 'rejected' && item.reject_reason" class="text-xs text-red-500 mt-1">
                     Lý do: {{ item.reject_reason }}
                   </p>
+                  <p v-if="['approved','selling'].includes(item.status)" class="text-xs mt-1" :class="getDaysRemaining(item) <= 7 ? 'text-red-500' : 'text-amber-500'">
+                    ⏱ {{ getDaysRemaining(item) > 0 ? `Còn ${getDaysRemaining(item)} ngày` : 'Sắp bị tắt' }}
+                  </p>
+                  <p v-if="item.status === 'deactivated' && item.auto_deactivated" class="text-xs text-amber-500 mt-1">
+                    Tắt tự động sau 30 ngày
+                  </p>
                 </td>
                 <td class="px-6 py-4 space-x-2">
                   <template v-if="canApprove && item.status === 'pending'">
                     <button @click="approve(item.id)" class="text-green-600 hover:underline text-sm">Duyệt</button>
                     <button @click="openRejectModal(item)" class="text-red-600 hover:underline text-sm">Từ chối</button>
+                  </template>
+                  <template v-if="item.status === 'deactivated'">
+                    <button @click="reactivateConsignment(item.id)" class="text-green-600 hover:underline text-sm">Bật lại</button>
                   </template>
                   <template v-if="canEdit(item)">
                     <button @click="openEditModal(item)" class="text-indigo-600 hover:underline text-sm">Sửa</button>
@@ -1326,12 +1337,36 @@ const submitReject = async () => {
 }
 
 const formatCurrency = (v) => v ? new Intl.NumberFormat('vi-VN').format(v) + ' đ' : '0 đ'
-const statusText = (s) => ({ pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối' }[s] || s)
+const statusText = (s) => ({ pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối', selling: 'Đang bán', sold: 'Đã bán', cancelled: 'Đã hủy', deactivated: 'Đã tắt' }[s] || s)
 const statusClass = (s) => ({
   pending: 'bg-yellow-100 text-yellow-800',
   approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800'
+  selling: 'bg-blue-100 text-blue-800',
+  sold: 'bg-purple-100 text-purple-800',
+  rejected: 'bg-red-100 text-red-800',
+  cancelled: 'bg-red-100 text-red-800',
+  deactivated: 'bg-orange-100 text-orange-800'
 }[s] || 'bg-gray-100')
+
+const getDaysRemaining = (item) => {
+  if (!['approved', 'selling'].includes(item.status)) return null
+  const refDate = item.published_at || item.created_at
+  if (!refDate) return null
+  const publishDate = new Date(refDate)
+  const expireDate = new Date(publishDate.getTime() + 30 * 24 * 60 * 60 * 1000)
+  const now = new Date()
+  return Math.ceil((expireDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+const reactivateConsignment = async (id) => {
+  try {
+    await adminApi.post(`/admin/consignments/${id}/reactivate`)
+    fetchData()
+  } catch (err) {
+    console.error('Error reactivating:', err)
+    alert('Có lỗi xảy ra khi bật lại bài đăng')
+  }
+}
 
 onMounted(async () => {
   document.addEventListener('keydown', handleLightboxKeydown)

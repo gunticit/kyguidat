@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Deactivate consignments published more than 30 days ago
-Schedule::command('posts:deactivate-expired')->daily();
+Schedule::command('consignments:auto-deactivate')->daily();

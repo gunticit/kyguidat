@@ -169,6 +169,9 @@ class AdminController extends Controller
             'user_id',
             'featured_image',
             'reject_reason',
+            'published_at',
+            'deactivated_at',
+            'auto_deactivated',
             'created_at',
             'updated_at'
         ])->with('user:id,name,email');
@@ -478,6 +481,45 @@ class AdminController extends Controller
             'success' => true,
             'message' => 'Từ chối thành công',
             'data' => $consignment
+        ]);
+    }
+
+    /**
+     * Reactivate a deactivated consignment (Admin)
+     */
+    public function reactivateConsignment(Request $request, $id): JsonResponse
+    {
+        $consignment = Consignment::findOrFail($id);
+
+        if ($consignment->status !== 'deactivated') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Chỉ có thể bật lại bài đã tắt'
+            ], 400);
+        }
+
+        $consignment->update([
+            'status' => 'selling',
+            'auto_deactivated' => false,
+            'deactivated_at' => null,
+            'published_at' => now(),
+        ]);
+
+        // Create history
+        \App\Models\ConsignmentHistory::create([
+            'consignment_id' => $consignment->id,
+            'status' => 'selling',
+            'note' => 'Admin bật lại bài đăng',
+            'changed_by' => $request->user()->id,
+        ]);
+
+        // Trigger ES sync
+        $this->triggerEsSync();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã bật lại bài đăng',
+            'data' => $consignment->fresh()
         ]);
     }
 
