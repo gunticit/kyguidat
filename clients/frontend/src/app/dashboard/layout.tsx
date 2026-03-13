@@ -108,10 +108,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
             {/* Sidebar */}
             <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}>
-                <div className={styles.logo}>
-                    <Link href="/dashboard">
-                        <span className="gradient-text" style={{ fontSize: '24px', fontWeight: 700 }}>
-                            Ký Gửi Kho Đất
+            <div className={styles.logo}>
+                    <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Image
+                            src="/logo.jpg"
+                            alt="Kho Đất"
+                            width={40}
+                            height={40}
+                            style={{ borderRadius: '8px' }}
+                        />
+                        <span className="gradient-text" style={{ fontSize: '18px', fontWeight: 700 }}>
+                            Kho Đất
                         </span>
                     </Link>
                 </div>
