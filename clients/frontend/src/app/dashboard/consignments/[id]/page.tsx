@@ -520,7 +520,7 @@ export default function ConsignmentDetailPage() {
                                     {formatCurrency(consignment.price)}
                                 </span>
                             </div>
-                            {consignment.min_price && consignment.min_price > 0 && (
+                            {Number(consignment.min_price) > 0 && (
                                 <div className={styles.priceMin}>
                                     <span className={styles.priceLabel}>Giá tối thiểu</span>
                                     <span className={styles.priceMinValue}>
