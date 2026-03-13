@@ -251,7 +251,13 @@ class ImageOptimizer
      */
     protected function createImageFromFile(string $path, ?string $mimeType): ?\GdImage
     {
-        return match ($mimeType) {
+        // SVG and other non-raster formats cannot be handled by GD
+        $unsupported = ['image/svg+xml', 'image/svg', 'image/tiff', 'image/x-icon'];
+        if (in_array($mimeType, $unsupported, true)) {
+            return null;
+        }
+
+        $image = match ($mimeType) {
             'image/jpeg' => @imagecreatefromjpeg($path),
             'image/png' => @imagecreatefrompng($path),
             'image/gif' => @imagecreatefromgif($path),
@@ -259,6 +265,8 @@ class ImageOptimizer
             'image/bmp' => @imagecreatefrombmp($path),
             default => @imagecreatefromstring(file_get_contents($path)),
         };
+
+        return $image instanceof \GdImage ? $image : null;
     }
 
     /**

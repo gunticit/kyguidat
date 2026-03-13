@@ -187,7 +187,7 @@ class UploadController extends Controller
     public function uploadOptimized(Request $request): JsonResponse
     {
         $request->validate([
-            'image' => 'required|image|max:' . ($this->getMaxUploadSize() / 1024),
+            'image' => 'required|image|mimes:jpeg,jpg,png,gif,webp,bmp|max:' . ($this->getMaxUploadSize() / 1024),
             'directory' => 'nullable|string|max:100',
             'quality' => 'nullable|integer|min:10|max:100',
         ]);
@@ -221,7 +221,7 @@ class UploadController extends Controller
     {
         $request->validate([
             'images' => 'required|array|max:20',
-            'images.*' => 'image|max:' . ($this->getMaxUploadSize() / 1024),
+            'images.*' => 'image|mimes:jpeg,jpg,png,gif,webp,bmp|max:' . ($this->getMaxUploadSize() / 1024),
             'directory' => 'nullable|string|max:100',
             'quality' => 'nullable|integer|min:10|max:100',
         ]);
