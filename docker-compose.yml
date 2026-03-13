@@ -56,16 +56,15 @@ services:
     build:
       context: ./admin
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://api.khodat.com/api
+        - VITE_SANDAT_API_URL=https://khodat.com/api
     container_name: khodat-admin
     restart: unless-stopped
     ports:
       - "8089:80"
-    volumes:
-      - ./admin:/app
-      - /app/node_modules
     environment:
       - TZ=Asia/Ho_Chi_Minh
-      - VITE_API_URL=http://localhost:8080/api
     networks:
       - khodat-network
     depends_on:
