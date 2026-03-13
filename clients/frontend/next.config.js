@@ -3,8 +3,6 @@ const path = require('path');
 
 const nextConfig = {
   reactStrictMode: true,
-  // Enable standalone output for Docker production
-  output: 'standalone',
   images: {
     remotePatterns: [
       {
