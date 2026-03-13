@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { FcGoogle } from 'react-icons/fc';
+import { FaFacebook } from 'react-icons/fa';
+import { SiZalo } from 'react-icons/si';
 import { authApi } from '@/lib/api';
 import styles from '../login/login.module.css';
 
@@ -37,7 +40,6 @@ export default function RegisterPage() {
         setIsLoading(true);
         setGeneralError('');
 
-        // Validate
         const newErrors: Record<string, string> = {};
         if (!formData.name) newErrors.name = 'Họ tên là bắt buộc';
         if (!formData.email) newErrors.email = 'Email là bắt buộc';
@@ -57,19 +59,13 @@ export default function RegisterPage() {
             const response = await authApi.register(formData);
 
             if (response.data.success) {
-                // Lưu token vào localStorage
                 localStorage.setItem('auth_token', response.data.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.data.user));
-
-                // Redirect đến dashboard
                 router.push('/dashboard');
             } else {
                 setGeneralError(response.data.message || 'Đăng ký thất bại');
             }
         } catch (error: unknown) {
-            console.error('Register error:', error);
-
-            // Xử lý lỗi từ axios
             interface AxiosError {
                 response?: {
                     data?: {
@@ -83,12 +79,9 @@ export default function RegisterPage() {
             const axiosError = error as AxiosError;
             if (axiosError.response?.data) {
                 const errorData = axiosError.response.data;
-
                 if (errorData.message) {
                     setGeneralError(errorData.message);
                 }
-
-                // Xử lý validation errors
                 if (errorData.errors) {
                     const fieldErrors: Record<string, string> = {};
                     Object.entries(errorData.errors).forEach(([field, messages]) => {
@@ -106,111 +99,140 @@ export default function RegisterPage() {
         }
     };
 
+    const handleSocialLogin = (provider: 'google' | 'facebook' | 'zalo') => {
+        const urls = {
+            google: process.env.NEXT_PUBLIC_GOOGLE_LOGIN_URL,
+            facebook: process.env.NEXT_PUBLIC_FACEBOOK_LOGIN_URL,
+            zalo: process.env.NEXT_PUBLIC_ZALO_LOGIN_URL,
+        };
+        window.location.href = urls[provider] || '#';
+    };
+
     return (
         <div className={styles.container}>
             <div className={styles.formWrapper}>
-                <div className={styles.header}>
-                    <h1 className={styles.title}>Đăng ký</h1>
-                    <p className={styles.subtitle}>Tạo tài khoản mới để bắt đầu</p>
+                <div className={styles.formCard}>
+                    <div className={styles.brand}>
+                        <span className={styles.brandName}>Ký Gửi Kho Đất</span>
+                    </div>
+
+                    <div className={styles.header}>
+                        <h1 className={styles.title}>Tạo tài khoản</h1>
+                        <p className={styles.subtitle}>Đăng ký để bắt đầu ký gửi bất động sản</p>
+                    </div>
+
+                    {/* Social Login */}
+                    <div className={styles.socialButtons}>
+                        <button
+                            type="button"
+                            className={styles.socialBtn}
+                            onClick={() => handleSocialLogin('google')}
+                        >
+                            <FcGoogle size={20} />
+                            <span>Google</span>
+                        </button>
+                        <button
+                            type="button"
+                            className={styles.socialBtn}
+                            onClick={() => handleSocialLogin('facebook')}
+                        >
+                            <FaFacebook size={20} color="#1877F2" />
+                            <span>Facebook</span>
+                        </button>
+                        <button
+                            type="button"
+                            className={styles.socialBtn}
+                            onClick={() => handleSocialLogin('zalo')}
+                        >
+                            <SiZalo size={20} color="#0068FF" />
+                            <span>Zalo</span>
+                        </button>
+                    </div>
+
+                    <div className={styles.divider}>
+                        <span>hoặc đăng ký bằng email</span>
+                    </div>
+
+                    {generalError && (
+                        <div className={styles.errorBox}>{generalError}</div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className={styles.form}>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="name">Họ tên</label>
+                            <input
+                                id="name"
+                                type="text"
+                                name="name"
+                                placeholder="Nguyễn Văn A"
+                                value={formData.name}
+                                onChange={handleChange}
+                            />
+                            {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label htmlFor="email">Email</label>
+                            <input
+                                id="email"
+                                type="email"
+                                name="email"
+                                placeholder="your@email.com"
+                                value={formData.email}
+                                onChange={handleChange}
+                            />
+                            {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label htmlFor="phone">Số điện thoại (tùy chọn)</label>
+                            <input
+                                id="phone"
+                                type="tel"
+                                name="phone"
+                                placeholder="0901234567"
+                                value={formData.phone}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label htmlFor="password">Mật khẩu</label>
+                            <input
+                                id="password"
+                                type="password"
+                                name="password"
+                                placeholder="Tối thiểu 6 ký tự"
+                                value={formData.password}
+                                onChange={handleChange}
+                            />
+                            {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label htmlFor="password_confirmation">Xác nhận mật khẩu</label>
+                            <input
+                                id="password_confirmation"
+                                type="password"
+                                name="password_confirmation"
+                                placeholder="Nhập lại mật khẩu"
+                                value={formData.password_confirmation}
+                                onChange={handleChange}
+                            />
+                            {errors.password_confirmation && <span className={styles.errorText}>{errors.password_confirmation}</span>}
+                        </div>
+
+                        <button
+                            type="submit"
+                            className={styles.submitBtn}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? <span className={styles.spinner} /> : 'Đăng ký'}
+                        </button>
+                    </form>
                 </div>
 
-                {/* General Error */}
-                {generalError && (
-                    <div className="error-box" style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        borderRadius: '8px',
-                        padding: '12px 16px',
-                        marginBottom: '16px',
-                        color: '#ef4444',
-                        fontSize: '0.9rem',
-                        textAlign: 'center',
-                    }}>
-                        {generalError}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className={styles.form}>
-                    <div className={styles.formGroup}>
-                        <label className="label" htmlFor="name">Họ tên</label>
-                        <input
-                            id="name"
-                            type="text"
-                            name="name"
-                            className={`input ${errors.name ? 'input-error' : ''}`}
-                            placeholder="Nguyễn Văn A"
-                            value={formData.name}
-                            onChange={handleChange}
-                        />
-                        {errors.name && <p className="error-text">{errors.name}</p>}
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label className="label" htmlFor="email">Email</label>
-                        <input
-                            id="email"
-                            type="email"
-                            name="email"
-                            className={`input ${errors.email ? 'input-error' : ''}`}
-                            placeholder="your@email.com"
-                            value={formData.email}
-                            onChange={handleChange}
-                        />
-                        {errors.email && <p className="error-text">{errors.email}</p>}
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label className="label" htmlFor="phone">Số điện thoại (tùy chọn)</label>
-                        <input
-                            id="phone"
-                            type="tel"
-                            name="phone"
-                            className="input"
-                            placeholder="0901234567"
-                            value={formData.phone}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label className="label" htmlFor="password">Mật khẩu</label>
-                        <input
-                            id="password"
-                            type="password"
-                            name="password"
-                            className={`input ${errors.password ? 'input-error' : ''}`}
-                            placeholder="••••••••"
-                            value={formData.password}
-                            onChange={handleChange}
-                        />
-                        {errors.password && <p className="error-text">{errors.password}</p>}
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label className="label" htmlFor="password_confirmation">Xác nhận mật khẩu</label>
-                        <input
-                            id="password_confirmation"
-                            type="password"
-                            name="password_confirmation"
-                            className={`input ${errors.password_confirmation ? 'input-error' : ''}`}
-                            placeholder="••••••••"
-                            value={formData.password_confirmation}
-                            onChange={handleChange}
-                        />
-                        {errors.password_confirmation && <p className="error-text">{errors.password_confirmation}</p>}
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                        style={{ width: '100%' }}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? <span className="spinner" /> : 'Đăng ký'}
-                    </button>
-                </form>
-
-                <p className={styles.registerLink}>
+                <p className={styles.bottomLink}>
                     Đã có tài khoản? <Link href="/login">Đăng nhập</Link>
                 </p>
             </div>

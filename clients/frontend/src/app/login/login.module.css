@@ -3,38 +3,62 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 24px;
     position: relative;
     overflow: hidden;
+    background: var(--background);
 }
 
 .formWrapper {
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
     position: relative;
     z-index: 10;
 }
 
+.formCard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+}
+
+/* Logo / Brand */
+.brand {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.brandName {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+}
+
 .header {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
 }
 
 .title {
-    font-size: 32px;
+    font-size: 1.6rem;
     font-weight: 700;
-    margin-bottom: 8px;
+    color: var(--text);
+    margin-bottom: 6px;
 }
 
 .subtitle {
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
+/* Social Login */
 .socialButtons {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 24px;
 }
 
@@ -42,27 +66,29 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 16px 12px;
-    background: var(--card);
+    gap: 6px;
+    padding: 14px 8px;
+    background: var(--background);
     border: 1px solid var(--border);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
     color: var(--text);
-    font-size: 13px;
+    font-size: 0.78rem;
+    font-weight: 500;
 }
 
 .socialBtn:hover {
-    background: var(--card-hover);
     border-color: var(--primary);
-    transform: translateY(-2px);
+    background: var(--card);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .divider {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     margin-bottom: 24px;
 }
 
@@ -76,49 +102,158 @@
 
 .divider span {
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: 0.78rem;
     white-space: nowrap;
 }
 
+/* Form */
 .form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
 .formGroup {
     display: flex;
     flex-direction: column;
+    gap: 4px;
+}
+
+.formGroup label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.formGroup input {
+    padding: 12px 14px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+
+.formGroup input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.formGroup input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(8, 139, 12, 0.1);
+}
+
+.formGroup input.inputError {
+    border-color: var(--error);
+}
+
+.errorText {
+    font-size: 0.78rem;
+    color: var(--error);
+    margin-top: 2px;
+}
+
+.errorBox {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: var(--error);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.successBox {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: var(--success);
+    font-size: 0.85rem;
+    text-align: center;
 }
 
 .forgotPassword {
     text-align: right;
-    margin-top: -8px;
+    margin-top: -4px;
 }
 
 .forgotPassword a {
     color: var(--primary);
-    font-size: 13px;
+    font-size: 0.8rem;
+    font-weight: 500;
     transition: opacity 0.2s;
+    text-decoration: none;
 }
 
 .forgotPassword a:hover {
-    opacity: 0.8;
+    text-decoration: underline;
+    opacity: 0.85;
 }
 
-.registerLink {
+/* Submit Button */
+.submitBtn {
+    width: 100%;
+    padding: 13px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.submitBtn:hover:not(:disabled) {
+    background: var(--primary-dark);
+    box-shadow: 0 4px 16px rgba(8, 139, 12, 0.25);
+}
+
+.submitBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.submitBtn .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Bottom Link */
+.bottomLink {
     text-align: center;
     margin-top: 24px;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 0.85rem;
 }
 
-.registerLink a {
+.bottomLink a {
     color: var(--primary);
     font-weight: 600;
+    text-decoration: none;
 }
 
-.registerLink a:hover {
+.bottomLink a:hover {
     text-decoration: underline;
 }
 
@@ -132,31 +267,59 @@
 
 .gradient1 {
     position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    top: -40%;
+    right: -15%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(8, 139, 12, 0.08) 0%, transparent 70%);
     border-radius: 50%;
 }
 
 .gradient2 {
     position: absolute;
     bottom: -30%;
-    left: -20%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+    left: -15%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(8, 139, 12, 0.05) 0%, transparent 70%);
     border-radius: 50%;
 }
 
+/* Back Link */
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: color 0.2s;
+}
+
+.backLink:hover {
+    color: var(--primary);
+}
+
+/* Responsive */
 @media (max-width: 480px) {
+    .formCard {
+        padding: 28px 20px;
+        border-radius: 16px;
+    }
+
     .socialButtons {
         grid-template-columns: 1fr;
+        gap: 8px;
     }
 
     .socialBtn {
         flex-direction: row;
         justify-content: center;
+        padding: 12px;
+    }
+
+    .title {
+        font-size: 1.4rem;
     }
 }

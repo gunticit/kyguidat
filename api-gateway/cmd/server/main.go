@@ -120,6 +120,8 @@ func main() {
 		authProxy.GET("/facebook/callback", proxyHandler.ProxyRequest)
 		authProxy.GET("/zalo", proxyHandler.ProxyRequest)
 		authProxy.GET("/zalo/callback", proxyHandler.ProxyRequest)
+		authProxy.POST("/forgot-password", proxyHandler.ProxyRequest)
+		authProxy.POST("/reset-password", proxyHandler.ProxyRequest)
 	}
 
 	// Public proxy routes (to Laravel backend)
