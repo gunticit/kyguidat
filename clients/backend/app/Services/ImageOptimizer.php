@@ -280,6 +280,6 @@ class ImageOptimizer
             return $s3Disk->url($path);
         }
 
-        return asset('storage/' . $path);
+        return rtrim(config('app.url'), '/') . '/storage/' . $path;
     }
 }
