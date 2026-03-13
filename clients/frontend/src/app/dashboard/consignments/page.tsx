@@ -112,18 +112,38 @@ export default function ConsignmentsPage() {
                 page: currentPage,
             });
 
-            if (response.data.success) {
-                setConsignments(response.data.data.data || response.data.data);
-                if (response.data.data.meta) {
-                    setPagination(response.data.data.meta);
-                } else if (response.data.data.current_page) {
+            const resData = response.data;
+
+            // Handle both Go API format: {data: [...], total: N, ...}
+            // and Laravel format: {success: true, data: {data: [...], meta: {...}}}
+            if (resData.success) {
+                // Laravel format
+                const items = resData.data?.data || resData.data;
+                setConsignments(Array.isArray(items) ? items : []);
+                if (resData.data?.meta) {
+                    setPagination(resData.data.meta);
+                } else if (resData.data?.current_page) {
                     setPagination({
-                        current_page: response.data.data.current_page,
-                        last_page: response.data.data.last_page,
-                        per_page: response.data.data.per_page,
-                        total: response.data.data.total,
+                        current_page: resData.data.current_page,
+                        last_page: resData.data.last_page,
+                        per_page: resData.data.per_page,
+                        total: resData.data.total,
                     });
                 }
+            } else if (Array.isArray(resData.data)) {
+                // Go API format: {data: [...], total: N, page: N, ...}
+                setConsignments(resData.data);
+                if (resData.total) {
+                    setPagination({
+                        current_page: resData.page || currentPage,
+                        last_page: Math.ceil(resData.total / (resData.limit || 15)),
+                        per_page: resData.limit || 15,
+                        total: resData.total,
+                    });
+                }
+            } else if (Array.isArray(resData)) {
+                // Direct array
+                setConsignments(resData);
             }
         } catch (error) {
             console.error('Error loading consignments:', error);
