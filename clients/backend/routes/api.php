@@ -148,12 +148,12 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard/recent-activities', [DashboardController::class, 'recentActivities']);
 
-    // Consignments (Ký gửi)
-    Route::apiResource('/consignments', ConsignmentController::class);
+    // Consignments (Ký gửi) — custom routes BEFORE apiResource to avoid {id} catching sub-paths
+    Route::put('/consignments/{id}/price', [ConsignmentController::class, 'updatePrice']);
     Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
     Route::post('/consignments/{id}/reactivate', [ConsignmentController::class, 'reactivate']);
-    Route::put('/consignments/{id}/price', [ConsignmentController::class, 'updatePrice']);
     Route::get('/consignments/{id}/history', [ConsignmentController::class, 'history']);
+    Route::apiResource('/consignments', ConsignmentController::class);
     Route::get('/posting-quota', [ConsignmentController::class, 'postingQuota']);
 
     // Payments (Nạp tiền)
