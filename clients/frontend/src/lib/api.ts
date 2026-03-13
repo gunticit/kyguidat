@@ -103,7 +103,7 @@ export interface ConsignmentUpdateData {
 
 export const consignmentApi = {
     getList: (params?: { status?: string; search?: string; page?: number }) =>
-        api.get('/consignments', { params }),
+        api.get('/my-consignments', { params }),
     getById: (id: number) =>
         api.get(`/consignments/${id}`),
     create: (data: ConsignmentCreateData) =>

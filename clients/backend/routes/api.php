@@ -149,6 +149,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::get('/dashboard/recent-activities', [DashboardController::class, 'recentActivities']);
 
     // Consignments (Ký gửi) — custom routes BEFORE apiResource to avoid {id} catching sub-paths
+    Route::get('/my-consignments', [ConsignmentController::class, 'index']); // User's own consignments
     Route::put('/consignments/{id}/price', [ConsignmentController::class, 'updatePrice']);
     Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
     Route::post('/consignments/{id}/reactivate', [ConsignmentController::class, 'reactivate']);

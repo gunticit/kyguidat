@@ -174,6 +174,7 @@ func main() {
 		userProxy.GET("/dashboard/recent-activities", proxyHandler.ProxyRequest)
 
 		// User consignments (POST/PUT/DELETE - GET already registered in public group)
+		userProxy.GET("/my-consignments", proxyHandler.ProxyRequest) // User's own consignments
 		userProxy.POST("/consignments", proxyHandler.ProxyRequest)
 		userProxy.PUT("/consignments/:id", proxyHandler.ProxyRequest)
 		userProxy.DELETE("/consignments/:id", proxyHandler.ProxyRequest)
