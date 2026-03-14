@@ -21,7 +21,6 @@ interface BankInfo {
 }
 
 const paymentMethods = [
-    { id: 'vnpay', name: 'VNPay', icon: FiCreditCard, description: 'Thanh toán qua ATM/Internet Banking', disabled: false },
     { id: 'bank', name: 'Chuyển khoản thủ công', icon: FiDollarSign, description: 'Cần chờ admin xác nhận', disabled: false },
     { id: 'sepay', name: 'QR Code (Tự động)', icon: FiSmartphone, description: 'Xác nhận tự động trong 1 phút', disabled: false },
 ];
@@ -54,7 +53,7 @@ const formatDate = (dateString: string): string => {
 };
 
 export default function DepositPage() {
-    const [selectedMethod, setSelectedMethod] = useState('vnpay');
+    const [selectedMethod, setSelectedMethod] = useState('bank');
     const [amount, setAmount] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [copied, setCopied] = useState<string | null>(null);
@@ -103,8 +102,8 @@ export default function DepositPage() {
             // Use default bank info
             setBankInfo({
                 bank_name: 'BIDV',
-                account_number: '962474QLAG',
-                account_name: 'CONG TY TNHH KHODAT',
+                account_number: '8898144485',
+                account_name: 'NGUYEN VAN PHUOC',
                 branch: 'Chi nhánh Hồ Chí Minh',
             });
         }
