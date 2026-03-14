@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiCreditCard, FiSmartphone, FiDollarSign, FiCopy, FiCheck, FiRefreshCw } from 'react-icons/fi';
-import { paymentApi } from '@/lib/api';
+import { FiCreditCard, FiSmartphone, FiDollarSign, FiCopy, FiCheck, FiRefreshCw, FiPhone } from 'react-icons/fi';
+import { paymentApi, userApi } from '@/lib/api';
 import styles from './deposit.module.css';
 
 interface Payment {
@@ -65,6 +65,12 @@ export default function DepositPage() {
     const [showSepayQr, setShowSepayQr] = useState(false);
     const [transactionId, setTransactionId] = useState<string | null>(null);
 
+    // Phone popup
+    const [showPhonePopup, setShowPhonePopup] = useState(false);
+    const [phoneInput, setPhoneInput] = useState('');
+    const [phoneError, setPhoneError] = useState('');
+    const [savingPhone, setSavingPhone] = useState(false);
+
     useEffect(() => {
         loadPaymentHistory();
         loadBankInfo();
@@ -120,10 +126,45 @@ export default function DepositPage() {
         setTimeout(() => setCopied(null), 2000);
     };
 
+    const validatePhone = (phone: string): boolean => {
+        const phoneRegex = /^(0[3|5|7|8|9])[0-9]{8}$/;
+        return phoneRegex.test(phone);
+    };
+
+    const handleSavePhone = async () => {
+        const trimmed = phoneInput.trim();
+        if (!trimmed) { setPhoneError('Vui lòng nhập số điện thoại'); return; }
+        if (!validatePhone(trimmed)) { setPhoneError('Số điện thoại không hợp lệ (VD: 0901234567)'); return; }
+
+        setSavingPhone(true);
+        setPhoneError('');
+        try {
+            const res = await userApi.updateProfile({ phone: trimmed });
+            if (res.data?.success) {
+                setUserPhone(trimmed);
+                // Update localStorage
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    user.phone = trimmed;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    window.dispatchEvent(new Event('userUpdated'));
+                }
+                setShowPhonePopup(false);
+            } else {
+                setPhoneError(res.data?.message || 'Lỗi cập nhật');
+            }
+        } catch (e: any) {
+            setPhoneError(e.response?.data?.message || 'Lỗi kết nối');
+        } finally {
+            setSavingPhone(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!userPhone) {
-            setError('Bạn cần cập nhật số điện thoại trong Trang Cá Nhân trước khi nạp tiền.');
+            setShowPhonePopup(true);
             return;
         }
 
@@ -256,6 +297,23 @@ export default function DepositPage() {
 
                         {error && (
                             <p className={styles.errorText}>{error}</p>
+                        )}
+
+                        {/* Phone Warning */}
+                        {!userPhone && (
+                            <button
+                                type="button"
+                                onClick={() => setShowPhonePopup(true)}
+                                style={{
+                                    width: '100%', padding: '12px 16px', marginTop: '12px',
+                                    background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.4)',
+                                    borderRadius: '8px', color: '#fbbf24', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px'
+                                }}
+                            >
+                                <FiPhone size={18} />
+                                Bạn chưa có số điện thoại. Nhấn để cập nhật trước khi nạp tiền.
+                            </button>
                         )}
 
                         {/* Bank Transfer Info */}
@@ -411,6 +469,74 @@ export default function DepositPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Phone Number Popup */}
+            {showPhonePopup && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px'
+                }} onClick={() => setShowPhonePopup(false)}>
+                    <div style={{
+                        background: 'var(--card-bg, #1e293b)', borderRadius: '16px', padding: '32px',
+                        maxWidth: '420px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.3)'
+                    }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                            <div style={{
+                                width: '56px', height: '56px', borderRadius: '50%', margin: '0 auto 16px',
+                                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <FiPhone size={28} color="white" />
+                            </div>
+                            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text, #fff)', marginBottom: '8px' }}>
+                                Cập nhật số điện thoại
+                            </h3>
+                            <p style={{ color: 'var(--text-light, #94a3b8)', fontSize: '14px' }}>
+                                Vui lòng nhập số điện thoại để thực hiện nạp tiền
+                            </p>
+                        </div>
+                        <div style={{ marginBottom: '16px' }}>
+                            <input
+                                type="tel"
+                                value={phoneInput}
+                                onChange={(e) => { setPhoneInput(e.target.value); setPhoneError(''); }}
+                                placeholder="0901234567"
+                                maxLength={10}
+                                style={{
+                                    width: '100%', padding: '14px 16px', borderRadius: '10px', fontSize: '16px',
+                                    background: 'var(--input-bg, #0f172a)', color: 'var(--text, #fff)',
+                                    border: phoneError ? '2px solid #ef4444' : '2px solid var(--border, #334155)',
+                                    outline: 'none', textAlign: 'center', letterSpacing: '2px', fontWeight: 600,
+                                    boxSizing: 'border-box'
+                                }}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSavePhone()}
+                            />
+                            {phoneError && (
+                                <p style={{ color: '#ef4444', fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>{phoneError}</p>
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={() => setShowPhonePopup(false)}
+                                style={{
+                                    flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid var(--border, #334155)',
+                                    background: 'transparent', color: 'var(--text-light, #94a3b8)', cursor: 'pointer', fontSize: '15px'
+                                }}
+                            >Hủy</button>
+                            <button
+                                onClick={handleSavePhone}
+                                disabled={savingPhone}
+                                style={{
+                                    flex: 1, padding: '12px', borderRadius: '10px', border: 'none',
+                                    background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff',
+                                    cursor: savingPhone ? 'not-allowed' : 'pointer', fontSize: '15px', fontWeight: 600,
+                                    opacity: savingPhone ? 0.7 : 1
+                                }}
+                            >{savingPhone ? 'Đang lưu...' : 'Lưu số điện thoại'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
