@@ -70,6 +70,7 @@ export default function DepositPage() {
     const [phoneInput, setPhoneInput] = useState('');
     const [phoneError, setPhoneError] = useState('');
     const [savingPhone, setSavingPhone] = useState(false);
+    const [successMsg, setSuccessMsg] = useState('');
 
     useEffect(() => {
         loadPaymentHistory();
@@ -205,7 +206,8 @@ export default function DepositPage() {
                 case 'bank':
                     response = await paymentApi.createBankTransfer(amountValue);
                     if (response.data.success) {
-                        alert('Yêu cầu nạp tiền đã được tạo. Vui lòng chuyển khoản theo thông tin bên dưới.');
+                        setSuccessMsg('Yêu cầu nạp tiền đã được tạo. Vui lòng chuyển khoản theo thông tin bên dưới.');
+                        setTimeout(() => setSuccessMsg(''), 5000);
                         setTransactionId(response.data.data.transaction_id);
                         loadPaymentHistory();
                         setAmount('');
@@ -300,6 +302,22 @@ export default function DepositPage() {
 
                         {error && (
                             <p className={styles.errorText}>{error}</p>
+                        )}
+
+                        {/* Success Notification */}
+                        {successMsg && (
+                            <div style={{
+                                padding: '14px 16px', marginTop: '12px', borderRadius: '10px',
+                                background: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.4)',
+                                color: '#22c55e', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px'
+                            }}>
+                                <FiCheck size={20} />
+                                <span>{successMsg}</span>
+                                <button onClick={() => setSuccessMsg('')} style={{
+                                    marginLeft: 'auto', background: 'none', border: 'none',
+                                    color: '#22c55e', cursor: 'pointer', fontSize: '18px', padding: '0'
+                                }}>×</button>
+                            </div>
                         )}
 
                         {/* Phone Warning */}
