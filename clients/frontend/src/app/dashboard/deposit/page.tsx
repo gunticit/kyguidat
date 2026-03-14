@@ -139,7 +139,10 @@ export default function DepositPage() {
         setSavingPhone(true);
         setPhoneError('');
         try {
-            const res = await userApi.updateProfile({ phone: trimmed });
+            // Get current name from localStorage (backend requires name)
+            const userStr = localStorage.getItem('user');
+            const currentName = userStr ? JSON.parse(userStr).name || 'User' : 'User';
+            const res = await userApi.updateProfile({ name: currentName, phone: trimmed });
             if (res.data?.success) {
                 setUserPhone(trimmed);
                 // Update localStorage
