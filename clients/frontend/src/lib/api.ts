@@ -134,8 +134,8 @@ export const paymentApi = {
         api.post('/payments/vnpay/create', { amount }),
     createMomo: (amount: number) =>
         api.post('/payments/momo/create', { amount }),
-    createBankTransfer: (amount: number) =>
-        api.post('/payments/bank-transfer/create', { amount }),
+    createBankTransfer: (amount: number, method?: string) =>
+        api.post('/payments/bank-transfer/create', { amount, method }),
     getBankInfo: () =>
         api.get('/payments/bank-info'),
 };

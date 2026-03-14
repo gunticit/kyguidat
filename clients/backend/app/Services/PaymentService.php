@@ -55,7 +55,7 @@ class PaymentService
 
         $payment = $user->payments()->create([
             'transaction_id' => $transactionId,
-            'method' => Payment::METHOD_BANK_TRANSFER,
+            'method' => $data['method'] ?? Payment::METHOD_BANK_TRANSFER,
             'amount' => $amount,
             'fee' => 0,
             'net_amount' => $amount,

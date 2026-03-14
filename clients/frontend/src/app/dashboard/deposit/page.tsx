@@ -195,7 +195,7 @@ export default function DepositPage() {
                     break;
 
                 case 'sepay':
-                    response = await paymentApi.createBankTransfer(amountValue);
+                    response = await paymentApi.createBankTransfer(amountValue, 'sepay');
                     if (response.data.success) {
                         setTransactionId(response.data.data.transaction_id);
                         setShowSepayQr(true);
