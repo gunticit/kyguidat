@@ -375,7 +375,7 @@ export default function DepositPage() {
                                 </h4>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0' }}>
                                     <img
-                                        src={`https://img.vietqr.io/image/${bankInfo.bank_name}-962473HD8B-compact2.png?amount=${amount}&addInfo=KHODAT%20${userPhone}%20${amount}&accountName=${encodeURIComponent(bankInfo.account_name)}`}
+                                        src={`https://img.vietqr.io/image/${bankInfo.bank_name}-8898144485-compact2.png?amount=${amount}&addInfo=KHODAT%20${userPhone}%20${amount}&accountName=${encodeURIComponent(bankInfo.account_name)}`}
                                         alt="VietQR"
                                         style={{ width: '250px', height: '250px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
                                     />
