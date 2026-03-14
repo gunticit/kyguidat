@@ -35,6 +35,7 @@ class Payment extends Model
     const METHOD_VNPAY = 'vnpay';
     const METHOD_MOMO = 'momo';
     const METHOD_BANK_TRANSFER = 'bank_transfer';
+    const METHOD_SEPAY = 'sepay';
 
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
