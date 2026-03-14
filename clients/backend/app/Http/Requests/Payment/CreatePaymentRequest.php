@@ -15,6 +15,7 @@ class CreatePaymentRequest extends FormRequest
     {
         return [
             'amount' => 'required|numeric|min:10000|max:100000000',
+            'method' => 'nullable|string|in:bank_transfer,sepay',
         ];
     }
 
