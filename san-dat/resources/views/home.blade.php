@@ -785,25 +785,11 @@
             ];
         });
     @endphp
-    <link rel="stylesheet" href="https://unpkg.com/trackasia-gl@latest/dist/trackasia-gl.css" />
     <style>
-        /* TrackAsia popup style overrides */
-        .trackasiagl-popup-content {
-            padding: 0 !important;
-            border-radius: 12px !important;
-            overflow: hidden;
-            background: var(--navy-800) !important;
-        }
-        .trackasiagl-popup-close-button {
-            color: #94a3b8 !important;
-            font-size: 20px !important;
-            z-index: 10;
-            right: 4px !important;
-            top: 4px !important;
-        }
-        .trackasiagl-popup-tip {
-            border-top-color: var(--navy-800) !important;
-        }
+        /* Google Maps InfoWindow overrides */
+        .gm-style .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; overflow: hidden; }
+        .gm-style .gm-style-iw-d { overflow: hidden !important; }
+        .gm-style .gm-style-iw-tc { display: none; }
         /* Custom marker dot */
         .property-marker {
             width: 20px;
@@ -819,40 +805,28 @@
             transform: scale(1.3);
         }
     </style>
-    <script src="https://unpkg.com/trackasia-gl@latest/dist/trackasia-gl.js"></script>
     <script>
         // Property data from server
         const properties = @json($propertiesData);
 
         let map;
         let markers = [];
-        let activePopup = null;
-
-        const TRACKASIA_KEY = '971e6177325091860b1421d11bb47d79d4';
+        let activeInfoWindow = null;
 
         function initMap() {
-            map = new trackasiagl.Map({
-                container: 'property-map',
-                style: `https://maps.track-asia.com/styles/v2/streets.json?key=${TRACKASIA_KEY}`,
-                center: [108.5, 12.5], // [lng, lat]
-                zoom: 5,
-                cooperativeGestures: true, // Scroll = cuộn trang, Ctrl+Scroll = zoom map
-                attributionControl: true
+            const center = { lat: 12.5, lng: 108.5 };
+            map = new google.maps.Map(document.getElementById('property-map'), {
+                zoom: 5, center,
+                mapTypeControl: true, streetViewControl: true, fullscreenControl: true
             });
 
-            // Add navigation controls
-            map.addControl(new trackasiagl.NavigationControl(), 'top-left');
-            map.addControl(new trackasiagl.FullscreenControl(), 'top-right');
-
-            map.on('load', () => {
-                // Add markers for each property with valid coordinates
-                properties.filter(p => p.lat && p.lng).forEach(property => {
-                    addMarker(property);
-                });
-
-                // Fit bounds if markers exist
-                fitMapToMarkers();
+            // Add markers for each property with valid coordinates
+            properties.filter(p => p.lat && p.lng).forEach(property => {
+                addMarker(property);
             });
+
+            // Fit bounds if markers exist
+            fitMapToMarkers();
         }
 
         function buildPopupHTML(property) {
@@ -872,13 +846,13 @@
             if (property.statusText) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Tình trạng:</span> ' + property.statusText + '</p>';
 
             return `
-                <div style="width:320px;max-width:90vw;font-family:Arial,sans-serif;background:var(--navy-800);">
+                <div style="width:320px;max-width:90vw;font-family:Arial,sans-serif;">
                     <img src="${property.image}" alt="${property.title}"
                         style="width:100%;height:160px;object-fit:cover;"
                         onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                     <div style="padding:12px;">
                         ${property.id ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.id}</p>` : ''}
-                        <p style="font-weight:bold;color:var(--gray-100);font-size:14px;margin:0 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
+                        <p style="font-weight:bold;font-size:14px;margin:0 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
                             ${property.title}
                         </p>
                         <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
@@ -894,38 +868,35 @@
         }
 
         function addMarker(property) {
-            // Create custom DOM element for marker
-            const el = document.createElement('div');
-            el.className = 'property-marker';
+            const marker = new google.maps.Marker({
+                position: { lat: property.lat, lng: property.lng },
+                map, title: property.title,
+                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: '#22c55e', fillOpacity: 1, strokeColor: '#16a34a', strokeWeight: 2, scale: 10 },
+                animation: google.maps.Animation.DROP
+            });
 
-            // Create popup
-            const popup = new trackasiagl.Popup({
-                offset: 15,
-                maxWidth: '380px',
-                closeButton: true
-            }).setHTML(buildPopupHTML(property));
-
-            // Create marker and attach popup
-            const marker = new trackasiagl.Marker({ element: el })
-                .setLngLat([property.lng, property.lat])
-                .setPopup(popup)
-                .addTo(map);
-
+            const infoWindow = new google.maps.InfoWindow({ content: buildPopupHTML(property), maxWidth: 380 });
+            marker.addListener('click', () => {
+                if (activeInfoWindow) activeInfoWindow.close();
+                infoWindow.open(map, marker);
+                activeInfoWindow = infoWindow;
+            });
             markers.push(marker);
         }
 
         function fitMapToMarkers() {
             if (markers.length === 0) return;
-            const bounds = new trackasiagl.LngLatBounds();
-            markers.forEach(m => bounds.extend(m.getLngLat()));
-            map.fitBounds(bounds, { padding: 50, maxZoom: 14 });
+            const bounds = new google.maps.LatLngBounds();
+            markers.forEach(m => bounds.extend(m.getPosition()));
+            map.fitBounds(bounds);
+            if (markers.length === 1) map.setZoom(14);
         }
 
         // Update map markers to match current filtered results
         function updateMapMarkers(items) {
             if (!map) return;
             // Clear existing markers
-            markers.forEach(m => m.remove());
+            markers.forEach(m => m.setMap(null));
             markers = [];
 
             // Add markers for items with valid coordinates
@@ -961,10 +932,12 @@
             // Fit map bounds to visible markers
             fitMapToMarkers();
         }
-
-        // Initialize map when DOM is ready
-        document.addEventListener('DOMContentLoaded', initMap);
     </script>
+    <!-- Google Maps API -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key', '') }}&callback=initMap&libraries=marker">
+    </script>
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 
 
     <!-- Featured Provinces Section -->
@@ -1051,5 +1024,5 @@
         </div>
     </section>
 
-    <!-- Map: TrackAsia GL JS (Vietnamese map platform) -->
+    <!-- Map: Google Maps API -->
 @endsection
