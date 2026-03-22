@@ -785,40 +785,66 @@
             ];
         });
     @endphp
+    <!-- Leaflet CSS + JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <style>
-        /* Google Maps InfoWindow overrides */
-        .gm-style .gm-style-iw-c { padding: 0 !important; border-radius: 12px !important; overflow: hidden; }
-        .gm-style .gm-style-iw-d { overflow: hidden !important; }
-        .gm-style .gm-style-iw-tc { display: none; }
-        /* Custom marker dot */
-        .property-marker {
-            width: 20px;
-            height: 20px;
-            background: #22c55e;
-            border: 2px solid #16a34a;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.15s;
+        /* Leaflet popup overrides */
+        .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 12px !important; overflow: hidden; }
+        .leaflet-popup-content { margin: 0 !important; width: auto !important; }
+        .leaflet-popup-tip { border-top-color: white !important; }
+        /* Cluster overrides */
+        .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+            background: rgba(34,197,94,0.3) !important;
         }
-        .property-marker:hover {
-            transform: scale(1.3);
+        .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+            background: #22c55e !important; color: white !important; font-weight: bold;
         }
     </style>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
         // Property data from server
         const properties = @json($propertiesData);
 
         let map;
         let markers = [];
-        let activeInfoWindow = null;
+        let markerClusterGroup;
+
+        // Custom green circle icon
+        const greenIcon = L.divIcon({
+            className: '',
+            html: '<div style="width:20px;height:20px;background:#22c55e;border:2px solid #16a34a;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -12]
+        });
 
         function initMap() {
-            const center = { lat: 12.5, lng: 108.5 };
-            map = new google.maps.Map(document.getElementById('property-map'), {
-                zoom: 5, center,
-                mapTypeControl: true, streetViewControl: true, fullscreenControl: true
+            map = L.map('property-map', {
+                center: [12.5, 108.5],
+                zoom: 5,
+                scrollWheelZoom: false // Ctrl+Scroll to zoom
             });
+
+            // OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Enable scroll zoom with Ctrl key
+            map.on('focus', () => { map.scrollWheelZoom.enable(); });
+            map.on('blur', () => { map.scrollWheelZoom.disable(); });
+
+            // Marker cluster group
+            markerClusterGroup = L.markerClusterGroup({
+                maxClusterRadius: 50,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false
+            });
+            map.addLayer(markerClusterGroup);
 
             // Add markers for each property with valid coordinates
             properties.filter(p => p.lat && p.lng).forEach(property => {
@@ -868,27 +894,16 @@
         }
 
         function addMarker(property) {
-            const marker = new google.maps.Marker({
-                position: { lat: property.lat, lng: property.lng },
-                map, title: property.title,
-                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: '#22c55e', fillOpacity: 1, strokeColor: '#16a34a', strokeWeight: 2, scale: 10 },
-                animation: google.maps.Animation.DROP
-            });
-
-            const infoWindow = new google.maps.InfoWindow({ content: buildPopupHTML(property), maxWidth: 380 });
-            marker.addListener('click', () => {
-                if (activeInfoWindow) activeInfoWindow.close();
-                infoWindow.open(map, marker);
-                activeInfoWindow = infoWindow;
-            });
+            const marker = L.marker([property.lat, property.lng], { icon: greenIcon, title: property.title });
+            marker.bindPopup(buildPopupHTML(property), { maxWidth: 380, closeButton: true });
+            markerClusterGroup.addLayer(marker);
             markers.push(marker);
         }
 
         function fitMapToMarkers() {
             if (markers.length === 0) return;
-            const bounds = new google.maps.LatLngBounds();
-            markers.forEach(m => bounds.extend(m.getPosition()));
-            map.fitBounds(bounds);
+            const group = L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
             if (markers.length === 1) map.setZoom(14);
         }
 
@@ -896,7 +911,7 @@
         function updateMapMarkers(items) {
             if (!map) return;
             // Clear existing markers
-            markers.forEach(m => m.setMap(null));
+            markerClusterGroup.clearLayers();
             markers = [];
 
             // Add markers for items with valid coordinates
@@ -932,12 +947,10 @@
             // Fit map bounds to visible markers
             fitMapToMarkers();
         }
+
+        // Initialize map when DOM is ready
+        document.addEventListener('DOMContentLoaded', initMap);
     </script>
-    <!-- Google Maps API -->
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key', '') }}&callback=initMap&libraries=marker">
-    </script>
-    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 
 
     <!-- Featured Provinces Section -->

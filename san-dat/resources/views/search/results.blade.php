@@ -500,11 +500,39 @@
             ];
         });
     @endphp
+    <!-- Leaflet CSS + JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <style>
+        /* Leaflet popup overrides */
+        .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 12px !important; overflow: hidden; }
+        .leaflet-popup-content { margin: 0 !important; width: auto !important; }
+        .leaflet-popup-tip { border-top-color: white !important; }
+        /* Cluster overrides */
+        .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+            background: rgba(34,197,94,0.3) !important;
+        }
+        .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+            background: #22c55e !important; color: white !important; font-weight: bold;
+        }
+    </style>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
         const properties = @json($mapData);
         let map;
         let markers = [];
-        let activeInfoWindow = null;
+        let markerClusterGroup;
+
+        // Custom green circle icon
+        const greenIcon = L.divIcon({
+            className: '',
+            html: '<div style="width:20px;height:20px;background:#22c55e;border:2px solid #16a34a;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -12]
+        });
 
         function formatPrice(p) {
             if (!p) return 'Liên hệ';
@@ -514,33 +542,35 @@
         }
 
         function initMap() {
-            const center = { lat: 12.5, lng: 108.5 };
-            map = new google.maps.Map(document.getElementById('property-map'), {
-                zoom: 5, center,
-                mapTypeControl: true, streetViewControl: true, fullscreenControl: true
+            map = L.map('property-map', {
+                center: [12.5, 108.5],
+                zoom: 5,
+                scrollWheelZoom: false
             });
+
+            // OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
+            }).addTo(map);
+
+            map.on('focus', () => { map.scrollWheelZoom.enable(); });
+            map.on('blur', () => { map.scrollWheelZoom.disable(); });
+
+            // Marker cluster group
+            markerClusterGroup = L.markerClusterGroup({
+                maxClusterRadius: 50,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false
+            });
+            map.addLayer(markerClusterGroup);
 
             properties.filter(p => p.lat && p.lng).forEach(p => addMarker(p));
 
-            if (typeof markerClusterer !== 'undefined') {
-                new markerClusterer.MarkerClusterer({
-                    map, markers,
-                    renderer: {
-                        render: ({ count, position }) => new google.maps.Marker({
-                            position,
-                            icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: '#22c55e', fillOpacity: 1, strokeColor: '#16a34a', strokeWeight: 2, scale: 20 },
-                            label: { text: String(count), color: 'white', fontWeight: 'bold' },
-                            zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count
-                        })
-                    }
-                });
-            }
-
-            // Fit bounds to show all markers
+            // Fit bounds
             if (markers.length > 0) {
-                const bounds = new google.maps.LatLngBounds();
-                markers.forEach(m => bounds.extend(m.getPosition()));
-                map.fitBounds(bounds);
+                const group = L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
                 if (markers.length === 1) map.setZoom(14);
             }
         }
@@ -551,12 +581,7 @@
         }
 
         function addMarker(property) {
-            const marker = new google.maps.Marker({
-                position: { lat: property.lat, lng: property.lng },
-                map, title: property.title,
-                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: '#22c55e', fillOpacity: 1, strokeColor: '#16a34a', strokeWeight: 2, scale: 10 },
-                animation: google.maps.Animation.DROP
-            });
+            const marker = L.marker([property.lat, property.lng], { icon: greenIcon, title: property.title });
 
             // Parse directions
             let popupDirs = property.land_directions;
@@ -573,40 +598,33 @@
             if (property.frontage_actual && property.frontage_actual !== '0' && property.frontage_actual !== '0.00') popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Mặt tiền:</span> ${parseFloat(property.frontage_actual)} m</p>`;
             if (property.statusText) popupDetails += `<p style="color:#94a3b8;font-size:12px;margin:0 0 4px;"><span style="color:#6b7280;">Tình trạng:</span> ${property.statusText}</p>`;
 
-            const infoContent = `
-                                        <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
-                                            <img src="${property.image}" alt="${property.title}"
-                                                style="width:100%;height:160px;object-fit:cover;"
-                                                onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                                            <div style="padding:12px;">
-                                                ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
-                                                <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
-                                                    ${property.title}
-                                                </p>
-                                                <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
-                                                ${popupDetails}
-                                                <a href="/bat-dong-san/${property.seo_url || property.id}"
-                                                    style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
-                                                    Xem chi tiết
-                                                </a>
-                                            </div>
-                                        </div>`;
+            const popupContent = `
+                <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;border-radius:12px;overflow:hidden;">
+                    <img src="${property.image}" alt="${property.title}"
+                        style="width:100%;height:160px;object-fit:cover;"
+                        onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                    <div style="padding:12px;">
+                        ${property.order_number ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.order_number}</p>` : ''}
+                        <p style="font-weight:bold;font-size:14px;margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
+                            ${property.title}
+                        </p>
+                        <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
+                        ${popupDetails}
+                        <a href="/bat-dong-san/${property.seo_url || property.id}"
+                            style="display:block;text-align:center;margin-top:10px;padding:8px;background:#22c55e;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
+                            Xem chi tiết
+                        </a>
+                    </div>
+                </div>`;
 
-            const infoWindow = new google.maps.InfoWindow({ content: infoContent, maxWidth: 380 });
-            marker.addListener('click', () => {
-                if (activeInfoWindow) activeInfoWindow.close();
-                infoWindow.open(map, marker);
-                activeInfoWindow = infoWindow;
-            });
+            marker.bindPopup(popupContent, { maxWidth: 380, closeButton: true });
+            markerClusterGroup.addLayer(marker);
             markers.push(marker);
         }
-    </script>
 
-    <!-- Google Maps API -->
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key', '') }}&callback=initMap&libraries=marker">
-        </script>
-    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+        // Initialize map when DOM is ready
+        document.addEventListener('DOMContentLoaded', initMap);
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
