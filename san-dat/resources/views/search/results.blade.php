@@ -516,6 +516,17 @@
         .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
             background: #22c55e !important; color: white !important; font-weight: bold;
         }
+        #property-map { z-index: 1; }
+        .map-gesture-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 999; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .map-gesture-overlay.visible { opacity: 1; }
+        .map-gesture-overlay span {
+            color: white; font-size: 15px; font-weight: 600;
+            background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 8px;
+        }
     </style>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -545,7 +556,9 @@
             map = L.map('property-map', {
                 center: [12.5, 108.5],
                 zoom: 5,
-                scrollWheelZoom: false
+                scrollWheelZoom: false,
+                dragging: !L.Browser.mobile,
+                tap: false
             });
 
             // OpenStreetMap tiles
@@ -554,8 +567,8 @@
                 maxZoom: 19
             }).addTo(map);
 
-            map.on('focus', () => { map.scrollWheelZoom.enable(); });
-            map.on('blur', () => { map.scrollWheelZoom.disable(); });
+            // Google Maps-style gesture handling
+            setupGestureHandling();
 
             // Marker cluster group
             markerClusterGroup = L.markerClusterGroup({
@@ -620,6 +633,51 @@
             marker.bindPopup(popupContent, { maxWidth: 380, closeButton: true });
             markerClusterGroup.addLayer(marker);
             markers.push(marker);
+        }
+
+        // Google Maps-style gesture handling
+        function setupGestureHandling() {
+            const container = document.getElementById('property-map');
+            const overlay = document.createElement('div');
+            overlay.className = 'map-gesture-overlay';
+            const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            overlay.innerHTML = isMobile
+                ? '<span>Sử dụng hai ngón tay để di chuyển bản đồ</span>'
+                : '<span>Sử dụng Ctrl + cuộn chuột để phóng to</span>';
+            container.style.position = 'relative';
+            container.appendChild(overlay);
+            let overlayTimeout;
+            function showOverlay() {
+                overlay.classList.add('visible');
+                clearTimeout(overlayTimeout);
+                overlayTimeout = setTimeout(() => overlay.classList.remove('visible'), 1500);
+            }
+            container.addEventListener('wheel', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    map.scrollWheelZoom.enable();
+                    clearTimeout(overlayTimeout);
+                    overlay.classList.remove('visible');
+                    clearTimeout(container._wheelTimer);
+                    container._wheelTimer = setTimeout(() => map.scrollWheelZoom.disable(), 400);
+                } else {
+                    showOverlay();
+                }
+            }, { passive: false });
+            if (isMobile) {
+                let touchCount = 0;
+                container.addEventListener('touchstart', function(e) {
+                    touchCount = e.touches.length;
+                    if (touchCount >= 2) { map.dragging.enable(); overlay.classList.remove('visible'); }
+                    else { map.dragging.disable(); }
+                }, { passive: true });
+                container.addEventListener('touchmove', function(e) {
+                    if (e.touches.length < 2 && touchCount < 2) showOverlay();
+                }, { passive: true });
+                container.addEventListener('touchend', function(e) {
+                    if (e.touches.length === 0) map.dragging.disable();
+                }, { passive: true });
+            }
         }
 
         // Initialize map when DOM is ready
