@@ -1,4 +1,71 @@
 <!-- Telegram Chat Widget -->
+<style>
+    /* Chat widget theme-aware styles */
+    #tcwChatBox {
+        background: #111827;
+        border-color: #1e293b;
+    }
+    #tcwMessages {
+        background: #0b1121;
+    }
+    .tcw-msg-bubble {
+        background: #1a2332;
+        border-color: #1e293b;
+        color: #e5e7eb;
+    }
+    .tcw-msg-avatar {
+        background: #064e3b;
+        color: #4ade80;
+    }
+    .tcw-input-area {
+        background: #111827;
+        border-color: #1e293b;
+    }
+    #tcwInput {
+        background: #1a2332 !important;
+        color: #f3f4f6 !important;
+        border-color: #1e293b !important;
+    }
+    #tcwInput::placeholder {
+        color: #6b7280 !important;
+    }
+    .tcw-powered {
+        color: #6b7280;
+    }
+
+    /* Light mode overrides */
+    [data-theme="day"] #tcwChatBox {
+        background: #ffffff;
+        border-color: #e2e8f0;
+    }
+    [data-theme="day"] #tcwMessages {
+        background: #f8fafc;
+    }
+    [data-theme="day"] .tcw-msg-bubble {
+        background: #ffffff;
+        border-color: #e2e8f0;
+        color: #334155;
+    }
+    [data-theme="day"] .tcw-msg-avatar {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+    [data-theme="day"] .tcw-input-area {
+        background: #ffffff;
+        border-color: #e2e8f0;
+    }
+    [data-theme="day"] #tcwInput {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-color: #e2e8f0 !important;
+    }
+    [data-theme="day"] #tcwInput::placeholder {
+        color: #94a3b8 !important;
+    }
+    [data-theme="day"] .tcw-powered {
+        color: #94a3b8;
+    }
+</style>
 <div id="telegramChatWidget" class="fixed bottom-24 right-4 z-[9999] md:bottom-6 md:right-6 font-sans">
 
     <!-- Chat Icon -->
@@ -13,7 +80,7 @@
 
     <!-- Chat Box -->
     <div id="tcwChatBox"
-        class="hidden absolute bottom-16 right-0 w-80 md:w-96 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-navy-600 overflow-hidden transform transition-all origin-bottom-right scale-95 opacity-0">
+        class="hidden absolute bottom-16 right-0 w-80 md:w-96 rounded-2xl shadow-2xl border overflow-hidden transform transition-all origin-bottom-right scale-95 opacity-0">
 
         <!-- Header -->
         <div class="bg-gradient-to-r from-green-500 to-green-600 p-4 text-white flex justify-between items-center">
@@ -43,10 +110,9 @@
         </div>
 
         <!-- Messages Area -->
-        <div id="tcwMessages" class="h-64 sm:h-72 p-4 overflow-y-auto bg-gray-50 dark:bg-navy-900 flex flex-col gap-3">
+        <div id="tcwMessages" class="h-64 sm:h-72 p-4 overflow-y-auto flex flex-col gap-3">
             <div class="flex items-end gap-2 pr-6">
-                <div
-                    class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0 text-green-600 dark:text-green-400">
+                <div class="w-8 h-8 rounded-full tcw-msg-avatar flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path
@@ -54,28 +120,17 @@
                         </path>
                     </svg>
                 </div>
-                <div
-                    class="bg-white dark:bg-navy-700 p-3 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100 dark:border-navy-600">
-                    <p class="text-sm text-gray-700 dark:text-gray-200">Chào bạn! Chúng tôi có thể giúp gì cho bạn hôm
-                        nay?</p>
+                <div class="tcw-msg-bubble p-3 rounded-2xl rounded-bl-sm shadow-sm border">
+                    <p class="text-sm">Chào bạn! Chúng tôi có thể giúp gì cho bạn hôm nay?</p>
                 </div>
             </div>
         </div>
 
         <!-- Input Area -->
-        <div class="p-3 bg-white dark:bg-navy-800 border-t border-gray-100 dark:border-navy-600">
-            <style>
-                #tcwInput {
-                    color: #000 !important;
-                }
-
-                .dark #tcwInput {
-                    color: #fff !important;
-                }
-            </style>
+        <div class="p-3 tcw-input-area border-t">
             <form id="tcwForm" onsubmit="tcwSendMessage(event)" class="relative flex items-center">
                 <input type="text" id="tcwInput" autocomplete="off" placeholder="Nhập tin nhắn..."
-                    class="w-full bg-gray-100 dark:bg-navy-700 text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-gray-200 dark:border-navy-600 transition-all"
+                    class="w-full text-sm rounded-full py-2.5 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500/50 border transition-all"
                     required>
                 <button type="submit" id="tcwSendBtn"
                     class="absolute right-1 w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/50">
@@ -87,7 +142,7 @@
                 </button>
             </form>
             <div class="mt-2 text-center">
-                <span class="text-[10px] text-gray-400 dark:text-gray-500">Powered by Khodat</span>
+                <span class="text-[10px] tcw-powered">Powered by Khodat</span>
             </div>
         </div>
     </div>
@@ -199,10 +254,10 @@
         } else {
             html = `
             <div class="flex items-end gap-2 pr-6 mb-2">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0 text-green-600 dark:text-green-400">
+                <div class="w-8 h-8 rounded-full tcw-msg-avatar flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                 </div>
-                <div class="bg-white dark:bg-navy-700 border border-gray-100 dark:border-navy-600 p-3 rounded-2xl rounded-bl-sm shadow-sm text-gray-700 dark:text-gray-200">
+                <div class="tcw-msg-bubble border p-3 rounded-2xl rounded-bl-sm shadow-sm">
                     <p class="text-sm" style="white-space: pre-wrap; word-wrap: break-word;">${text}</p>
                 </div>
             </div>`;
