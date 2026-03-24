@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Sàn Đất - Ký gửi Bất động sản')
-@section('description', 'Tìm kiếm và ký gửi bất động sản uy tín')
+@section('title', 'Kho Đất - Mua bán ký gửi Bất động sản')
+@section('description', 'Tìm kiếm và mua bán ký gửi bất động sản uy tín')
 
 @section('content')
 <!-- Advanced Search Section -->
@@ -824,24 +824,29 @@ if ($createdDate->diffInDays(now('Asia/Ho_Chi_Minh')) < 5) { $status=$createdDat
         /* Google Maps-style gesture overlay */
         .map-gesture-overlay {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 999;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s;
         }
+
         .map-gesture-overlay.visible {
             opacity: 1;
         }
+
         .map-gesture-overlay span {
             color: white;
             font-size: 15px;
             font-weight: 600;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             padding: 10px 20px;
             border-radius: 8px;
         }
@@ -1014,7 +1019,7 @@ if ($createdDate->diffInDays(now('Asia/Ho_Chi_Minh')) < 5) { $status=$createdDat
             }
 
             // Desktop: Ctrl+Scroll to zoom
-            container.addEventListener('wheel', function(e) {
+            container.addEventListener('wheel', function (e) {
                 if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
                     map.scrollWheelZoom.enable();
@@ -1031,7 +1036,7 @@ if ($createdDate->diffInDays(now('Asia/Ho_Chi_Minh')) < 5) { $status=$createdDat
             // Mobile: Two-finger touch to move
             if (isMobile) {
                 let touchCount = 0;
-                container.addEventListener('touchstart', function(e) {
+                container.addEventListener('touchstart', function (e) {
                     touchCount = e.touches.length;
                     if (touchCount >= 2) {
                         map.dragging.enable();
@@ -1040,12 +1045,12 @@ if ($createdDate->diffInDays(now('Asia/Ho_Chi_Minh')) < 5) { $status=$createdDat
                         map.dragging.disable();
                     }
                 }, { passive: true });
-                container.addEventListener('touchmove', function(e) {
+                container.addEventListener('touchmove', function (e) {
                     if (e.touches.length < 2 && touchCount < 2) {
                         showOverlay();
                     }
                 }, { passive: true });
-                container.addEventListener('touchend', function(e) {
+                container.addEventListener('touchend', function (e) {
                     if (e.touches.length === 0) {
                         map.dragging.disable();
                     }
