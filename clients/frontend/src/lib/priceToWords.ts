@@ -34,17 +34,23 @@ export function priceToWords(n: number | string): string {
     if (num >= 1e6 && num % 1e6 === 0 && num / 1e6 <= 9) return digits[num / 1e6] + ' triệu';
     if (num >= 1e3 && num % 1e3 === 0 && num < 1e6 && num / 1e3 <= 9) return digits[num / 1e3] + ' nghìn';
 
-    const parts: string[] = [];
+    // Split number into 3-digit chunks from right to left
+    const chunks: number[] = [];
     let remainder = num;
-    let unitIndex = 0;
     while (remainder > 0) {
-        const chunk = remainder % 1000;
-        if (chunk > 0) {
-            const chunkText = readThreeDigits(chunk, unitIndex > 0);
-            parts.unshift(chunkText + (units[unitIndex] ? ' ' + units[unitIndex] : ''));
-        }
+        chunks.push(remainder % 1000);
         remainder = Math.floor(remainder / 1000);
-        unitIndex++;
+    }
+
+    // Process chunks from highest to lowest (left to right)
+    const parts: string[] = [];
+    for (let i = chunks.length - 1; i >= 0; i--) {
+        const chunk = chunks[i];
+        if (chunk > 0) {
+            // hasHigherUnit = true only if there are already parts before this chunk
+            const chunkText = readThreeDigits(chunk, parts.length > 0);
+            parts.push(chunkText + (units[i] ? ' ' + units[i] : ''));
+        }
     }
     return parts.join(' ').trim();
 }

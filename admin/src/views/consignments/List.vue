@@ -660,18 +660,23 @@ function numberToVietnamese(n) {
   if (n >= 1000000 && n % 1000000 === 0 && n / 1000000 <= 9) return digits[n / 1000000] + ' triệu'
   if (n >= 1000 && n % 1000 === 0 && n < 1000000 && n / 1000 <= 9) return digits[n / 1000] + ' nghìn'
   
-  // General formatting
-  const parts = []
+  // Split number into 3-digit chunks from right to left
+  const chunks = []
   let remainder = n
-  let unitIndex = 0
   while (remainder > 0) {
-    const chunk = remainder % 1000
-    if (chunk > 0) {
-      const chunkText = readThreeDigits(chunk, digits, unitIndex > 0)
-      parts.unshift(chunkText + (units[unitIndex] ? ' ' + units[unitIndex] : ''))
-    }
+    chunks.push(remainder % 1000)
     remainder = Math.floor(remainder / 1000)
-    unitIndex++
+  }
+  
+  // Process chunks from highest to lowest (left to right)
+  const parts = []
+  for (let i = chunks.length - 1; i >= 0; i--) {
+    const chunk = chunks[i]
+    if (chunk > 0) {
+      // hasHigherUnit = true only if there are already parts before this chunk
+      const chunkText = readThreeDigits(chunk, digits, parts.length > 0)
+      parts.push(chunkText + (units[i] ? ' ' + units[i] : ''))
+    }
   }
   return parts.join(' ').trim()
 }
