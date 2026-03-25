@@ -98,6 +98,36 @@
                         </a>
                     </div>
                 @endif
+
+                <!-- Company Legal Info -->
+                <div class="bg-navy-700 rounded-lg shadow-md p-6 border border-navy-600">
+                    <h3 class="text-lg font-bold text-gray-100 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        Thông tin công ty
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <p class="text-gray-400 text-xs mb-0.5">Tên công ty</p>
+                            <p class="text-gray-200 font-semibold">CÔNG TY TNHH KHO ĐẤT</p>
+                            <p class="text-gray-400 text-xs">KHO DAT COMPANY LIMITED</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs mb-0.5">Mã số doanh nghiệp</p>
+                            <p class="text-green-400 font-bold text-base tracking-wide">0319338160</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs mb-0.5">Đăng ký lần đầu</p>
+                            <p class="text-gray-200">06/01/2026</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs mb-0.5">Loại hình</p>
+                            <p class="text-gray-200">Công ty Trách nhiệm Hữu hạn Một Thành Viên</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Contact Form -->

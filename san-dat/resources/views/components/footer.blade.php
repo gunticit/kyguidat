@@ -139,6 +139,11 @@
         </div>
 
         <div class="border-t border-navy-600 mt-8 pt-6 text-center text-gray-500 text-sm">
+            <!-- Company Legal Info -->
+            <div class="mb-3 text-gray-500 text-xs leading-relaxed">
+                <p class="font-semibold text-gray-400">CÔNG TY TNHH KHO ĐẤT (KHO DAT COMPANY LIMITED)</p>
+                <p>Mã số doanh nghiệp: <span class="text-gray-400 font-medium">0319338160</span> &nbsp;|&nbsp; Đăng ký lần đầu: 06/01/2026</p>
+            </div>
             <div class="flex flex-wrap justify-center gap-4 mb-1">
                 <a href="{{ route('privacy-policy') }}" class="hover:text-green-400 transition">Chính sách bảo mật</a>
                 <span class="hidden md:inline">|</span>
