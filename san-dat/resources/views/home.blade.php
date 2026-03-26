@@ -135,6 +135,18 @@
                             <option value="khong">Không</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Diện tích sàn</label>
+                        <select name="floor_area_range"
+                            class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
+                            <option value="">-- Tất cả --</option>
+                            <option value="0-50">Dưới 50 m²</option>
+                            <option value="50-100">50 - 100 m²</option>
+                            <option value="100-200">100 - 200 m²</option>
+                            <option value="200-500">200 - 500 m²</option>
+                            <option value="500+">Trên 500 m²</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Row 2 -->
@@ -195,18 +207,6 @@
                             <option value="200_500">Từ 200 - 500 m²</option>
                             <option value="500_1000">Từ 500 - 1000 m²</option>
                             <option value="tren_1000">Trên 1000 m²</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Diện tích sàn</label>
-                        <select name="floor_area_range"
-                            class="w-full px-3 py-2 bg-navy-700 border border-navy-600 rounded-lg focus:border-green-500 focus:outline-none text-gray-200">
-                            <option value="">-- Tất cả --</option>
-                            <option value="0-50">Dưới 50 m²</option>
-                            <option value="50-100">50 - 100 m²</option>
-                            <option value="100-200">100 - 200 m²</option>
-                            <option value="200-500">200 - 500 m²</option>
-                            <option value="500+">Trên 500 m²</option>
                         </select>
                     </div>
                     <div>
