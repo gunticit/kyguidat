@@ -159,6 +159,7 @@ class ConsignmentService
             'featured_image' => $featuredImage,
             'description_files' => $data['description_files'] ?? [],
             'note_to_admin' => $data['note_to_admin'] ?? null,
+            'order_number' => (Consignment::max('order_number') ?? 0) + 1,
             'status' => Consignment::STATUS_PENDING,
         ]);
 
