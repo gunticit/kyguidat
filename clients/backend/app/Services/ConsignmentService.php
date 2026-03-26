@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Consignment;
 use App\Models\ConsignmentHistory;
 use App\Models\UserPackage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -159,7 +160,7 @@ class ConsignmentService
             'featured_image' => $featuredImage,
             'description_files' => $data['description_files'] ?? [],
             'note_to_admin' => $data['note_to_admin'] ?? null,
-            'order_number' => (Consignment::max('order_number') ?? 0) + 1,
+            'order_number' => $this->generateOrderNumber(),
             'status' => Consignment::STATUS_PENDING,
         ]);
 
@@ -386,6 +387,39 @@ class ConsignmentService
             ->orderBy('created_at', 'desc')
             ->get()
             ->toArray();
+    }
+
+    /**
+     * Generate unique order_number atomically.
+     * Uses a transaction + SELECT FOR UPDATE to prevent race conditions.
+     * Falls back to retry loop if unique constraint violation occurs.
+     */
+    private function generateOrderNumber(): int
+    {
+        $maxRetries = 5;
+
+        for ($attempt = 0; $attempt < $maxRetries; $attempt++) {
+            try {
+                return DB::transaction(function () {
+                    // Lock all rows to prevent concurrent reads in this critical section
+                    $max = DB::table('consignments')
+                        ->whereNull('deleted_at')
+                        ->lockForUpdate()
+                        ->max('order_number') ?? 0;
+
+                    return $max + 1;
+                });
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Unique constraint violation (code 23000 / 1062)
+                if ($attempt < $maxRetries - 1 && str_contains($e->getMessage(), '1062')) {
+                    usleep(10000 * ($attempt + 1)); // 10ms, 20ms, 30ms back-off
+                    continue;
+                }
+                throw $e;
+            }
+        }
+
+        throw new \RuntimeException('Không thể tạo số thứ tự duy nhất sau ' . $maxRetries . ' lần thử.');
     }
 
     /**
