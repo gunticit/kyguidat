@@ -21,8 +21,8 @@ interface BankInfo {
 }
 
 const paymentMethods = [
-    { id: 'bank', name: 'Chuyển khoản thủ công', icon: FiDollarSign, description: 'Cần chờ admin xác nhận', disabled: false },
     { id: 'sepay', name: 'QR Code (Tự động)', icon: FiSmartphone, description: 'Xác nhận tự động trong 1 phút', disabled: false },
+    { id: 'bank', name: 'Chuyển khoản thủ công', icon: FiDollarSign, description: 'Cần chờ admin xác nhận', disabled: false },
 ];
 
 const quickAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000];
