@@ -1,8 +1,5 @@
 @extends('layouts.app')
 
-@section('title', 'Kho Đất - Mua bán ký gửi Bất động sản')
-@section('description', 'Tìm kiếm và mua bán ký gửi bất động sản uy tín')
-
 @section('content')
 <!-- Advanced Search Section -->
 <section class="bg-navy-800 py-6 border-b border-navy-600">
