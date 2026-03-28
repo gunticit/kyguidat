@@ -12,9 +12,65 @@
         }
         $appFavicon = isset($appSettings['favicon']) ? preg_replace('#^https?://[^/]+#', '', $appSettings['favicon']) : '';
         $appSiteName = $appSettings['siteName'] ?? 'Sàn Đất';
+
+        // Load SEO settings from admin
+        $seoSettings = [];
+        if (Storage::exists('seo.json')) {
+            $seoSettings = json_decode(Storage::get('seo.json'), true) ?? [];
+        }
+        $seoTitle = $seoSettings['metaTitle'] ?? '';
+        $seoDescription = $seoSettings['metaDescription'] ?? '';
+        $seoKeywords = $seoSettings['metaKeywords'] ?? '';
+        $seoCanonical = $seoSettings['canonicalUrl'] ?? '';
+        $seoOgTitle = $seoSettings['ogTitle'] ?? '';
+        $seoOgDescription = $seoSettings['ogDescription'] ?? '';
+        $seoOgImage = $seoSettings['ogImage'] ?? '';
+        $seoTwitterTitle = $seoSettings['twitterTitle'] ?? '';
+        $seoTwitterDescription = $seoSettings['twitterDescription'] ?? '';
+        $seoRobots = $seoSettings['robotsMeta'] ?? 'index, follow';
+        $seoGoogleVerification = $seoSettings['googleVerification'] ?? '';
+        $seoSchemaOrgName = $seoSettings['schemaOrgName'] ?? '';
+        $seoSchemaOrgLogo = $seoSettings['schemaOrgLogo'] ?? '';
+        $seoSchemaCustom = $seoSettings['schemaCustom'] ?? '';
+
+        // Default title fallback: SEO title from admin → siteName
+        $defaultTitle = $seoTitle ?: ($appSiteName . ' - Ký gửi Bất động sản');
+        $defaultDescription = $seoDescription ?: 'Nền tảng ký gửi bất động sản uy tín hàng đầu Việt Nam';
     @endphp
-    <title>@yield('title', $appSiteName . ' - Ký gửi Bất động sản')</title>
-    <meta name="description" content="@yield('description', 'Nền tảng ký gửi bất động sản uy tín hàng đầu Việt Nam')">
+    <title>@yield('title', $defaultTitle)</title>
+    <meta name="description" content="@yield('description', $defaultDescription)">
+    @if($seoKeywords)
+        <meta name="keywords" content="{{ $seoKeywords }}">
+    @endif
+    @if($seoRobots)
+        <meta name="robots" content="{{ $seoRobots }}">
+    @endif
+    @if($seoCanonical)
+        <link rel="canonical" href="{{ $seoCanonical }}">
+    @endif
+    @if($seoGoogleVerification)
+        <meta name="google-site-verification" content="{{ $seoGoogleVerification }}">
+    @endif
+
+    {{-- Open Graph --}}
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="@yield('og_title', $seoOgTitle ?: $defaultTitle)">
+    <meta property="og:description" content="@yield('og_description', $seoOgDescription ?: $defaultDescription)">
+    @if($seoOgImage)
+        <meta property="og:image" content="{{ $seoOgImage }}">
+    @endif
+    @if($seoCanonical)
+        <meta property="og:url" content="{{ $seoCanonical }}">
+    @endif
+
+    {{-- Twitter Cards --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('twitter_title', $seoTwitterTitle ?: $defaultTitle)">
+    <meta name="twitter:description" content="@yield('twitter_description', $seoTwitterDescription ?: $defaultDescription)">
+    @if($seoOgImage)
+        <meta name="twitter:image" content="{{ $seoOgImage }}">
+    @endif
+
     @if($appFavicon)
         <link rel="icon" type="image/png" href="{{ $appFavicon }}">
     @endif
@@ -147,6 +203,26 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @stack('styles')
+
+    {{-- JSON-LD Schema Markup --}}
+    @if($seoSchemaOrgName || $seoSchemaOrgLogo)
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "{{ $seoSchemaOrgName }}",
+        "url": "{{ $seoCanonical ?: url('/') }}"
+        @if($seoSchemaOrgLogo)
+        ,"logo": "{{ $seoSchemaOrgLogo }}"
+        @endif
+    }
+    </script>
+    @endif
+    @if($seoSchemaCustom)
+    <script type="application/ld+json">
+    {!! $seoSchemaCustom !!}
+    </script>
+    @endif
 </head>
 
 <body class="bg-navy-900 min-h-screen flex flex-col text-gray-100">
