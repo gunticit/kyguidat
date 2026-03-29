@@ -102,6 +102,10 @@
                             </option>
                         </select>
                     </div>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Diện tích sàn</label>
                         <select name="floor_area_range"
@@ -119,10 +123,6 @@
                             </option>
                         </select>
                     </div>
-                </div>
-
-                <!-- Row 2 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Tài chính</label>
                         <select name="price_range"
@@ -161,6 +161,10 @@
                             <option value="khong" {{ request('road_type')=='khong' ? 'selected' : '' }}>Không</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Chiều dài mặt tiền</label>
                         <select name="frontage"
@@ -176,10 +180,6 @@
                             </option>
                         </select>
                     </div>
-                </div>
-
-                <!-- Row 3 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Diện tích đất</label>
                         <select name="area_range"
