@@ -1,10 +1,15 @@
 {
-    "email": "admin@khodat.com",
-    "phone": "0909123456",
-    "address": "123 Nguyen Hue, Quan 1, Ho Chi Minh City",
+    "email": "adkhodat@gmail.com",
+    "phone": "0704183239",
+    "address": "226 Ung Văn Khiêm, Phường Mỹ Thạnh Tây, Thành Phố Hồ Chí Minh",
     "facebook": null,
-    "zalo": null,
-    "siteName": "KhoĐất",
-    "logo": "http:\/\/localhost:8088\/storage\/settings\/logo_1770562288.png",
-    "favicon": "http:\/\/localhost:8088\/storage\/settings\/favicon_1770567851.png"
+    "zalo": "0704183239",
+    "tiktok": "https:\/\/www.tiktok.com\/@khodat.com",
+    "youtube": "https:\/\/www.youtube.com\/@khodatcom",
+    "instagram": null,
+    "siteName": "Khodat.com",
+    "logo": "\/storage\/settings\/logo_1774584641.png",
+    "favicon": "\/storage\/settings\/favicon_1774584647.png",
+    "show_bct_badge": false,
+    "bct_image": null
 }

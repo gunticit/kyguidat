@@ -53,7 +53,7 @@ const formatDate = (dateString: string): string => {
 };
 
 export default function DepositPage() {
-    const [selectedMethod, setSelectedMethod] = useState('bank');
+    const [selectedMethod, setSelectedMethod] = useState('sepay');
     const [amount, setAmount] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [copied, setCopied] = useState<string | null>(null);
