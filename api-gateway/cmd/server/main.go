@@ -3,13 +3,11 @@ package main
 import (
 	"log"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
 	"khodat/api-gateway/internal/config"
-	es "khodat/api-gateway/internal/elasticsearch"
 	"khodat/api-gateway/internal/handlers"
 	"khodat/api-gateway/internal/middleware"
 	"khodat/api-gateway/internal/repository"
@@ -30,49 +28,8 @@ func main() {
 	// Initialize repository
 	repo := repository.NewMySQLRepository(db)
 
-	// Initialize Elasticsearch (non-fatal if unavailable)
-	var esClient *es.Client
-	var esSyncer *es.Syncer
-	esClient, err = es.NewClient()
-	if err != nil {
-		log.Printf("⚠️  Elasticsearch not available: %v (search will use MySQL fallback)", err)
-		esClient = nil
-	} else {
-		// Ensure index exists
-		if err := esClient.EnsureIndex(); err != nil {
-			log.Printf("⚠️  Failed to create ES index: %v", err)
-		}
-		esSyncer = es.NewSyncer(esClient, db)
-
-		// Auto-sync on startup + periodic sync every 2 minutes
-		go func() {
-			// Wait for ES to be fully ready
-			time.Sleep(5 * time.Second)
-
-			count, err := esSyncer.FullSync()
-			if err != nil {
-				log.Printf("⚠️  Auto-sync failed: %v", err)
-			} else {
-				log.Printf("✅ Auto-synced %d consignments to Elasticsearch", count)
-			}
-
-			// Periodic sync every 2 minutes
-			ticker := time.NewTicker(2 * time.Minute)
-			defer ticker.Stop()
-			for range ticker.C {
-				count, err := esSyncer.FullSync()
-				if err != nil {
-					log.Printf("⚠️  Periodic sync failed: %v", err)
-				} else {
-					log.Printf("🔄 Periodic sync: %d consignments indexed", count)
-				}
-			}
-		}()
-	}
-
-	consignmentHandler := handlers.NewConsignmentHandler(repo, esClient)
+	consignmentHandler := handlers.NewConsignmentHandler(repo)
 	reportHandler := handlers.NewReportHandler(repo)
-	esHandler := handlers.NewElasticsearchHandler(esClient, esSyncer)
 
 	// Backend URL for proxying auth requests
 	backendURL := os.Getenv("BACKEND_URL")
@@ -98,13 +55,10 @@ func main() {
 	// Proxy handler for Laravel backend
 	proxyHandler := handlers.NewProxyHandler(backendURL)
 
-	// Internal webhook for ES sync (called by Laravel after consignment changes)
-	r.POST("/internal/es-sync", esHandler.Sync)
-
 	// Public routes
 	public := r.Group("/api")
 	{
-		public.GET("/consignments", consignmentHandler.Search)      // ES-powered search with fallback
+		public.GET("/consignments", consignmentHandler.Search)      // MySQL-powered search
 		public.GET("/consignments-nearby", consignmentHandler.List) // Go handler for geo-sorting
 		public.GET("/consignments/:id", consignmentHandler.Show)
 		public.GET("/categories", consignmentHandler.Categories)
@@ -281,10 +235,6 @@ func main() {
 		// Reports (handled directly by Go, not proxied)
 		admin.GET("/reports/overview", reportHandler.Overview)
 		admin.GET("/reports/export", reportHandler.ExportExcel)
-
-		// Elasticsearch admin
-		admin.GET("/elasticsearch/health", esHandler.Health)
-		admin.POST("/elasticsearch/sync", esHandler.Sync)
 	}
 
 	// Get port from environment

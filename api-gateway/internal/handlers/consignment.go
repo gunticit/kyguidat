@@ -6,108 +6,51 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	es "khodat/api-gateway/internal/elasticsearch"
 	"khodat/api-gateway/internal/repository"
 	"khodat/api-gateway/pkg/response"
 )
 
 // ConsignmentHandler handles consignment requests
 type ConsignmentHandler struct {
-	repo     *repository.MySQLRepository
-	esClient *es.Client
+	repo *repository.MySQLRepository
 }
 
 // NewConsignmentHandler creates new handler
-func NewConsignmentHandler(repo *repository.MySQLRepository, esClient *es.Client) *ConsignmentHandler {
-	return &ConsignmentHandler{repo: repo, esClient: esClient}
+func NewConsignmentHandler(repo *repository.MySQLRepository) *ConsignmentHandler {
+	return &ConsignmentHandler{repo: repo}
 }
 
-// Search handles ES-powered search with all filters
+// Search handles search with all filters (MySQL-based)
 func (h *ConsignmentHandler) Search(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "12"))
+	search := c.Query("search")
+	province := c.Query("province")
+	phone := c.Query("phone")
 
-	params := es.SearchParams{
-		Search:         c.Query("search"),
-		Province:       c.Query("province"),
-		District:       c.Query("district"),
-		Phone:          c.Query("phone"),
-		PropertyType:   c.Query("property_type"),
-		HouseOnLand:    c.Query("house_on_land"),
-		PriceRange:     c.Query("price_range"),
-		ThoCu:          c.Query("tho_cu"),
-		RoadType:       c.Query("road_type"),
-		Frontage:       c.Query("frontage"),
-		AreaRange:      c.Query("area_range"),
-		FloorAreaRange: c.Query("floor_area_range"),
-		Direction:      c.Query("direction"),
-		SoTo:           c.Query("so_to"),
-		SoThua:         c.Query("so_thua"),
-		Sort:           c.Query("sort"),
-		Category:       c.Query("category"),
-		Page:           page,
-		Limit:          limit,
-	}
-
-	// Use Elasticsearch if available
-	if h.esClient != nil {
-		result, err := h.esClient.SearchConsignments(params)
-		if err == nil {
-			// Calculate pagination meta
-			lastPage := int(result.Total) / limit
-			if int(result.Total)%limit > 0 {
-				lastPage++
-			}
-			from := (page-1)*limit + 1
-			to := page * limit
-			if to > int(result.Total) {
-				to = int(result.Total)
-			}
-			if result.Total == 0 {
-				from = 0
-				to = 0
-			}
-
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"data":    result.Hits,
-				"meta": gin.H{
-					"current_page": page,
-					"from":         from,
-					"last_page":    lastPage,
-					"per_page":     limit,
-					"to":           to,
-					"total":        result.Total,
-				},
-			})
-			return
-		}
-		// ES failed — fallback to MySQL
-	}
-
-	// Fallback: MySQL search (original behavior)
+	// Parse user location for proximity sorting
 	lat, _ := strconv.ParseFloat(c.Query("lat"), 64)
 	lng, _ := strconv.ParseFloat(c.Query("lng"), 64)
 	maxDistance, _ := strconv.ParseFloat(c.Query("max_distance"), 64)
 
 	filters := map[string]string{
-		"district":         params.District,
-		"property_type":    params.PropertyType,
-		"house_on_land":    params.HouseOnLand,
-		"price_range":      params.PriceRange,
-		"tho_cu":           params.ThoCu,
-		"road_type":        params.RoadType,
-		"frontage":         params.Frontage,
-		"area_range":       params.AreaRange,
-		"floor_area_range": params.FloorAreaRange,
-		"direction":        params.Direction,
-		"so_to":            params.SoTo,
-		"so_thua":          params.SoThua,
-		"sort":             params.Sort,
-		"category":         params.Category,
+		"district":         c.Query("district"),
+		"property_type":    c.Query("property_type"),
+		"house_on_land":    c.Query("house_on_land"),
+		"price_range":      c.Query("price_range"),
+		"tho_cu":           c.Query("tho_cu"),
+		"road_type":        c.Query("road_type"),
+		"frontage":         c.Query("frontage"),
+		"area_range":       c.Query("area_range"),
+		"floor_area_range": c.Query("floor_area_range"),
+		"direction":        c.Query("direction"),
+		"so_to":            c.Query("so_to"),
+		"so_thua":          c.Query("so_thua"),
+		"sort":             c.Query("sort"),
+		"category":         c.Query("category"),
 	}
 
-	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, params.Search, params.Province, params.Phone, lat, lng, maxDistance, filters)
+	consignments, total, err := h.repo.GetApprovedConsignments(page, limit, search, province, phone, lat, lng, maxDistance, filters)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch consignments")
 		return
@@ -116,7 +59,7 @@ func (h *ConsignmentHandler) Search(c *gin.Context) {
 	response.Paginated(c, consignments, total, page, limit)
 }
 
-// List returns approved consignments (original MySQL-based)
+// List returns approved consignments (MySQL-based)
 func (h *ConsignmentHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "12"))
