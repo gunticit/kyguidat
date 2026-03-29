@@ -52,7 +52,15 @@
                         <!-- Article Content -->
                         <div
                             class="prose prose-invert prose-green max-w-none text-gray-300 leading-relaxed article-content">
-                            {!! $article['content'] !!}
+                            @php
+                                $rawContent = html_entity_decode($article['content'] ?? '', ENT_QUOTES, 'UTF-8');
+                                $hasHtml = preg_match('/<[a-zA-Z][\s\S]*>/', $rawContent);
+                            @endphp
+                            @if($hasHtml)
+                                {!! $rawContent !!}
+                            @else
+                                {!! nl2br(e($rawContent)) !!}
+                            @endif
                         </div>
                     </div>
                 </div>
