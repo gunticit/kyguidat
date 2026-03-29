@@ -17,6 +17,7 @@ return [
         env('APP_URL', 'http://localhost:8015'),
         env('APP_URL_SANDAT', 'https://khodat.com'),
         env('APP_URL_ADMIN', 'https://admin.khodat.com'),
+        'https://backend.khodat.com',
         // Dev origins (only available when set in .env)
         env('CORS_DEV_ORIGIN_1'),
         env('CORS_DEV_ORIGIN_2'),
