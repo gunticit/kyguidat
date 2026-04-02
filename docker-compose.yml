@@ -1,3 +1,9 @@
+# ===========================================
+# PRODUCTION DOCKER COMPOSE - khodat.com
+# ===========================================
+# Sử dụng với Nginx đã cài sẵn trên host Ubuntu
+# Usage: docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
 services:
   # ===========================================
   # GOLANG API GATEWAY
@@ -7,16 +13,17 @@ services:
       context: ./api-gateway
       dockerfile: Dockerfile
     container_name: khodat-api-gateway
-    restart: unless-stopped
+    restart: always
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_DATABASE=khodat
-      - DB_USERNAME=khodat
-      - DB_PASSWORD=khodat123
-      - JWT_SECRET=your-super-secret-jwt-key
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - BACKEND_URL=http://backend-nginx:80
     networks:
       - khodat-network
     depends_on:
@@ -31,16 +38,25 @@ services:
       context: ./san-dat
       dockerfile: Dockerfile
     container_name: khodat-san-dat
-    restart: unless-stopped
+    restart: always
     ports:
-      - "8088:80"
-    volumes:
-      - ./san-dat:/var/www/html
-      - sandat-vendor:/var/www/html/vendor
+      - "127.0.0.1:8088:80"
     environment:
-      - TZ=Asia/Ho_Chi_Minh
-      - APP_TIMEZONE=Asia/Ho_Chi_Minh
       - GOLANG_API_URL=http://api-gateway:8080
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - APP_URL=https://khodat.com
+      - APP_URL_SANDAT=https://app.khodat.com
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - sandat-storage:/var/www/html/storage/app
     networks:
       - khodat-network
     depends_on:
@@ -57,42 +73,112 @@ services:
         - VITE_API_URL=https://api.khodat.com/api
         - VITE_SANDAT_API_URL=https://khodat.com/api
     container_name: khodat-admin
-    restart: unless-stopped
+    restart: always
     ports:
-      - "8089:80"
-    environment:
-      - TZ=Asia/Ho_Chi_Minh
+      - "127.0.0.1:8089:80"
     networks:
       - khodat-network
     depends_on:
       - api-gateway
 
   # ===========================================
-  # LARAVEL BACKEND (User API)
+  # LARAVEL BACKEND (User API) - PHP-FPM
   # ===========================================
   backend:
     build:
       context: ./clients/backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: khodat-backend
-    restart: unless-stopped
-    working_dir: /var/www
-    ports:
-      - "8015:8000"
-    volumes:
-      - ./clients/backend:/var/www
-      - backend-vendor:/var/www/vendor
-      - ./clients/backend/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    restart: always
     environment:
-      - TZ=Asia/Ho_Chi_Minh
-      - APP_TIMEZONE=Asia/Ho_Chi_Minh
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - APP_URL=https://backend.khodat.com
+      - FRONTEND_URL=https://app.khodat.com
+      - APP_URL_SANDAT=https://app.khodat.com
+      - APP_URL_ADMIN=https://admin.khodat.com
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      # SMTP Mail (Email Verification)
+      - MAIL_MAILER=${MAIL_MAILER:-smtp}
+      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-tls}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@khodat.com}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Ky Gui Dat Vuon}
+      # VNPay
+      - VNPAY_TMN_CODE=${VNPAY_TMN_CODE}
+      - VNPAY_HASH_SECRET=${VNPAY_HASH_SECRET}
+      - VNPAY_URL=${VNPAY_URL}
+      - VNPAY_RETURN_URL=${VNPAY_RETURN_URL}
+      # MoMo
+      - MOMO_PARTNER_CODE=${MOMO_PARTNER_CODE}
+      - MOMO_ACCESS_KEY=${MOMO_ACCESS_KEY}
+      - MOMO_SECRET_KEY=${MOMO_SECRET_KEY}
+      - MOMO_ENDPOINT=${MOMO_ENDPOINT}
+      - MOMO_RETURN_URL=${MOMO_RETURN_URL}
+      - MOMO_NOTIFY_URL=${MOMO_NOTIFY_URL}
+      # Bank Transfer / Sepay Webhook
+      - BANK_NAME=${BANK_NAME}
+      - BANK_ACCOUNT_NUMBER=${BANK_ACCOUNT_NUMBER}
+      - BANK_ACCOUNT_NAME=${BANK_ACCOUNT_NAME}
+      - BANK_BRANCH=${BANK_BRANCH}
+      - SEPAY_API_KEY=${SEPAY_API_KEY}
+      # Social Auth
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}
+      - FACEBOOK_CLIENT_ID=${FACEBOOK_CLIENT_ID}
+      - FACEBOOK_CLIENT_SECRET=${FACEBOOK_CLIENT_SECRET}
+      # MinIO / S3 Storage
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-khodat_minio}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-khodat_minio_secret}
+      - AWS_DEFAULT_REGION=ap-southeast-1
+      - AWS_BUCKET=${MINIO_BUCKET:-khodat}
+      - AWS_URL=${MINIO_PUBLIC_URL:-https://storage.khodat.com/khodat}
+      - AWS_ENDPOINT=http://minio:9000
+      - AWS_USE_PATH_STYLE_ENDPOINT=true
+      - IMAGE_QUALITY=80
+      - IMAGE_FORMAT=webp
     networks:
       - khodat-network
     depends_on:
-      - mysql
-      - redis
-    command: >
-      sh -c "composer install --no-dev --optimize-autoloader --no-interaction && php artisan serve --host=0.0.0.0 --port=8000"
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_healthy
+
+  # ===========================================
+  # NGINX FOR LARAVEL BACKEND (PHP-FPM proxy)
+  # ===========================================
+  backend-nginx:
+    image: nginx:alpine
+    container_name: khodat-backend-nginx
+    restart: always
+    ports:
+      - "127.0.0.1:8015:80"
+    volumes:
+      - ./clients/backend:/var/www:ro
+      - ./clients/backend/docker/nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - khodat-network
+    depends_on:
+      - backend
 
   # ===========================================
   # NEXT.JS FRONTEND (User Dashboard)
@@ -100,40 +186,48 @@ services:
   frontend:
     build:
       context: ./clients/frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
+      args:
+        - NEXT_PUBLIC_API_URL=https://backend.khodat.com/api
+        - NEXT_PUBLIC_SOCKET_URL=https://socket.khodat.com
+        - NEXT_PUBLIC_APP_NAME=Khodat
+        - NEXT_PUBLIC_GOOGLE_LOGIN_URL=https://api.khodat.com/api/auth/google
+        - NEXT_PUBLIC_FACEBOOK_LOGIN_URL=https://api.khodat.com/api/auth/facebook
+        - NEXT_PUBLIC_ZALO_LOGIN_URL=https://api.khodat.com/api/auth/zalo
+        - NEXT_PUBLIC_GITHUB_LOGIN_URL=https://backend.khodat.com/api/auth/github
     container_name: khodat-frontend
-    restart: unless-stopped
+    restart: always
     ports:
-      - "3015:3000"
-    volumes:
-      - ./clients/frontend:/app
-      - /app/node_modules
-      - /app/.next
+      - "127.0.0.1:3015:3000"
     environment:
-      - TZ=Asia/Ho_Chi_Minh
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://api.khodat.com/api
-    command: sh -c "npm run build && npm run start"
+      - NEXT_PUBLIC_API_URL=https://backend.khodat.com/api
+      - NEXT_PUBLIC_SOCKET_URL=https://socket.khodat.com
+      - NEXT_PUBLIC_APP_NAME=Khodat
+      - NEXT_PUBLIC_GOOGLE_LOGIN_URL=https://api.khodat.com/api/auth/google
+      - NEXT_PUBLIC_FACEBOOK_LOGIN_URL=https://api.khodat.com/api/auth/facebook
+      - NEXT_PUBLIC_ZALO_LOGIN_URL=https://api.khodat.com/api/auth/zalo
+      - NEXT_PUBLIC_GITHUB_LOGIN_URL=https://backend.khodat.com/api/auth/github
     networks:
       - khodat-network
     depends_on:
       - backend
 
   # ===========================================
-  # DATABASE & CACHE
+  # DATABASE
   # ===========================================
   mysql:
     image: mysql:8.0
     container_name: khodat-mysql
-    restart: unless-stopped
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: khodat
-      MYSQL_USER: khodat
-      MYSQL_PASSWORD: khodat123
+    restart: always
+    command: --default-authentication-plugin=caching_sha2_password
     ports:
-      - "3321:3306"
+      - "127.0.0.1:3316:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
@@ -144,43 +238,18 @@ services:
       timeout: 5s
       retries: 5
 
+  # ===========================================
+  # CACHE
+  # ===========================================
   redis:
     image: redis:alpine
     container_name: khodat-redis
-    restart: unless-stopped
-    ports:
-      - "6394:6379"
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data
     networks:
       - khodat-network
-    command: redis-server --appendonly yes
-
-  # ===========================================
-  # SOCKET.IO SERVER (Real-time Support Chat)
-  # ===========================================
-  socket:
-    build:
-      context: ./socket
-      dockerfile: Dockerfile
-    container_name: khodat-socket
-    restart: unless-stopped
-    ports:
-      - "3020:3020"
-    volumes:
-      - ./socket:/app
-      - /app/node_modules
-    environment:
-      - TZ=Asia/Ho_Chi_Minh
-      - PORT=3020
-      - REDIS_URL=redis://redis:6379
-      - CORS_ORIGINS=http://localhost:3015,http://localhost:8089
-    networks:
-      - khodat-network
-    depends_on:
-      - redis
-      - backend
-    command: npx nodemon server.js
 
   # ===========================================
   # MINIO (S3-Compatible Object Storage)
@@ -188,14 +257,13 @@ services:
   minio:
     image: minio/minio:latest
     container_name: khodat-minio
-    restart: unless-stopped
+    restart: always
     ports:
-      - "9000:9000"
-      - "9002:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9002:9001"
     environment:
-      TZ: Asia/Ho_Chi_Minh
-      MINIO_ROOT_USER: khodat_minio
-      MINIO_ROOT_PASSWORD: khodat_minio_secret
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-khodat_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-khodat_minio_secret}
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
@@ -208,24 +276,25 @@ services:
       retries: 5
 
   # ===========================================
-  # TOOLS & UTILITIES
+  # SOCKET.IO SERVER (Real-time Support Chat)
   # ===========================================
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: khodat-phpmyadmin
-    restart: unless-stopped
-    environment:
-      PMA_HOST: mysql
-      PMA_USER: root
-      PMA_PASSWORD: root
-      UPLOAD_LIMIT: 100M
+  socket:
+    build:
+      context: ./socket
+      dockerfile: Dockerfile
+    container_name: khodat-socket
+    restart: always
     ports:
-      - "8095:80"
+      - "127.0.0.1:3020:3020"
+    environment:
+      - PORT=3020
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - CORS_ORIGINS=https://app.khodat.com,https://admin.khodat.com
     networks:
       - khodat-network
     depends_on:
-      mysql:
-        condition: service_healthy
+      - redis
+      - backend
 
 networks:
   khodat-network:
@@ -235,5 +304,4 @@ volumes:
   mysql-data:
   redis-data:
   minio-data:
-  backend-vendor:
-  sandat-vendor:
+  sandat-storage:
