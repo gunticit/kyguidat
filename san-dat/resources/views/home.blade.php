@@ -891,14 +891,23 @@
                 zoom: 5,
                 scrollWheelZoom: false,
                 dragging: !L.Browser.mobile,
-                tap: false,
-                fullscreenControl: true,
-                fullscreenControlOptions: {
+                tap: false
+            });
+
+            // Add fullscreen control explicitly
+            if (L.control.fullscreen) {
+                L.control.fullscreen({
                     position: 'topleft',
                     title: 'Xem toàn màn hình',
                     titleCancel: 'Thoát toàn màn hình'
-                }
-            });
+                }).addTo(map);
+            } else if (L.Control.FullScreen) {
+                map.addControl(new L.Control.FullScreen({
+                    position: 'topleft',
+                    title: 'Xem toàn màn hình',
+                    titleCancel: 'Thoát toàn màn hình'
+                }));
+            }
 
             // OpenStreetMap tiles
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
