@@ -2,6 +2,37 @@
 
 @section('title', ($article['title'] ?? 'Tin tức') . ' - ' . ($settings['siteName'] ?? 'SànĐất'))
 
+@php
+    // Prepare OG image from article's featured image
+    $articleOgImage = $article['featured_image'] ?? '';
+
+    // Prepare OG description: use excerpt or strip HTML from content
+    $articleOgDescription = '';
+    if (!empty($article['excerpt'])) {
+        $articleOgDescription = strip_tags($article['excerpt']);
+    } elseif (!empty($article['content'])) {
+        $articleOgDescription = strip_tags(html_entity_decode($article['content']));
+    }
+    $articleOgDescription = \Illuminate\Support\Str::limit($articleOgDescription, 160);
+    if (empty($articleOgDescription)) {
+        $articleOgDescription = ($article['title'] ?? 'Tin tức') . ' - Tin tức bất động sản';
+    }
+
+    $articleOgTitle = ($article['title'] ?? 'Tin tức') . ' - ' . ($settings['siteName'] ?? 'SànĐất');
+@endphp
+
+@section('og_type', 'article')
+@section('og_title', $articleOgTitle)
+@section('description', $articleOgDescription)
+@section('og_description', $articleOgDescription)
+@if($articleOgImage)
+    @section('og_image', $articleOgImage)
+    @section('twitter_image', $articleOgImage)
+@endif
+@section('og_url', url()->current())
+@section('twitter_title', $articleOgTitle)
+@section('twitter_description', $articleOgDescription)
+
 @section('content')
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Breadcrumb -->

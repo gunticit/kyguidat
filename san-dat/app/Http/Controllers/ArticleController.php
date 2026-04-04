@@ -55,7 +55,13 @@ class ArticleController extends Controller
         $recentResponse = Http::get("{$this->apiUrl}/api/public/articles", ['per_page' => 5]);
         $recentArticles = $recentResponse->successful() ? ($recentResponse->json()['data'] ?? []) : [];
 
-        return view('articles.show', compact('article', 'recentArticles'));
+        // Load site settings for OG meta
+        $settings = [];
+        if (Storage::exists('settings.json')) {
+            $settings = json_decode(Storage::get('settings.json'), true) ?? [];
+        }
+
+        return view('articles.show', compact('article', 'recentArticles', 'settings'));
     }
 
     /**

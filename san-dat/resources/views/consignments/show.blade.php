@@ -2,6 +2,42 @@
 
 @section('title', $consignment['title'] . ' - Sàn Đất')
 
+@php
+    // Prepare OG image: use first valid image from consignment
+    $ogImages = [];
+    if (!empty($consignment['images'])) {
+        if (is_string($consignment['images'])) {
+            $ogImages = json_decode($consignment['images'], true) ?? [];
+        } elseif (is_array($consignment['images'])) {
+            $ogImages = $consignment['images'];
+        }
+    }
+    $ogImages = array_values(array_filter($ogImages, fn($img) => !empty($img) && !str_starts_with($img, 'data:')));
+    if (empty($ogImages) && !empty($consignment['featured_image']) && !str_starts_with($consignment['featured_image'], 'data:')) {
+        $ogImages = [$consignment['featured_image']];
+    }
+    $ogImage = $ogImages[0] ?? '';
+
+    // Prepare OG description: strip HTML from description, limit to 160 chars
+    $ogDescription = strip_tags(html_entity_decode($consignment['description'] ?? ''));
+    $ogDescription = \Illuminate\Support\Str::limit($ogDescription, 160);
+    if (empty($ogDescription)) {
+        $ogDescription = $consignment['title'] . ' - ' . ($consignment['address'] ?? 'Bất động sản');
+    }
+@endphp
+
+@section('og_type', 'article')
+@section('og_title', $consignment['title'] . ' - Sàn Đất')
+@section('description', $ogDescription)
+@section('og_description', $ogDescription)
+@if($ogImage)
+    @section('og_image', $ogImage)
+    @section('twitter_image', $ogImage)
+@endif
+@section('og_url', url()->current())
+@section('twitter_title', $consignment['title'] . ' - Sàn Đất')
+@section('twitter_description', $ogDescription)
+
 @section('content')
     @php
         // Parse images safely

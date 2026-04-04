@@ -53,23 +53,18 @@
     @endif
 
     {{-- Open Graph --}}
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:title" content="@yield('og_title', $seoOgTitle ?: $defaultTitle)">
     <meta property="og:description" content="@yield('og_description', $seoOgDescription ?: $defaultDescription)">
-    @if($seoOgImage)
-        <meta property="og:image" content="{{ $seoOgImage }}">
-    @endif
-    @if($seoCanonical)
-        <meta property="og:url" content="{{ $seoCanonical }}">
-    @endif
+    <meta property="og:image" content="@yield('og_image', $seoOgImage ?: url('/logo.jpg'))">
+    <meta property="og:url" content="@yield('og_url', $seoCanonical ?: url()->current())">
+    <meta property="og:site_name" content="{{ $appSiteName }}">
 
     {{-- Twitter Cards --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('twitter_title', $seoTwitterTitle ?: $defaultTitle)">
     <meta name="twitter:description" content="@yield('twitter_description', $seoTwitterDescription ?: $defaultDescription)">
-    @if($seoOgImage)
-        <meta name="twitter:image" content="{{ $seoOgImage }}">
-    @endif
+    <meta name="twitter:image" content="@yield('twitter_image', $seoOgImage ?: url('/logo.jpg'))">
 
     @if($appFavicon)
         <link rel="icon" type="image/png" href="{{ $appFavicon }}">
