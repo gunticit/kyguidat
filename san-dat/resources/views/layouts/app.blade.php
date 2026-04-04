@@ -59,6 +59,7 @@
     <meta property="og:image" content="@yield('og_image', $seoOgImage ?: url('/logo.jpg'))">
     <meta property="og:url" content="@yield('og_url', $seoCanonical ?: url()->current())">
     <meta property="og:site_name" content="{{ $appSiteName }}">
+    <meta property="fb:app_id" content="{{ env('FACEBOOK_APP_ID', '966242223397117') }}">
 
     {{-- Twitter Cards --}}
     <meta name="twitter:card" content="summary_large_image">
