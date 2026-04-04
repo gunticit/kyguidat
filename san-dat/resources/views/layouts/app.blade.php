@@ -11,6 +11,7 @@
             $appSettings = json_decode(Storage::get('settings.json'), true) ?? [];
         }
         $appFavicon = isset($appSettings['favicon']) ? preg_replace('#^https?://[^/]+#', '', $appSettings['favicon']) : '';
+        $appLogo = isset($appSettings['logo']) ? preg_replace('#^https?://[^/]+#', '', $appSettings['logo']) : '/logo.jpg';
         $appSiteName = $appSettings['siteName'] ?? 'Sàn Đất';
 
         // Load SEO settings from admin
@@ -56,7 +57,7 @@
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:title" content="@yield('og_title', $seoOgTitle ?: $defaultTitle)">
     <meta property="og:description" content="@yield('og_description', $seoOgDescription ?: $defaultDescription)">
-    <meta property="og:image" content="@yield('og_image', $seoOgImage ?: url('/logo.jpg'))">
+    <meta property="og:image" content="@yield('og_image', $seoOgImage ?: url($appLogo))">
     <meta property="og:url" content="@yield('og_url', $seoCanonical ?: url()->current())">
     <meta property="og:site_name" content="{{ $appSiteName }}">
     <meta property="fb:app_id" content="{{ env('FACEBOOK_APP_ID', '966242223397117') }}">
@@ -65,7 +66,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('twitter_title', $seoTwitterTitle ?: $defaultTitle)">
     <meta name="twitter:description" content="@yield('twitter_description', $seoTwitterDescription ?: $defaultDescription)">
-    <meta name="twitter:image" content="@yield('twitter_image', $seoOgImage ?: url('/logo.jpg'))">
+    <meta name="twitter:image" content="@yield('twitter_image', $seoOgImage ?: url($appLogo))">
 
     @if($appFavicon)
         <link rel="icon" type="image/png" href="{{ $appFavicon }}">
