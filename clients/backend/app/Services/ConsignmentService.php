@@ -7,6 +7,7 @@ use App\Models\Consignment;
 use App\Models\ConsignmentHistory;
 use App\Models\UserPackage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -138,9 +139,21 @@ class ConsignmentService
         $latitude = null;
         $longitude = null;
         $mapLink = $data['google_map_link'] ?? null;
-        if ($mapLink && preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
-            $latitude = $matches[1];
-            $longitude = $matches[2];
+        if ($mapLink) {
+            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
+                $latitude = $matches[1];
+                $longitude = $matches[2];
+            } elseif (preg_match('/maps\.app\.goo\.gl|goo\.gl\/maps/i', $mapLink)) {
+                // Resolve short URL for coordinates
+                try {
+                    $parser = app(QuickPostParserService::class);
+                    $coords = $parser->resolveGoogleMapsCoords($mapLink);
+                    $latitude = $coords['latitude'];
+                    $longitude = $coords['longitude'];
+                } catch (\Throwable $e) {
+                    // Silently fail - coordinates are optional
+                }
+            }
         }
 
         $consignment = $user->consignments()->create([

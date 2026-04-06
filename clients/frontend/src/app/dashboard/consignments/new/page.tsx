@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiArrowLeft, FiUpload, FiX, FiFile, FiRotateCw } from 'react-icons/fi';
+import { FiArrowLeft, FiUpload, FiX, FiFile, FiRotateCw, FiZap, FiCheck, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Link from 'next/link';
 import { consignmentApi, uploadApi } from '@/lib/api';
 import { formatCurrencyInput } from '@/lib/formatCurrency';
@@ -33,6 +33,13 @@ export default function NewConsignmentPage() {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [apiError, setApiError] = useState<string | null>(null);
     const [isQuotaExceeded, setIsQuotaExceeded] = useState(false);
+
+    // Quick Paste states
+    const [showQuickPaste, setShowQuickPaste] = useState(false);
+    const [quickText, setQuickText] = useState('');
+    const [isParsing, setIsParsing] = useState(false);
+    const [parseError, setParseError] = useState<string | null>(null);
+    const [parsedFields, setParsedFields] = useState<Set<string>>(new Set());
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -107,6 +114,92 @@ export default function NewConsignmentPage() {
         setFormData(prev => ({ ...prev, [name]: rawValue }));
         setErrors(prev => ({ ...prev, [name]: '' }));
         setApiError(null);
+    };
+
+    // Quick Paste: AI Parse handler
+    const handleQuickParse = async () => {
+        if (!quickText.trim() || quickText.trim().length < 20) {
+            setParseError('Nội dung quá ngắn. Vui lòng dán bài đăng đầy đủ hơn.');
+            return;
+        }
+
+        setIsParsing(true);
+        setParseError(null);
+        setParsedFields(new Set());
+
+        try {
+            const response = await consignmentApi.parseQuickPost(quickText);
+
+            if (response.data.success && response.data.data) {
+                const data = response.data.data;
+                const filled = new Set<string>();
+
+                setFormData(prev => {
+                    const updated = { ...prev };
+
+                    if (data.title) {
+                        updated.title = data.title;
+                        filled.add('title');
+                    }
+                    if (data.description) {
+                        updated.description = data.description;
+                        filled.add('description');
+                    }
+                    if (data.address) {
+                        updated.address = data.address;
+                        filled.add('address');
+                    }
+                    if (data.price) {
+                        updated.price = String(data.price);
+                        filled.add('price');
+                    }
+                    if (data.seller_phone) {
+                        updated.seller_phone = data.seller_phone;
+                        filled.add('seller_phone');
+                    }
+                    if (data.google_map_link) {
+                        updated.google_map_link = data.google_map_link;
+                        filled.add('google_map_link');
+                    }
+
+                    // Auto-fill note_to_admin
+                    updated.note_to_admin = 'Đăng bài nhanh';
+                    filled.add('note_to_admin');
+
+                    return updated;
+                });
+
+                setParsedFields(filled);
+                setErrors({});
+                setApiError(null);
+            } else {
+                setParseError(response.data.message || 'Không thể phân tích nội dung. Vui lòng thử lại.');
+            }
+        } catch (error: any) {
+            console.error('Parse error:', error);
+            if (error.response?.data?.message) {
+                setParseError(error.response.data.message);
+            } else if (error.response?.data?.errors?.text) {
+                setParseError(error.response.data.errors.text[0]);
+            } else {
+                setParseError('Có lỗi xảy ra khi phân tích. Vui lòng thử lại.');
+            }
+        } finally {
+            setIsParsing(false);
+        }
+    };
+
+    const handleClearQuickPaste = () => {
+        setQuickText('');
+        setParseError(null);
+        setParsedFields(new Set());
+    };
+
+    const getInputClassName = (fieldName: string, baseClass: string = 'input') => {
+        const classes = [baseClass];
+        if (errors[fieldName]) classes.push('input-error');
+        if (parsedFields.has(fieldName)) classes.push(styles.parsedHighlight);
+        return classes.join(' ');
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -206,6 +299,63 @@ export default function NewConsignmentPage() {
             <h1 className={styles.pageTitle}>Tạo yêu cầu ký gửi</h1>
             <p className={styles.pageSubtitle}>Điền thông tin đất bạn muốn bán</p>
 
+            {/* Quick Paste Section */}
+            <div className={styles.quickPasteCard}>
+                <div className={styles.quickPasteHeader} onClick={() => setShowQuickPaste(!showQuickPaste)} style={{ cursor: 'pointer' }}>
+                    <FiZap size={20} color="#8b5cf6" />
+                    <span className={styles.quickPasteTitle}>⚡ Đăng bài nhanh</span>
+                    <span style={{ marginLeft: 'auto', color: 'var(--text-secondary)' }}>
+                        {showQuickPaste ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
+                    </span>
+                </div>
+                {showQuickPaste && (
+                    <>
+                        <p className={styles.quickPasteHint}>
+                            Dán nội dung bài đăng từ Zalo, Facebook vào đây. AI sẽ tự phân tích và điền thông tin vào các trường bên dưới.
+                        </p>
+                        <textarea
+                            className={styles.quickTextarea}
+                            placeholder={`Dán nội dung bài đăng ở đây...\n\nVD:\n🔥 Đất mặt tiền đường nhựa kinh doanh...\n👉 Diện tích: 6x67m\n❌ Giá: 1tỉ 450tr\nLh: 0779502838\nhttps://maps.app.goo.gl/...`}
+                            value={quickText}
+                            onChange={(e) => {
+                                setQuickText(e.target.value);
+                                setParseError(null);
+                            }}
+                            rows={6}
+                        />
+                        <div className={styles.parseActions}>
+                            <button
+                                type="button"
+                                className={styles.parseBtn}
+                                onClick={handleQuickParse}
+                                disabled={isParsing || !quickText.trim()}
+                            >
+                                {isParsing ? (
+                                    <><span className="spinner" /> Đang phân tích...</>
+                                ) : (
+                                    <>🤖 AI Phân tích</>
+                                )}
+                            </button>
+                            {quickText && (
+                                <button
+                                    type="button"
+                                    className={styles.clearBtn}
+                                    onClick={handleClearQuickPaste}
+                                >
+                                    Xóa
+                                </button>
+                            )}
+                            {parsedFields.size > 0 && !isParsing && (
+                                <span className={styles.parseSuccess}>
+                                    <FiCheck size={16} /> Đã điền {parsedFields.size} trường
+                                </span>
+                            )}
+                        </div>
+                        {parseError && <p className={styles.parseError}>{parseError}</p>}
+                    </>
+                )}
+            </div>
+
             {apiError && (
                 <div className={styles.errorAlert}>
                     <p>{apiError}</p>
@@ -228,7 +378,7 @@ export default function NewConsignmentPage() {
                             id="title"
                             type="text"
                             name="title"
-                            className={`input ${errors.title ? 'input-error' : ''}`}
+                            className={getInputClassName('title')}
                             placeholder="VD: Bán đất mặt tiền đường Nguyễn Văn Linh, Quận 7"
                             value={formData.title}
                             onChange={handleChange}
@@ -241,7 +391,7 @@ export default function NewConsignmentPage() {
                         <textarea
                             id="description"
                             name="description"
-                            className="input"
+                            className={getInputClassName('description')}
                             rows={5}
                             placeholder="Mô tả chi tiết về đất: diện tích, hướng, pháp lý, quy hoạch, tiện ích xung quanh..."
                             value={formData.description}
@@ -260,7 +410,7 @@ export default function NewConsignmentPage() {
                             id="address"
                             type="text"
                             name="address"
-                            className={`input ${errors.address ? 'input-error' : ''}`}
+                            className={getInputClassName('address')}
                             placeholder="VD: 123 Đường ABC, Phường XYZ, Quận 7, TP.HCM"
                             value={formData.address}
                             onChange={handleChange}
@@ -274,7 +424,7 @@ export default function NewConsignmentPage() {
                             id="google_map_link"
                             type="text"
                             name="google_map_link"
-                            className={`input ${errors.google_map_link ? 'input-error' : ''}`}
+                            className={getInputClassName('google_map_link')}
                             placeholder="VD: https://maps.app.goo.gl/abc123 hoặc link Google Maps"
                             value={formData.google_map_link}
                             onChange={handleChange}
@@ -295,7 +445,7 @@ export default function NewConsignmentPage() {
                                 id="price"
                                 type="text"
                                 name="price"
-                                className={`input ${errors.price ? 'input-error' : ''}`}
+                                className={getInputClassName('price')}
                                 placeholder="VD: 5,000,000,000"
                                 value={formatCurrencyInput(formData.price)}
                                 onChange={handlePriceChange}
@@ -314,7 +464,7 @@ export default function NewConsignmentPage() {
                                 id="min_price"
                                 type="text"
                                 name="min_price"
-                                className={`input ${errors.min_price ? 'input-error' : ''}`}
+                                className={getInputClassName('min_price')}
                                 placeholder="Để trống nếu không có"
                                 value={formatCurrencyInput(formData.min_price)}
                                 onChange={handlePriceChange}
@@ -335,7 +485,7 @@ export default function NewConsignmentPage() {
                             id="seller_phone"
                             type="tel"
                             name="seller_phone"
-                            className={`input ${errors.seller_phone ? 'input-error' : ''}`}
+                            className={getInputClassName('seller_phone')}
                             placeholder="VD: 0901234567"
                             value={formData.seller_phone}
                             onChange={handleChange}
@@ -433,7 +583,7 @@ export default function NewConsignmentPage() {
                         <textarea
                             id="note_to_admin"
                             name="note_to_admin"
-                            className="input"
+                            className={getInputClassName('note_to_admin')}
                             rows={3}
                             placeholder="Ghi chú thêm cho chúng tôi: thời gian liên hệ phù hợp, yêu cầu đặc biệt..."
                             value={formData.note_to_admin}

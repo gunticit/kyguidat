@@ -122,6 +122,8 @@ export const consignmentApi = {
         api.post(`/consignments/${id}/reactivate`),
     getPostingQuota: () =>
         api.get('/posting-quota'),
+    parseQuickPost: (text: string) =>
+        api.post('/consignments/parse-quick-post', { text }),
 };
 
 // Payment APIs

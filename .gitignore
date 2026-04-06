@@ -8,6 +8,7 @@ Thumbs.db
 .env.prod
 .env.production
 *.env.production
+docker-compose.override.yml
 
 # SSL certificates
 certbot/

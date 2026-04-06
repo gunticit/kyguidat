@@ -153,6 +153,9 @@ services:
       - AWS_USE_PATH_STYLE_ENDPOINT=true
       - IMAGE_QUALITY=80
       - IMAGE_FORMAT=webp
+      # AI Quick Post Parser
+      - AI_API_URL=${AI_API_URL:-http://103.90.226.30:20128/v1/responses}
+      - AI_API_MODEL=${AI_API_MODEL:-cx/gpt-5-codex-mini}
     networks:
       - khodat-network
     depends_on:

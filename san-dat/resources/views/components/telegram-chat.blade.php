@@ -5,30 +5,37 @@
         background: #111827;
         border-color: #1e293b;
     }
+
     #tcwMessages {
         background: #0b1121;
     }
+
     .tcw-msg-bubble {
         background: #1a2332;
         border-color: #1e293b;
         color: #e5e7eb;
     }
+
     .tcw-msg-avatar {
         background: #064e3b;
         color: #4ade80;
     }
+
     .tcw-input-area {
         background: #111827;
         border-color: #1e293b;
     }
+
     #tcwInput {
         background: #1a2332 !important;
         color: #f3f4f6 !important;
         border-color: #1e293b !important;
     }
+
     #tcwInput::placeholder {
         color: #6b7280 !important;
     }
+
     .tcw-powered {
         color: #6b7280;
     }
@@ -38,30 +45,37 @@
         background: #ffffff;
         border-color: #e2e8f0;
     }
+
     [data-theme="day"] #tcwMessages {
         background: #f8fafc;
     }
+
     [data-theme="day"] .tcw-msg-bubble {
         background: #ffffff;
         border-color: #e2e8f0;
         color: #334155;
     }
+
     [data-theme="day"] .tcw-msg-avatar {
         background: #dcfce7;
         color: #16a34a;
     }
+
     [data-theme="day"] .tcw-input-area {
         background: #ffffff;
         border-color: #e2e8f0;
     }
+
     [data-theme="day"] #tcwInput {
         background: #f1f5f9 !important;
         color: #0f172a !important;
         border-color: #e2e8f0 !important;
     }
+
     [data-theme="day"] #tcwInput::placeholder {
         color: #94a3b8 !important;
     }
+
     [data-theme="day"] .tcw-powered {
         color: #94a3b8;
     }
@@ -71,11 +85,7 @@
     <!-- Chat Icon -->
     <button id="tcwToggleBtn" onclick="tcwToggleChat()"
         class="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center text-white shadow-[0_4px_12px_rgba(34,197,94,0.4)] hover:bg-green-600 transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-green-500/30">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path
-                d="M21.198 2.007L1.83 9.421c-1.107.424-1.127 1.936-.027 2.387l5.448 2.228M21.198 2.007L16.48 21.09c-.218.868-1.293 1.15-1.928.5L9.624 16.7M21.198 2.007L9.623 16.7m0 0l-2.373 4.88c-.378.777-1.503.744-1.834-.055l-2.046-4.834" />
-        </svg>
+        <img src="{{ asset('images/ai-icon-chat.png') }}" alt="AI Chat" class="w-full h-full object-cover rounded-full">
     </button>
 
     <!-- Chat Box -->

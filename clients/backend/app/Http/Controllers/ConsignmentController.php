@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Consignment\StoreConsignmentRequest;
 use App\Http\Requests\Consignment\UpdateConsignmentRequest;
+use App\Http\Requests\Consignment\ParseQuickPostRequest;
 use App\Models\Consignment;
 use App\Services\ConsignmentService;
+use App\Services\QuickPostParserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConsignmentController extends Controller
 {
     public function __construct(
-        private ConsignmentService $consignmentService
+        private ConsignmentService $consignmentService,
+        private QuickPostParserService $quickPostParser,
     ) {
     }
 
@@ -215,5 +218,25 @@ class ConsignmentController extends Controller
             'success' => true,
             'data' => $quota
         ]);
+    }
+
+    /**
+     * Parse raw text from Zalo/Facebook into structured consignment fields (AI-powered)
+     */
+    public function parseQuickPost(ParseQuickPostRequest $request): JsonResponse
+    {
+        try {
+            $parsed = $this->quickPostParser->parse($request->input('text'));
+
+            return response()->json([
+                'success' => true,
+                'data' => $parsed,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 }
