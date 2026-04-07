@@ -471,9 +471,9 @@
                 btnGrid.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500');
                 btnGrid.classList.remove('text-gray-400');
             }
-            localStorage.setItem('viewMode', mode);
+            try { localStorage.setItem('viewMode', mode); } catch(e) {}
         }
-        document.addEventListener('DOMContentLoaded', () => setView(localStorage.getItem('viewMode') || 'grid'));
+        document.addEventListener('DOMContentLoaded', function() { var m = 'grid'; try { m = localStorage.getItem('viewMode') || 'grid'; } catch(e) {} setView(m); });
     </script>
 
     <!-- Map Scripts -->
@@ -590,14 +590,14 @@
             border-radius: 8px;
         }
     </style>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.0.0/Control.FullScreen.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.0.0/Control.FullScreen.min.js" crossorigin="anonymous"></script>
     <script>
-        const properties = @json($mapData);
-        let map;
-        let markers = [];
-        let markerClusterGroup;
+        var properties = @json($mapData);
+        var map;
+        var markers = [];
+        var markerClusterGroup;
 
         // Custom green circle icon
         const greenIcon = L.divIcon({
@@ -616,53 +616,61 @@
         }
 
         function initMap() {
-            map = L.map('property-map', {
-                center: [12.5, 108.5],
-                zoom: 5,
-                scrollWheelZoom: false,
-                dragging: !L.Browser.mobile,
-                tap: false
-            });
+            try {
+                map = L.map('property-map', {
+                    center: [12.5, 108.5],
+                    zoom: 5,
+                    scrollWheelZoom: false,
+                    dragging: !L.Browser.mobile,
+                    tap: false
+                });
 
-            // Fullscreen control
-            if (L.control.fullscreen) {
-                L.control.fullscreen({
-                    position: 'topleft',
-                    title: 'Xem toàn màn hình',
-                    titleCancel: 'Thoát toàn màn hình'
+                // Fullscreen control (optional plugin)
+                try {
+                    if (typeof L.control.fullscreen === 'function') {
+                        L.control.fullscreen({
+                            position: 'topleft',
+                            title: 'Xem toàn màn hình',
+                            titleCancel: 'Thoát toàn màn hình'
+                        }).addTo(map);
+                    } else if (typeof L.Control !== 'undefined' && typeof L.Control.FullScreen === 'function') {
+                        map.addControl(new L.Control.FullScreen({
+                            position: 'topleft',
+                            title: 'Xem toàn màn hình',
+                            titleCancel: 'Thoát toàn màn hình'
+                        }));
+                    }
+                } catch(fsErr) {
+                    console.warn('Fullscreen plugin not available:', fsErr);
+                }
+
+                // OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                    maxZoom: 19
                 }).addTo(map);
-            } else if (L.Control.FullScreen) {
-                map.addControl(new L.Control.FullScreen({
-                    position: 'topleft',
-                    title: 'Xem toàn màn hình',
-                    titleCancel: 'Thoát toàn màn hình'
-                }));
-            }
 
-            // OpenStreetMap tiles
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 19
-            }).addTo(map);
+                // Google Maps-style gesture handling
+                setupGestureHandling();
 
-            // Google Maps-style gesture handling
-            setupGestureHandling();
+                // Marker cluster group
+                markerClusterGroup = L.markerClusterGroup({
+                    maxClusterRadius: 50,
+                    spiderfyOnMaxZoom: true,
+                    showCoverageOnHover: false
+                });
+                map.addLayer(markerClusterGroup);
 
-            // Marker cluster group
-            markerClusterGroup = L.markerClusterGroup({
-                maxClusterRadius: 50,
-                spiderfyOnMaxZoom: true,
-                showCoverageOnHover: false
-            });
-            map.addLayer(markerClusterGroup);
+                properties.filter(function(p) { return p.lat && p.lng; }).forEach(function(p) { addMarker(p); });
 
-            properties.filter(p => p.lat && p.lng).forEach(p => addMarker(p));
-
-            // Fit bounds
-            if (markers.length > 0) {
-                const group = L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.1));
-                if (markers.length === 1) map.setZoom(14);
+                // Fit bounds
+                if (markers.length > 0) {
+                    var group = L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                    if (markers.length === 1) map.setZoom(14);
+                }
+            } catch(e) {
+                console.error('Map init error:', e);
             }
         }
 
@@ -728,7 +736,7 @@
             function showOverlay() {
                 overlay.classList.add('visible');
                 clearTimeout(overlayTimeout);
-                overlayTimeout = setTimeout(() => overlay.classList.remove('visible'), 1500);
+                overlayTimeout = setTimeout(function() { overlay.classList.remove('visible'); }, 1500);
             }
             container.addEventListener('wheel', function (e) {
                 if (e.ctrlKey || e.metaKey) {
@@ -737,7 +745,7 @@
                     clearTimeout(overlayTimeout);
                     overlay.classList.remove('visible');
                     clearTimeout(container._wheelTimer);
-                    container._wheelTimer = setTimeout(() => map.scrollWheelZoom.disable(), 400);
+                    container._wheelTimer = setTimeout(function() { map.scrollWheelZoom.disable(); }, 400);
                 } else {
                     showOverlay();
                 }
@@ -766,7 +774,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             // Auto-scroll to results grid when there are search parameters
             if (window.location.search) {
-                setTimeout(() => {
+                setTimeout(function() {
                     const resultsGrid = document.getElementById('resultsGrid');
                     if (resultsGrid) {
                         // Offset for sticky header
