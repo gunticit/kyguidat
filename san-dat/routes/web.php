@@ -55,6 +55,42 @@ Route::get('/api/public/provinces', function () {
     return response()->json(['data' => $provinces]);
 });
 
+// AI Chat proxy
+Route::post('/api/ai-chat', function (\Illuminate\Http\Request $request) {
+    $message = $request->input('message', '');
+    if (!$message) {
+        return response()->json(['error' => 'Message is required'], 400);
+    }
+
+    try {
+        $response = \Illuminate\Support\Facades\Http::timeout(30)->post('http://103.90.226.30:20128/v1/responses', [
+            'model' => 'cx/gpt-5-codex-mini',
+            'input' => $message,
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            // Extract text from the response output
+            $text = '';
+            foreach (($data['output'] ?? []) as $output) {
+                if (($output['type'] ?? '') === 'message') {
+                    foreach (($output['content'] ?? []) as $content) {
+                        if (($content['type'] ?? '') === 'output_text') {
+                            $text = $content['text'] ?? '';
+                            break 2;
+                        }
+                    }
+                }
+            }
+            return response()->json(['text' => $text ?: 'Xin lỗi, tôi không thể trả lời lúc này.']);
+        }
+
+        return response()->json(['text' => 'Hệ thống AI đang bận, vui lòng thử lại sau.'], 500);
+    } catch (\Exception $e) {
+        return response()->json(['text' => 'Không thể kết nối tới AI. Vui lòng thử lại sau.'], 500);
+    }
+})->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+
 // Dynamic CMS Pages (catch-all — must be last!)
 Route::get('/{slug}', [PageController::class, 'show'])->name('pages.show')
     ->where('slug', '^(?!api|bat-dong-san|tim-kiem|tin-tuc|lien-he|chinh-sach-bao-mat|dieu-khoan-su-dung|xoa-tai-khoan).*$');

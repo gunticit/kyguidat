@@ -1009,7 +1009,7 @@
 
         // Update map markers to match current filtered results
         function updateMapMarkers(items) {
-            if (!map) return;
+            if (!map || !markerClusterGroup) return;
             // Clear existing markers
             markerClusterGroup.clearLayers();
             markers = [];

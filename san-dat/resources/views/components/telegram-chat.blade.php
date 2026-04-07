@@ -1,4 +1,4 @@
-<!-- Telegram Chat Widget -->
+<!-- AI Chat Widget -->
 <style>
     /* Chat widget theme-aware styles */
     #tcwChatBox {
@@ -79,6 +79,24 @@
     [data-theme="day"] .tcw-powered {
         color: #94a3b8;
     }
+
+    /* Typing animation */
+    .tcw-typing-dots span {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #4ade80;
+        margin: 0 2px;
+        animation: tcwBounce 1.4s infinite ease-in-out both;
+    }
+    .tcw-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .tcw-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    .tcw-typing-dots span:nth-child(3) { animation-delay: 0s; }
+    @keyframes tcwBounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
 </style>
 <div id="telegramChatWidget" class="fixed bottom-24 right-4 z-[9999] md:bottom-6 md:right-6 font-sans">
 
@@ -95,7 +113,7 @@
         <!-- Header -->
         <div class="bg-gradient-to-r from-green-500 to-green-600 p-4 text-white flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
@@ -103,10 +121,10 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="font-bold text-sm">Hỗ Trợ Trực Tuyến</h3>
+                    <h3 class="font-bold text-sm">AI Hỗ Trợ Bất Động Sản</h3>
                     <p class="text-xs text-green-100 flex items-center gap-1">
                         <span class="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
-                        Đang hoạt động. Nhắn để được hỗ trợ!
+                        Trợ lý AI sẵn sàng hỗ trợ bạn
                     </p>
                 </div>
             </div>
@@ -125,13 +143,12 @@
                 <div class="w-8 h-8 rounded-full tcw-msg-avatar flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path
-                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-                        </path>
+                        <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
+                        <path d="M12 12V2a10 10 0 1 1-10 10h10z" />
                     </svg>
                 </div>
                 <div class="tcw-msg-bubble p-3 rounded-2xl rounded-bl-sm shadow-sm border">
-                    <p class="text-sm">Chào bạn! Chúng tôi có thể giúp gì cho bạn hôm nay?</p>
+                    <p class="text-sm">Xin chào! Tôi là trợ lý AI của Khodat. Bạn cần tư vấn gì về bất động sản?</p>
                 </div>
             </div>
         </div>
@@ -152,7 +169,7 @@
                 </button>
             </form>
             <div class="mt-2 text-center">
-                <span class="text-[10px] tcw-powered">Powered by Khodat</span>
+                <span class="text-[10px] tcw-powered">Powered by AI · Khodat</span>
             </div>
         </div>
     </div>
@@ -160,9 +177,9 @@
 
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script>
-    let tcwIsOpen = false;
-    let tcwSocket = null;
-    let tcwGuestId = null;
+    var tcwIsOpen = false;
+    var tcwSocket = null;
+    var tcwGuestId = null;
     try { tcwGuestId = localStorage.getItem('tcw_session_id'); } catch(e) {}
 
     if (!tcwGuestId) {
@@ -170,57 +187,42 @@
         try { localStorage.setItem('tcw_session_id', tcwGuestId); } catch(e) {}
     }
 
+    // Initialize Telegram socket (for admin monitoring)
     function initTcwSocket() {
         if (tcwSocket) return;
-
-        tcwSocket = io("https://socket.khodat.com", {
-            transports: ['websocket', 'polling']
-        });
-
-        tcwSocket.on('connect', () => {
-            console.log('🔗 Connected to Live Chat Server');
-            tcwSocket.emit('join_guest_chat', { guestId: tcwGuestId });
-        });
-
-        tcwSocket.on('telegram_admin_reply', (data) => {
-            tcwRenderMsg(data.text, 'bot');
-
-            // Auto open box when unread message come
-            if (!tcwIsOpen) {
-                const btn = document.getElementById('tcwToggleBtn');
-                btn.classList.add('animate-bounce');
-                setTimeout(() => btn.classList.remove('animate-bounce'), 3000);
-            }
-        });
-
-        tcwSocket.on('guest_message_sent', () => {
-            const input = document.getElementById('tcwInput');
-            input.disabled = false;
-            input.focus();
-        });
-
-        tcwSocket.on('guest_message_error', (data) => {
-            tcwRenderMsg("Hệ thống gián đoạn: " + (data.message || 'Lỗi gửi tin lên Telegram'), 'bot');
-            const input = document.getElementById('tcwInput');
-            input.disabled = false;
-        });
+        try {
+            tcwSocket = io("https://socket.khodat.com", {
+                transports: ['websocket', 'polling']
+            });
+            tcwSocket.on('connect', function() {
+                tcwSocket.emit('join_guest_chat', { guestId: tcwGuestId });
+            });
+            tcwSocket.on('telegram_admin_reply', function(data) {
+                tcwRenderMsg(data.text, 'bot');
+                if (!tcwIsOpen) {
+                    var btn = document.getElementById('tcwToggleBtn');
+                    btn.classList.add('animate-bounce');
+                    setTimeout(function() { btn.classList.remove('animate-bounce'); }, 3000);
+                }
+            });
+        } catch(e) {
+            console.warn('Socket init failed:', e);
+        }
     }
 
     function tcwToggleChat() {
-        if (!tcwSocket) {
-            initTcwSocket();
-        }
+        if (!tcwSocket) initTcwSocket();
 
-        const chatBox = document.getElementById('tcwChatBox');
+        var chatBox = document.getElementById('tcwChatBox');
         if (tcwIsOpen) {
             chatBox.classList.replace('scale-100', 'scale-95');
             chatBox.classList.replace('opacity-100', 'opacity-0');
-            setTimeout(() => { chatBox.classList.add('hidden'); chatBox.classList.remove('flex', 'flex-col'); }, 200);
+            setTimeout(function() { chatBox.classList.add('hidden'); chatBox.classList.remove('flex', 'flex-col'); }, 200);
             tcwIsOpen = false;
         } else {
             chatBox.classList.remove('hidden');
             chatBox.classList.add('flex', 'flex-col');
-            setTimeout(() => {
+            setTimeout(function() {
                 chatBox.classList.replace('scale-95', 'scale-100');
                 chatBox.classList.replace('opacity-0', 'opacity-100');
                 document.getElementById('tcwInput').focus();
@@ -231,47 +233,95 @@
 
     function tcwSendMessage(e) {
         e.preventDefault();
-        const input = document.getElementById('tcwInput');
-        const text = input.value.trim();
+        var input = document.getElementById('tcwInput');
+        var text = input.value.trim();
         if (!text) return;
 
-        // Bật connect nếu user Enter mà box lỗi ko tự connect
-        if (!tcwSocket || !tcwSocket.connected) initTcwSocket();
-
+        // Show user message
         tcwRenderMsg(text, 'user');
         input.value = '';
         input.disabled = true;
+        document.getElementById('tcwSendBtn').disabled = true;
 
-        tcwSocket.emit('guest_message', {
-            guestId: tcwGuestId,
-            text: text,
-            platform: 'Sàn Web',
+        // Show typing indicator
+        tcwShowTyping();
+
+        // Forward to Telegram (admin monitoring)
+        if (tcwSocket && tcwSocket.connected) {
+            tcwSocket.emit('guest_message', {
+                guestId: tcwGuestId,
+                text: text,
+                platform: 'Sàn Web (AI)',
+            });
+        }
+
+        // Call AI API
+        fetch('/api/ai-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            tcwHideTyping();
+            var reply = (data && data.text) ? data.text : 'Xin lỗi, tôi không thể trả lời lúc này.';
+            tcwRenderMsg(reply, 'bot');
+        })
+        .catch(function(err) {
+            tcwHideTyping();
+            tcwRenderMsg('Kết nối bị gián đoạn. Vui lòng thử lại.', 'bot');
+        })
+        .finally(function() {
+            input.disabled = false;
+            document.getElementById('tcwSendBtn').disabled = false;
+            input.focus();
         });
+    }
 
-        // Timeout unlock in case socket hangs
-        setTimeout(() => { if (input.disabled) input.disabled = false; }, 5000);
+    function tcwShowTyping() {
+        var msgs = document.getElementById('tcwMessages');
+        var html = '<div id="tcwTyping" class="flex items-end gap-2 pr-6 mb-2">' +
+            '<div class="w-8 h-8 rounded-full tcw-msg-avatar flex items-center justify-center flex-shrink-0">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12V2a10 10 0 1 1-10 10h10z"/></svg>' +
+            '</div>' +
+            '<div class="tcw-msg-bubble border p-3 rounded-2xl rounded-bl-sm shadow-sm">' +
+                '<div class="tcw-typing-dots"><span></span><span></span><span></span></div>' +
+            '</div>' +
+        '</div>';
+        msgs.insertAdjacentHTML('beforeend', html);
+        msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function tcwHideTyping() {
+        var el = document.getElementById('tcwTyping');
+        if (el) el.remove();
     }
 
     function tcwRenderMsg(text, sender) {
-        const msgs = document.getElementById('tcwMessages');
-        let html = '';
+        var msgs = document.getElementById('tcwMessages');
+        // Escape HTML to prevent XSS
+        var escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // Convert markdown-like formatting
+        escaped = escaped.replace(/\n/g, '<br>');
+        // Convert "- " list items to styled list
+        escaped = escaped.replace(/^- (.+)/gm, '<span style="display:block;padding-left:12px;text-indent:-12px;">• $1</span>');
+
+        var html = '';
         if (sender === 'user') {
-            html = `
-            <div class="flex items-end justify-end gap-2 pl-6 mb-2">
-                <div class="bg-green-500 text-white p-3 rounded-2xl rounded-br-sm shadow-sm">
-                    <p class="text-sm" style="white-space: pre-wrap; word-wrap: break-word;">${text}</p>
-                </div>
-            </div>`;
+            html = '<div class="flex items-end justify-end gap-2 pl-6 mb-2">' +
+                '<div class="bg-green-500 text-white p-3 rounded-2xl rounded-br-sm shadow-sm">' +
+                    '<p class="text-sm" style="white-space:pre-wrap;word-wrap:break-word;">' + escaped + '</p>' +
+                '</div>' +
+            '</div>';
         } else {
-            html = `
-            <div class="flex items-end gap-2 pr-6 mb-2">
-                <div class="w-8 h-8 rounded-full tcw-msg-avatar flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                </div>
-                <div class="tcw-msg-bubble border p-3 rounded-2xl rounded-bl-sm shadow-sm">
-                    <p class="text-sm" style="white-space: pre-wrap; word-wrap: break-word;">${text}</p>
-                </div>
-            </div>`;
+            html = '<div class="flex items-end gap-2 pr-6 mb-2">' +
+                '<div class="w-8 h-8 rounded-full tcw-msg-avatar flex items-center justify-center flex-shrink-0">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12V2a10 10 0 1 1-10 10h10z"/></svg>' +
+                '</div>' +
+                '<div class="tcw-msg-bubble border p-3 rounded-2xl rounded-bl-sm shadow-sm">' +
+                    '<p class="text-sm" style="white-space:pre-wrap;word-wrap:break-word;">' + escaped + '</p>' +
+                '</div>' +
+            '</div>';
         }
         msgs.insertAdjacentHTML('beforeend', html);
         msgs.scrollTop = msgs.scrollHeight;
