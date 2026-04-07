@@ -543,6 +543,84 @@ class AdminController extends Controller
     }
 
     /**
+     * Resolve a shortened Google Maps URL to its full URL with coordinates
+     */
+    public function resolveMapUrl(Request $request): JsonResponse
+    {
+        $request->validate([
+            'url' => 'required|url|max:2000',
+        ]);
+
+        $url = $request->input('url');
+
+        // Only allow Google Maps short URLs
+        if (!preg_match('/^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|g\.co\/maps)/', $url)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'URL không phải link rút gọn Google Maps',
+            ], 422);
+        }
+
+        try {
+            // Follow redirects using cURL to get the final URL
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_NOBODY => true, // HEAD request only (faster)
+                CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            ]);
+
+            curl_exec($ch);
+            $finalUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($error) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không thể resolve URL: ' . $error,
+                ], 500);
+            }
+
+            // Extract lat/lng from the final URL
+            $latitude = null;
+            $longitude = null;
+
+            if (preg_match('/@(-?\d+\.?\d*),(-?\d+\.?\d*)/', $finalUrl, $matches)) {
+                $latitude = $matches[1];
+                $longitude = $matches[2];
+            } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $finalUrl, $matches)) {
+                $latitude = $matches[1];
+                $longitude = $matches[2];
+            } elseif (preg_match('/!3d(-?\d+\.?\d*)/', $finalUrl, $latMatch) &&
+                       preg_match('/!4d(-?\d+\.?\d*)/', $finalUrl, $lngMatch)) {
+                $latitude = $latMatch[1];
+                $longitude = $lngMatch[1];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'original_url' => $url,
+                    'resolved_url' => $finalUrl,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi resolve URL: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Convert empty strings to null for nullable fields
      */
     private function sanitizeData(array $data): array

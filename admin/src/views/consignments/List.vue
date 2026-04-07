@@ -401,15 +401,25 @@
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-                    <input v-model="form.latitude" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <input v-model="form.latitude" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" :class="{ 'border-green-400 bg-green-50': form.latitude && form.google_map_link }">
+                    <p v-if="form.latitude && form.google_map_link" class="text-xs text-green-600 mt-1">✓ Tự động từ link map</p>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-                    <input v-model="form.longitude" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <input v-model="form.longitude" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" :class="{ 'border-green-400 bg-green-50': form.longitude && form.google_map_link }">
+                    <p v-if="form.longitude && form.google_map_link" class="text-xs text-green-600 mt-1">✓ Tự động từ link map</p>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Link Google Map</label>
-                    <input v-model="form.google_map_link" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <div class="relative">
+                      <input v-model="form.google_map_link" type="text" placeholder="Dán link Google Maps tại đây..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" :class="{ 'pr-10': resolvingMapUrl }" @input="onGoogleMapLinkChange" @paste="onPasteGoogleMapLink">
+                      <div v-if="resolvingMapUrl" class="absolute right-3 top-1/2 -translate-y-1/2">
+                        <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                      </div>
+                    </div>
+                    <p v-if="resolvingMapUrl" class="text-xs text-indigo-600 mt-1 animate-pulse">⏳ Đang resolve link rút gọn...</p>
+                    <p v-else-if="mapResolveError" class="text-xs text-red-500 mt-1">{{ mapResolveError }}</p>
+                    <p v-else class="text-xs text-gray-500 mt-1">Dán link → tự động lấy tọa độ (hỗ trợ cả link rút gọn)</p>
                   </div>
                 </div>
               </div>
@@ -734,6 +744,32 @@ watch(() => form.value?.title, (newTitle) => {
   }
 })
 
+// Auto-extract lat/lng from Google Maps link
+function extractLatLngFromGoogleMapLink(url) {
+  if (!url) return null
+  let match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+  if (match) return { lat: match[1], lng: match[2] }
+  match = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+  if (match) return { lat: match[1], lng: match[2] }
+  match = url.match(/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+  if (match) return { lat: match[1], lng: match[2] }
+  match = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+  if (match) return { lat: match[1], lng: match[2] }
+  const latMatch = url.match(/!3d(-?\d+\.?\d*)/)
+  const lngMatch = url.match(/!4d(-?\d+\.?\d*)/)
+  if (latMatch && lngMatch) return { lat: latMatch[1], lng: lngMatch[1] }
+  return null
+}
+
+// State for resolving short URLs
+const resolvingMapUrl = ref(false)
+const mapResolveError = ref('')
+
+// Check if URL is a shortened Google Maps URL
+function isShortGoogleMapUrl(url) {
+  return /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|g\.co\/maps)/.test(url)
+}
+
 // Quill toolbar options (similar to Summernote)
 const toolbarOptions = [
   ['bold', 'italic', 'underline', 'strike'],
@@ -1020,6 +1056,63 @@ const defaultForm = {
   display_order: 1
 }
 const form = ref({ ...defaultForm })
+
+// === Google Map Link → Auto-extract lat/lng ===
+// Resolve short URL via backend API
+async function resolveShortMapUrl(shortUrl) {
+  resolvingMapUrl.value = true
+  mapResolveError.value = ''
+  try {
+    const response = await adminApi.resolveMapUrl(shortUrl)
+    if (response.data.success && response.data.data) {
+      const { resolved_url, latitude, longitude } = response.data.data
+      if (resolved_url && resolved_url !== shortUrl) {
+        form.value.google_map_link = resolved_url
+      }
+      if (latitude) form.value.latitude = latitude
+      if (longitude) form.value.longitude = longitude
+    } else {
+      mapResolveError.value = response.data.message || 'Không thể resolve link'
+    }
+  } catch (err) {
+    console.error('Resolve map URL error:', err)
+    mapResolveError.value = 'Lỗi khi resolve link rút gọn'
+  } finally {
+    resolvingMapUrl.value = false
+  }
+}
+
+// Called on @input of google_map_link field
+function onGoogleMapLinkChange() {
+  const link = form.value.google_map_link
+  if (!link) return
+  if (isShortGoogleMapUrl(link)) {
+    resolveShortMapUrl(link)
+    return
+  }
+  const result = extractLatLngFromGoogleMapLink(link)
+  if (result) {
+    form.value.latitude = result.lat
+    form.value.longitude = result.lng
+  }
+}
+
+// Handle paste event — extract immediately from clipboard data
+function onPasteGoogleMapLink(event) {
+  const pastedText = event.clipboardData?.getData('text')
+  if (!pastedText) return
+  setTimeout(() => {
+    if (isShortGoogleMapUrl(pastedText)) {
+      resolveShortMapUrl(pastedText)
+      return
+    }
+    const result = extractLatLngFromGoogleMapLink(pastedText)
+    if (result) {
+      form.value.latitude = result.lat
+      form.value.longitude = result.lng
+    }
+  }, 50)
+}
 
 const uploadingImage = ref(false)
 const uploadingGallery = ref(false)

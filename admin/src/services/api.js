@@ -68,6 +68,7 @@ export const adminApi = {
     deleteConsignment: (id) => api.delete(`/admin/consignments/${id}`),
     approveConsignment: (id) => api.put(`/admin/consignments/${id}/approve`),
     rejectConsignment: (id, reason) => api.put(`/admin/consignments/${id}/reject`, { reason }),
+    resolveMapUrl: (url) => api.post('/admin/resolve-map-url', { url }),
 
     // Transactions
     getTransactions: (params) => api.get('/admin/transactions', { params }),

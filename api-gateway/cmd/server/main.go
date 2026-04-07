@@ -189,6 +189,9 @@ func main() {
 		admin.PUT("/consignments/:id/reject", proxyHandler.ProxyRequest)
 		admin.POST("/consignments/:id/reactivate", proxyHandler.ProxyRequest)
 
+		// Utility
+		admin.POST("/resolve-map-url", proxyHandler.ProxyRequest)
+
 		// Support Tickets
 		admin.GET("/supports", proxyHandler.ProxyRequest)
 		admin.GET("/supports/:id", proxyHandler.ProxyRequest)
