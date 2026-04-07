@@ -162,11 +162,12 @@
 <script>
     let tcwIsOpen = false;
     let tcwSocket = null;
-    let tcwGuestId = localStorage.getItem('tcw_session_id');
+    let tcwGuestId = null;
+    try { tcwGuestId = localStorage.getItem('tcw_session_id'); } catch(e) {}
 
     if (!tcwGuestId) {
         tcwGuestId = 'GUEST_' + Math.random().toString(36).substr(2, 9).toUpperCase();
-        localStorage.setItem('tcw_session_id', tcwGuestId);
+        try { localStorage.setItem('tcw_session_id', tcwGuestId); } catch(e) {}
     }
 
     function initTcwSocket() {

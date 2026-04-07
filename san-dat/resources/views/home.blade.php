@@ -1,6 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
+    <!-- iOS Debug: temporary error catcher -->
+    <div id="ios-debug" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:white;padding:8px 12px;font-size:12px;font-family:monospace;max-height:150px;overflow-y:auto;"></div>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            var d = document.getElementById('ios-debug');
+            if (d) { d.style.display = 'block'; d.innerHTML += '<p>' + msg + ' (line ' + line + ')</p>'; }
+            return false;
+        };
+        window.addEventListener('unhandledrejection', function(e) {
+            var d = document.getElementById('ios-debug');
+            if (d) { d.style.display = 'block'; d.innerHTML += '<p>Promise: ' + (e.reason || e) + '</p>'; }
+        });
+    </script>
     <!-- Advanced Search Section -->
     <section class="bg-navy-800 py-6 border-b border-navy-600">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -543,7 +556,7 @@
                     updateMapMarkers(items);
 
                     skeleton.classList.add('hidden');
-                    const savedMode = localStorage.getItem('viewMode') || 'grid';
+                    var savedMode = 'grid'; try { savedMode = localStorage.getItem('viewMode') || 'grid'; } catch(e) {}
                     if (savedMode === 'list') {
                         grid.classList.add('hidden');
                         listContainer.classList.remove('hidden');
@@ -562,7 +575,13 @@
                     pagination.classList.remove('hidden');
                     setHomeView(savedMode);
                 })
-                .catch(err => console.error('Error:', err));
+                .catch(function(err) {
+                    console.error('Error:', err);
+                    var d = document.getElementById('ios-debug');
+                    if (d) { d.style.display = 'block'; d.innerHTML += '<p>Fetch error: ' + err + '</p>'; }
+                    var skeleton = document.getElementById('allPropertiesSkeleton');
+                    if (skeleton) skeleton.innerHTML = '<p class="col-span-full text-center text-red-400 py-8">Lỗi tải dữ liệu. Vui lòng tải lại trang.</p>';
+                });
         }
 
         const directionMap = { 'dong': 'Đông', 'tay': 'Tây', 'nam': 'Nam', 'bac': 'Bắc', 'dong-nam': 'Đông Nam', 'dong_nam': 'Đông Nam', 'dong-bac': 'Đông Bắc', 'dong_bac': 'Đông Bắc', 'tay-nam': 'Tây Nam', 'tay_nam': 'Tây Nam', 'tay-bac': 'Tây Bắc', 'tay_bac': 'Tây Bắc' };
@@ -714,7 +733,7 @@
                 btnGrid.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500');
                 btnGrid.classList.remove('text-gray-400');
             }
-            localStorage.setItem('viewMode', mode);
+            try { localStorage.setItem('viewMode', mode); } catch(e) {}
         }
 
         function renderPagination(current, total, container) {
@@ -749,7 +768,7 @@
             if (current !== 1) document.getElementById('all-properties-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        document.addEventListener('DOMContentLoaded', () => setTimeout(() => loadAllProperties(1), 500));
+        document.addEventListener('DOMContentLoaded', function() { setTimeout(function() { loadAllProperties(1); }, 500); });
     </script>
 
     <!-- Map Scripts -->

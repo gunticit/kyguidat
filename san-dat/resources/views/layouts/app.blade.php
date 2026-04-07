@@ -83,7 +83,8 @@
     <!-- Theme Detection (runs before render to prevent flash) -->
     <script>
         (function () {
-            var saved = localStorage.getItem('theme');
+            var saved = null;
+            try { saved = localStorage.getItem('theme'); } catch(e) {}
             var theme;
             if (saved && saved !== 'auto') {
                 theme = saved;
@@ -249,12 +250,12 @@
         function toggleTheme() {
             var current = document.documentElement.getAttribute('data-theme');
             var next = current === 'day' ? 'night' : 'day';
-            localStorage.setItem('theme', next);
+            try { localStorage.setItem('theme', next); } catch(e) {}
             setTheme(next);
         }
 
         function resetToAuto() {
-            localStorage.setItem('theme', 'auto');
+            try { localStorage.setItem('theme', 'auto'); } catch(e) {}
             setTheme(getAutoTheme());
         }
 
@@ -284,7 +285,8 @@
 
         // Auto-switch check every minute (only if not manually set)
         setInterval(function () {
-            var saved = localStorage.getItem('theme');
+            var saved = null;
+            try { saved = localStorage.getItem('theme'); } catch(e) {}
             if (!saved || saved === 'auto') {
                 setTheme(getAutoTheme());
             }
