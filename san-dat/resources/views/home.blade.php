@@ -290,7 +290,8 @@
             if (arrowMobile) arrowMobile.classList.toggle('rotate-180');
         }
         document.getElementById('toggleFilters').addEventListener('click', toggleFilterPanel);
-        document.getElementById('toggleFiltersMobile')?.addEventListener('click', toggleFilterPanel);
+        var toggleFiltersMobileEl = document.getElementById('toggleFiltersMobile');
+        if (toggleFiltersMobileEl) toggleFiltersMobileEl.addEventListener('click', toggleFilterPanel);
 
         document.getElementById('resetFilters').addEventListener('click', function () {
             const form = document.getElementById('searchForm');

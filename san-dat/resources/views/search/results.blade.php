@@ -327,8 +327,10 @@
             if (arrow) arrow.classList.toggle('rotate-180');
             if (arrowMobile) arrowMobile.classList.toggle('rotate-180');
         }
-        document.getElementById('toggleFilters')?.addEventListener('click', toggleFilterPanel);
-        document.getElementById('toggleFiltersMobile')?.addEventListener('click', toggleFilterPanel);
+        var toggleFiltersEl = document.getElementById('toggleFilters');
+        if (toggleFiltersEl) toggleFiltersEl.addEventListener('click', toggleFilterPanel);
+        var toggleFiltersMobileEl = document.getElementById('toggleFiltersMobile');
+        if (toggleFiltersMobileEl) toggleFiltersMobileEl.addEventListener('click', toggleFilterPanel);
 
         // Toggle floor area select based on house_on_land value
         function toggleFloorArea() {
