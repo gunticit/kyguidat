@@ -85,7 +85,7 @@
     <!-- Chat Icon -->
     <button id="tcwToggleBtn" onclick="tcwToggleChat()"
         class="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center text-white shadow-[0_4px_12px_rgba(34,197,94,0.4)] hover:bg-green-600 transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-green-500/30">
-        <img src="{{ asset('images/ai-icon-chat.png') }}" alt="AI Chat" class="w-full h-full object-cover rounded-full">
+        <img src="{{ asset('ai-icon-chat.png') }}" alt="AI Chat" class="w-full h-full object-cover rounded-full">
     </button>
 
     <!-- Chat Box -->
