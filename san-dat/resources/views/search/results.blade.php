@@ -359,7 +359,7 @@
     <!-- Map Section -->
     <section class="sm:py-8 py-4 bg-navy-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div id="property-map" class="w-full h-[400px] rounded-lg shadow-lg overflow-hidden border border-navy-600">
+            <div id="property-map" class="w-full h-[500px] rounded-lg shadow-lg overflow-hidden border border-navy-600">
             </div>
         </div>
     </section>
@@ -524,6 +524,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.0.0/Control.FullScreen.css" />
     <style>
         /* Leaflet popup overrides */
         .leaflet-popup-content-wrapper {
@@ -591,6 +592,7 @@
     </style>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.0.0/Control.FullScreen.min.js"></script>
     <script>
         const properties = @json($mapData);
         let map;
@@ -621,6 +623,21 @@
                 dragging: !L.Browser.mobile,
                 tap: false
             });
+
+            // Fullscreen control
+            if (L.control.fullscreen) {
+                L.control.fullscreen({
+                    position: 'topleft',
+                    title: 'Xem toàn màn hình',
+                    titleCancel: 'Thoát toàn màn hình'
+                }).addTo(map);
+            } else if (L.Control.FullScreen) {
+                map.addControl(new L.Control.FullScreen({
+                    position: 'topleft',
+                    title: 'Xem toàn màn hình',
+                    titleCancel: 'Thoát toàn màn hình'
+                }));
+            }
 
             // OpenStreetMap tiles
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
