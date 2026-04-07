@@ -885,16 +885,16 @@
             border-radius: 8px;
         }
     </style>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.0.0/Control.FullScreen.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.0.0/Control.FullScreen.min.js" crossorigin="anonymous"></script>
     <script>
         // Property data from server
-        const properties = @json($propertiesData);
+        var properties = @json($propertiesData);
 
-        let map;
-        let markers = [];
-        let markerClusterGroup;
+        var map;
+        var markers = [];
+        var markerClusterGroup;
 
         // Custom green circle icon
         const greenIcon = L.divIcon({
@@ -906,53 +906,63 @@
         });
 
         function initMap() {
-            map = L.map('property-map', {
-                center: [12.5, 108.5],
-                zoom: 5,
-                scrollWheelZoom: false,
-                dragging: !L.Browser.mobile,
-                tap: false
-            });
+            try {
+                map = L.map('property-map', {
+                    center: [12.5, 108.5],
+                    zoom: 5,
+                    scrollWheelZoom: false,
+                    dragging: !L.Browser.mobile,
+                    tap: false
+                });
 
-            // Add fullscreen control explicitly
-            if (L.control.fullscreen) {
-                L.control.fullscreen({
-                    position: 'topleft',
-                    title: 'Xem toàn màn hình',
-                    titleCancel: 'Thoát toàn màn hình'
+                // Add fullscreen control (wrapped separately - optional plugin)
+                try {
+                    if (typeof L.control.fullscreen === 'function') {
+                        L.control.fullscreen({
+                            position: 'topleft',
+                            title: 'Xem toàn màn hình',
+                            titleCancel: 'Thoát toàn màn hình'
+                        }).addTo(map);
+                    } else if (typeof L.Control !== 'undefined' && typeof L.Control.FullScreen === 'function') {
+                        map.addControl(new L.Control.FullScreen({
+                            position: 'topleft',
+                            title: 'Xem toàn màn hình',
+                            titleCancel: 'Thoát toàn màn hình'
+                        }));
+                    }
+                } catch(fsErr) {
+                    console.warn('Fullscreen plugin not available:', fsErr);
+                }
+
+                // OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                    maxZoom: 19
                 }).addTo(map);
-            } else if (L.Control.FullScreen) {
-                map.addControl(new L.Control.FullScreen({
-                    position: 'topleft',
-                    title: 'Xem toàn màn hình',
-                    titleCancel: 'Thoát toàn màn hình'
-                }));
+
+                // Google Maps-style gesture handling
+                setupGestureHandling();
+
+                // Marker cluster group
+                markerClusterGroup = L.markerClusterGroup({
+                    maxClusterRadius: 50,
+                    spiderfyOnMaxZoom: true,
+                    showCoverageOnHover: false
+                });
+                map.addLayer(markerClusterGroup);
+
+                // Add markers for each property with valid coordinates
+                properties.filter(function(p) { return p.lat && p.lng; }).forEach(function(property) {
+                    addMarker(property);
+                });
+
+                // Fit bounds if markers exist
+                fitMapToMarkers();
+            } catch(e) {
+                console.error('Map init error:', e);
+                var d = document.getElementById('ios-debug');
+                if (d) { d.style.display = 'block'; d.innerHTML += '<p>Map init: ' + e.message + '</p>'; }
             }
-
-            // OpenStreetMap tiles
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 19
-            }).addTo(map);
-
-            // Google Maps-style gesture handling
-            setupGestureHandling();
-
-            // Marker cluster group
-            markerClusterGroup = L.markerClusterGroup({
-                maxClusterRadius: 50,
-                spiderfyOnMaxZoom: true,
-                showCoverageOnHover: false
-            });
-            map.addLayer(markerClusterGroup);
-
-            // Add markers for each property with valid coordinates
-            properties.filter(p => p.lat && p.lng).forEach(property => {
-                addMarker(property);
-            });
-
-            // Fit bounds if markers exist
-            fitMapToMarkers();
         }
 
         function buildPopupHTML(property) {
