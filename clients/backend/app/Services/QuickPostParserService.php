@@ -9,11 +9,17 @@ class QuickPostParserService
 {
     private string $apiUrl;
     private string $model;
+    private string $openaiApiKey;
+    private string $openaiApiUrl;
+    private string $openaiModel;
 
     public function __construct()
     {
         $this->apiUrl = env('AI_API_URL', 'http://103.90.226.30:20128/v1/responses');
         $this->model = env('AI_API_MODEL', 'cx/gpt-5-codex-mini');
+        $this->openaiApiKey = env('OPENAI_API_KEY', '');
+        $this->openaiApiUrl = env('OPENAI_API_URL', 'https://api.openai.com/v1/chat/completions');
+        $this->openaiModel = env('OPENAI_API_MODEL', 'gpt-5.4-mini');
     }
 
     /**
@@ -24,20 +30,7 @@ class QuickPostParserService
         $prompt = $this->buildPrompt($text);
 
         try {
-            $response = Http::timeout(30)->post($this->apiUrl, [
-                'model' => $this->model,
-                'input' => $prompt,
-            ]);
-
-            if (!$response->successful()) {
-                Log::error('AI API error', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-                throw new \Exception('Không thể kết nối đến AI. Vui lòng thử lại.');
-            }
-
-            $data = $response->json();
+            $data = $this->callAI($prompt);
             $parsed = $this->extractResponse($data);
 
             // Fallback: extract phone with regex if AI missed
@@ -58,10 +51,105 @@ class QuickPostParserService
             }
 
             return $parsed;
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error('AI API connection error', ['error' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            Log::error('AI Parse failed completely', ['error' => $e->getMessage()]);
             throw new \Exception('Không thể kết nối đến AI. Vui lòng thử lại.');
         }
+    }
+
+    /**
+     * Call AI API: OpenAI first, fallback to custom API when OpenAI fails
+     */
+    private function callAI(string $prompt): array
+    {
+        // --- Try OpenAI first (primary) ---
+        if (!empty($this->openaiApiKey)) {
+            try {
+                Log::info('Using OpenAI as primary API', ['model' => $this->openaiModel]);
+
+                $response = Http::timeout(60)
+                    ->withHeaders([
+                        'Authorization' => 'Bearer ' . $this->openaiApiKey,
+                        'Content-Type' => 'application/json',
+                    ])
+                    ->post($this->openaiApiUrl, [
+                        'model' => $this->openaiModel,
+                        'messages' => [
+                            [
+                                'role' => 'user',
+                                'content' => $prompt,
+                            ],
+                        ],
+                        'temperature' => 0.1,
+                    ]);
+
+                if ($response->status() === 429 || $response->serverError()) {
+                    Log::warning('OpenAI quota/error, switching to fallback API', [
+                        'status' => $response->status(),
+                        'body' => substr($response->body(), 0, 500),
+                    ]);
+                    return $this->callFallbackAPI($prompt);
+                }
+
+                if (!$response->successful()) {
+                    Log::error('OpenAI API error', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                    ]);
+                    return $this->callFallbackAPI($prompt);
+                }
+
+                // Wrap OpenAI response in unified format
+                $data = $response->json();
+                $text = $data['choices'][0]['message']['content'] ?? null;
+
+                return [
+                    'output' => [
+                        [
+                            'type' => 'message',
+                            'content' => [
+                                [
+                                    'type' => 'output_text',
+                                    'text' => $text,
+                                ],
+                            ],
+                        ],
+                    ],
+                    '_source' => 'openai',
+                ];
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                Log::warning('OpenAI connection failed, switching to fallback API', [
+                    'error' => $e->getMessage(),
+                ]);
+                return $this->callFallbackAPI($prompt);
+            }
+        }
+
+        // No OpenAI key configured, use fallback directly
+        return $this->callFallbackAPI($prompt);
+    }
+
+    /**
+     * Call custom AI API as fallback
+     */
+    private function callFallbackAPI(string $prompt): array
+    {
+        Log::info('Using fallback API', ['url' => $this->apiUrl, 'model' => $this->model]);
+
+        $response = Http::timeout(30)->post($this->apiUrl, [
+            'model' => $this->model,
+            'input' => $prompt,
+        ]);
+
+        if (!$response->successful()) {
+            Log::error('Fallback API also failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            throw new \Exception('Cả 2 AI API đều không khả dụng. Vui lòng thử lại sau.');
+        }
+
+        return $response->json();
     }
 
     /**
