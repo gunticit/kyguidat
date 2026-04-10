@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Province;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -153,21 +155,67 @@ class QuickPostParserService
     }
 
     /**
+     * Get provinces and wards list from database (cached 1 hour)
+     */
+    private function getProvincesReference(): string
+    {
+        return Cache::remember('ai_provinces_reference', 3600, function () {
+            $provinces = Province::active()
+                ->ordered()
+                ->with('activeWards')
+                ->get();
+
+            if ($provinces->isEmpty()) {
+                return '';
+            }
+
+            $lines = [];
+            foreach ($provinces as $province) {
+                $wards = $province->activeWards->pluck('name')->toArray();
+                if (!empty($wards)) {
+                    $lines[] = "- {$province->name}: " . implode(', ', $wards);
+                } else {
+                    $lines[] = "- {$province->name}";
+                }
+            }
+
+            return implode("\n", $lines);
+        });
+    }
+
+    /**
      * Build the AI prompt
      */
     private function buildPrompt(string $text): string
     {
+        $provincesRef = $this->getProvincesReference();
+        $provincesSection = '';
+
+        if (!empty($provincesRef)) {
+            $provincesSection = <<<SECTION
+
+DANH SÁCH TỈNH/THÀNH VÀ XÃ/PHƯỜNG HIỆN TẠI (đã cập nhật sau sát nhập):
+{$provincesRef}
+
+LƯU Ý QUAN TRỌNG: Việt Nam đã sát nhập nhiều tỉnh thành. Khi extract trường "province" và "ward", BẮT BUỘC phải dùng đúng tên trong danh sách trên. Nếu bài đăng dùng tên cũ, hãy chuyển sang tên mới tương ứng.
+SECTION;
+        }
+
         return <<<PROMPT
 Phân tích bài đăng bất động sản sau và trả về JSON thuần (không markdown, không code block, không giải thích).
 Các trường cần extract:
 - title: tóm tắt ngắn gọn làm tiêu đề bài rao bán đất (max 200 ký tự, viết tự nhiên, không emoji)
 - description: nội dung đầy đủ bài đăng đã format lại sạch sẽ (bỏ emoji thừa, giữ thông tin quan trọng)
 - address: địa chỉ cụ thể nhất có thể (đường, phường/xã, quận/huyện, tỉnh/thành phố)
+- province: tên tỉnh/thành phố (phải khớp chính xác với danh sách bên dưới nếu có)
+- ward: tên xã/phường/thị trấn (phải khớp chính xác với danh sách bên dưới nếu có)
 - price: giá bán quy đổi sang đơn vị VNĐ dạng số nguyên (VD: "1tỉ 450tr" = 1450000000, "800 triệu" = 800000000, "2ty5" = 2500000000)
 - seller_phone: số điện thoại liên hệ (chỉ số, VD: "0779502838")
 - google_map_link: link Google Maps nếu có trong bài, giữ nguyên URL gốc
+{$provincesSection}
 
 Nếu không tìm thấy trường nào, để giá trị null.
+Tất cả nội dung trả về PHẢI bằng tiếng Việt.
 CHỈ trả về JSON object, không thêm bất kỳ text nào khác.
 
 Bài đăng:
@@ -186,6 +234,8 @@ PROMPT;
             'title' => null,
             'description' => null,
             'address' => null,
+            'province' => null,
+            'ward' => null,
             'price' => null,
             'seller_phone' => null,
             'google_map_link' => null,
