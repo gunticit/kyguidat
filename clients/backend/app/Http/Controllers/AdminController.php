@@ -324,7 +324,14 @@ class AdminController extends Controller
 
         // Auto-extract lat/lng from google_map_link if not provided
         if (!empty($validated['google_map_link']) && (empty($validated['latitude']) || empty($validated['longitude']))) {
-            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $validated['google_map_link'], $matches)) {
+            $link = $validated['google_map_link'];
+            if (preg_match('/!3d(-?\d+\.?\d*)/', $link, $latM) && preg_match('/!4d(-?\d+\.?\d*)/', $link, $lngM)) {
+                $validated['latitude'] = $latM[1];
+                $validated['longitude'] = $lngM[1];
+            } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $link, $matches)) {
+                $validated['latitude'] = $matches[1];
+                $validated['longitude'] = $matches[2];
+            } elseif (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $link, $matches)) {
                 $validated['latitude'] = $matches[1];
                 $validated['longitude'] = $matches[2];
             }
@@ -405,7 +412,14 @@ class AdminController extends Controller
 
         // Auto-extract lat/lng from google_map_link if not provided
         if (!empty($validated['google_map_link']) && (empty($validated['latitude']) || empty($validated['longitude']))) {
-            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $validated['google_map_link'], $matches)) {
+            $link = $validated['google_map_link'];
+            if (preg_match('/!3d(-?\d+\.?\d*)/', $link, $latM) && preg_match('/!4d(-?\d+\.?\d*)/', $link, $lngM)) {
+                $validated['latitude'] = $latM[1];
+                $validated['longitude'] = $lngM[1];
+            } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $link, $matches)) {
+                $validated['latitude'] = $matches[1];
+                $validated['longitude'] = $matches[2];
+            } elseif (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $link, $matches)) {
                 $validated['latitude'] = $matches[1];
                 $validated['longitude'] = $matches[2];
             }
@@ -591,16 +605,19 @@ class AdminController extends Controller
             $latitude = null;
             $longitude = null;
 
-            if (preg_match('/@(-?\d+\.?\d*),(-?\d+\.?\d*)/', $finalUrl, $matches)) {
-                $latitude = $matches[1];
-                $longitude = $matches[2];
-            } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $finalUrl, $matches)) {
-                $latitude = $matches[1];
-                $longitude = $matches[2];
-            } elseif (preg_match('/!3d(-?\d+\.?\d*)/', $finalUrl, $latMatch) &&
+            // Priority 1: !3d (lat) and !4d (lng) — exact pin coordinates
+            if (preg_match('/!3d(-?\d+\.?\d*)/', $finalUrl, $latMatch) &&
                        preg_match('/!4d(-?\d+\.?\d*)/', $finalUrl, $lngMatch)) {
                 $latitude = $latMatch[1];
                 $longitude = $lngMatch[1];
+            // Priority 2: ?q=lat,lng
+            } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $finalUrl, $matches)) {
+                $latitude = $matches[1];
+                $longitude = $matches[2];
+            // Priority 3: @lat,lng (viewport, less accurate)
+            } elseif (preg_match('/@(-?\d+\.?\d*),(-?\d+\.?\d*)/', $finalUrl, $matches)) {
+                $latitude = $matches[1];
+                $longitude = $matches[2];
             }
 
             return response()->json([

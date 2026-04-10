@@ -747,17 +747,21 @@ watch(() => form.value?.title, (newTitle) => {
 // Auto-extract lat/lng from Google Maps link
 function extractLatLngFromGoogleMapLink(url) {
   if (!url) return null
-  let match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+  // Priority 1: !3d (lat) and !4d (lng) — exact pin coordinates
+  const latMatch = url.match(/!3d(-?\d+\.?\d*)/)
+  const lngMatch = url.match(/!4d(-?\d+\.?\d*)/)
+  if (latMatch && lngMatch) return { lat: latMatch[1], lng: lngMatch[1] }
+  // Priority 2: ?q=lat,lng
+  let match = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
   if (match) return { lat: match[1], lng: match[2] }
-  match = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+  // Priority 3: @lat,lng (viewport center, less accurate)
+  match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
   if (match) return { lat: match[1], lng: match[2] }
+  // Priority 4: other patterns
   match = url.match(/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/)
   if (match) return { lat: match[1], lng: match[2] }
   match = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
   if (match) return { lat: match[1], lng: match[2] }
-  const latMatch = url.match(/!3d(-?\d+\.?\d*)/)
-  const lngMatch = url.match(/!4d(-?\d+\.?\d*)/)
-  if (latMatch && lngMatch) return { lat: latMatch[1], lng: lngMatch[1] }
   return null
 }
 
