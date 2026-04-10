@@ -48,11 +48,59 @@ Route::post('/api/settings/seo', [SettingsController::class, 'storeSeo'])->witho
 // API Consignments (for AJAX pagination)
 Route::get('/api/consignments', [ConsignmentController::class, 'apiIndex']);
 
-// API Provinces (proxy to API gateway for JS fetch)
+// API Provinces (proxy to API gateway for JS fetch, with DB fallback)
 Route::get('/api/public/provinces', function () {
-    $apiService = app(\App\Services\GolangApiService::class);
-    $provinces = $apiService->getProvinces();
-    return response()->json(['data' => $provinces]);
+    // Thử API Gateway trước
+    try {
+        $apiService = app(\App\Services\GolangApiService::class);
+        $provinces = $apiService->getProvinces();
+        if (!empty($provinces)) {
+            return response()->json(['data' => $provinces]);
+        }
+    } catch (\Throwable $e) {
+        // API Gateway fail
+    }
+
+    // Fallback: lấy trực tiếp từ DB
+    try {
+        $dbProvinces = \Illuminate\Support\Facades\DB::table('provinces')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $result = [];
+        foreach ($dbProvinces as $p) {
+            $wards = \Illuminate\Support\Facades\DB::table('wards')
+                ->where('province_id', $p->id)
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name', 'type', 'slug'])
+                ->map(fn($w) => [
+                    'id' => $w->id,
+                    'name' => $w->name,
+                    'type' => $w->type,
+                    'type_label' => match($w->type) {
+                        'phuong' => 'Phường',
+                        'xa' => 'Xã',
+                        'dac_khu' => 'Đặc khu',
+                        default => $w->type,
+                    },
+                ])
+                ->toArray();
+
+            $result[] = [
+                'id' => $p->id,
+                'name' => $p->name,
+                'slug' => $p->slug,
+                'wards' => $wards,
+            ];
+        }
+        return response()->json(['data' => $result]);
+    } catch (\Throwable $e) {
+        return response()->json(['data' => []]);
+    }
 });
 
 // AI Chat proxy — dùng context tỉnh/xã thực tế từ DB
@@ -63,34 +111,71 @@ Route::post('/api/ai-chat', function (\Illuminate\Http\Request $request) {
     }
 
     try {
-        // 1. Lấy danh sách tỉnh/xã thực tế từ API (cached 1 giờ)
-        $provincesData = \Illuminate\Support\Facades\Cache::remember('ai_chat_provinces_v2', 3600, function () {
+        // 1. Lấy danh sách tỉnh/xã thực tế (cached 1 giờ, chỉ cache khi có data)
+        $provincesData = \Illuminate\Support\Facades\Cache::get('ai_chat_provinces_v3');
+
+        if (!$provincesData) {
+            $provincesData = ['text' => '', 'count' => 0, 'names' => []];
+
+            // Thử lấy từ API Gateway
+            $provinces = [];
             try {
                 $apiService = app(\App\Services\GolangApiService::class);
                 $provinces = $apiService->getProvinces();
-                if (empty($provinces)) return ['text' => '', 'count' => 0, 'names' => []];
+            } catch (\Throwable $e) {
+                // API Gateway fail
+            }
 
+            // Fallback: lấy trực tiếp từ DB nếu API fail
+            if (empty($provinces)) {
+                try {
+                    $dbProvinces = \Illuminate\Support\Facades\DB::table('provinces')
+                        ->where('is_active', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('name')
+                        ->get();
+
+                    foreach ($dbProvinces as $p) {
+                        $wards = \Illuminate\Support\Facades\DB::table('wards')
+                            ->where('province_id', $p->id)
+                            ->where('is_active', true)
+                            ->orderBy('sort_order')
+                            ->orderBy('name')
+                            ->pluck('name')
+                            ->toArray();
+
+                        $provinces[] = [
+                            'name' => $p->name,
+                            'wards' => array_map(fn($w) => ['name' => $w], $wards),
+                        ];
+                    }
+                } catch (\Throwable $e) {
+                    // DB fail
+                }
+            }
+
+            if (!empty($provinces)) {
                 $lines = [];
                 $names = [];
                 foreach ($provinces as $p) {
                     $name = $p['name'] ?? '';
                     $names[] = $name;
-                    $wards = array_column($p['wards'] ?? [], 'name');
-                    if (!empty($wards)) {
-                        $lines[] = "- {$name}: " . implode(', ', $wards);
+                    $wardNames = array_column($p['wards'] ?? [], 'name');
+                    if (!empty($wardNames)) {
+                        $lines[] = "- {$name}: " . implode(', ', $wardNames);
                     } else {
                         $lines[] = "- {$name}";
                     }
                 }
-                return [
+                $provincesData = [
                     'text' => implode("\n", $lines),
                     'count' => count($provinces),
                     'names' => $names,
                 ];
-            } catch (\Throwable $e) {
-                return ['text' => '', 'count' => 0, 'names' => []];
+                // Chỉ cache khi có dữ liệu
+                \Illuminate\Support\Facades\Cache::put('ai_chat_provinces_v3', $provincesData, 3600);
             }
-        });
+        }
 
         $provinceCount = $provincesData['count'];
         $provincesText = $provincesData['text'];
