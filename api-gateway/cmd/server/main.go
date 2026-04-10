@@ -89,6 +89,7 @@ func main() {
 		publicProxy.GET("/provinces/:slug/wards", proxyHandler.ProxyRequest)
 		publicProxy.GET("/featured-provinces", proxyHandler.ProxyRequest)
 		publicProxy.GET("/pages/:slug", proxyHandler.ProxyRequest)
+		publicProxy.POST("/chatbot", proxyHandler.ProxyRequest)
 	}
 
 	// Webhooks proxy

@@ -305,6 +305,29 @@ io.on('connection', (socket) => {
             platformLabel = 'Khách hàng (sàn):';
         }
 
+        // --- Chatbot AI: tự động tìm BĐS nếu khách hỏi ---
+        try {
+            const BACKEND_URL = process.env.BACKEND_URL || 'http://backend-nginx:80';
+            const chatbotRes = await axios.post(`${BACKEND_URL}/api/public/chatbot`, {
+                text: text,
+                guest_id: guestId
+            }, { timeout: 35000 });
+
+            if (chatbotRes.data?.data?.is_property_query && chatbotRes.data?.data?.reply) {
+                // Gửi reply tự động cho khách qua socket
+                socket.emit('telegram_admin_reply', {
+                    text: chatbotRes.data.data.reply,
+                    timestamp: new Date().toISOString(),
+                    is_bot: true
+                });
+                console.log(`🤖 Chatbot tự động trả lời Khách ${guestId}`);
+            }
+        } catch (chatbotErr) {
+            console.error('Chatbot error (non-blocking):', chatbotErr?.message);
+            // Không block - vẫn gửi lên Telegram bình thường
+        }
+
+        // --- Luôn gửi lên Telegram cho Admin biết ---
         const messageText = `💬 ${platformLabel}\n\n${text}\n\n#ID:${guestId}`;
 
         try {
@@ -312,7 +335,6 @@ io.on('connection', (socket) => {
                 chat_id: TELEGRAM_CHAT_ID,
                 text: messageText
             });
-            // Gửi lại tín hiệu thành công cho Client báo đang rảnh tay
             socket.emit('guest_message_sent', { status: 'success' });
             console.log(`🚀 Đã chuyển tin Khách ${guestId} lên Telegram.`);
         } catch (error) {

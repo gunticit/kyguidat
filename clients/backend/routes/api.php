@@ -18,6 +18,7 @@ use App\Http\Controllers\PostingPackageController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\IpnConfigController;
 use App\Http\Controllers\IpnHandlerController;
+use App\Http\Controllers\ChatbotController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request as HttpRequest;
 
@@ -94,6 +95,9 @@ Route::prefix('public')->group(function () {
     Route::get('/provinces', [AdministrativeDivisionController::class, 'publicProvinces']);
     Route::get('/provinces/{slug}/wards', [AdministrativeDivisionController::class, 'publicWards']);
     Route::get('/featured-provinces', [AdministrativeDivisionController::class, 'featuredProvinces']);
+
+    // Chatbot AI (tự động tìm BĐS)
+    Route::post('/chatbot', [ChatbotController::class, 'handle'])->middleware('throttle:30,1');
 });
 
 // IPN Handler routes (public - called by payment gateways)

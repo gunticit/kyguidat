@@ -153,6 +153,12 @@ services:
       - AWS_USE_PATH_STYLE_ENDPOINT=true
       - IMAGE_QUALITY=80
       - IMAGE_FORMAT=webp
+      # AI Chatbot & Quick Post Parser
+      - AI_API_URL=${AI_API_URL:-http://103.90.226.30:20128/v1/responses}
+      - AI_API_MODEL=${AI_API_MODEL:-cx/gpt-5-codex-mini}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_URL=${OPENAI_API_URL:-https://api.openai.com/v1/chat/completions}
+      - OPENAI_API_MODEL=${OPENAI_API_MODEL:-gpt-5.4-mini}
     networks:
       - khodat-network
     depends_on:
@@ -290,6 +296,7 @@ services:
       - PORT=3020
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - CORS_ORIGINS=https://app.khodat.com,https://admin.khodat.com
+      - BACKEND_URL=http://backend-nginx:80
     networks:
       - khodat-network
     depends_on:
