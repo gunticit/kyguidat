@@ -55,7 +55,7 @@ Route::get('/api/public/provinces', function () {
     return response()->json(['data' => $provinces]);
 });
 
-// AI Chat proxy
+// AI Chat proxy — dùng context tỉnh/xã thực tế từ DB
 Route::post('/api/ai-chat', function (\Illuminate\Http\Request $request) {
     $message = $request->input('message', '');
     if (!$message) {
@@ -63,14 +63,105 @@ Route::post('/api/ai-chat', function (\Illuminate\Http\Request $request) {
     }
 
     try {
-        $response = \Illuminate\Support\Facades\Http::timeout(30)->post('http://103.90.226.30:20128/v1/responses', [
-            'model' => 'cx/gpt-5-codex-mini',
-            'input' => $message,
-        ]);
+        // Lấy danh sách tỉnh/xã thực tế từ API (cached 1 giờ)
+        $provincesContext = \Illuminate\Support\Facades\Cache::remember('ai_chat_provinces', 3600, function () {
+            try {
+                $apiService = app(\App\Services\GolangApiService::class);
+                $provinces = $apiService->getProvinces();
+                if (empty($provinces)) return '';
 
-        if ($response->successful()) {
-            $data = $response->json();
-            // Extract text from the response output
+                $lines = [];
+                foreach ($provinces as $p) {
+                    $name = $p['name'] ?? '';
+                    $wards = array_column($p['wards'] ?? [], 'name');
+                    if (!empty($wards)) {
+                        $lines[] = "- {$name}: " . implode(', ', $wards);
+                    } else {
+                        $lines[] = "- {$name}";
+                    }
+                }
+                return implode("\n", $lines);
+            } catch (\Throwable $e) {
+                return '';
+            }
+        });
+
+        $provincesSection = '';
+        if (!empty($provincesContext)) {
+            $provincesSection = "\n\nDANH SÁCH TỈNH/THÀNH VÀ XÃ/PHƯỜNG HIỆN TẠI (đã cập nhật sau sát nhập 2024-2025):\n{$provincesContext}\n\nLƯU Ý: Việt Nam đã sát nhập nhiều tỉnh thành từ 2024. Khi trả lời về tỉnh thành, BẮT BUỘC dùng đúng tên trong danh sách trên. KHÔNG dùng danh sách 63 tỉnh cũ.";
+        }
+
+        // Tìm sản phẩm liên quan nếu khách hỏi về BĐS
+        $productContext = '';
+        try {
+            $backendUrl = config('services.backend.url', env('BACKEND_API_URL', 'http://backend-nginx:80'));
+            $chatbotRes = \Illuminate\Support\Facades\Http::timeout(30)->post("{$backendUrl}/api/public/chatbot", [
+                'text' => $message,
+            ]);
+            if ($chatbotRes->successful()) {
+                $chatbotData = $chatbotRes->json('data');
+                if (!empty($chatbotData['is_property_query']) && !empty($chatbotData['consignments'])) {
+                    $productLines = [];
+                    foreach ($chatbotData['consignments'] as $c) {
+                        $price = ($c['price'] ?? 0) >= 1000000000
+                            ? number_format(($c['price'] ?? 0) / 1000000000, 1) . ' tỷ'
+                            : number_format(($c['price'] ?? 0) / 1000000) . ' triệu';
+                        $link = !empty($c['seo_url'])
+                            ? "https://khodat.com/dat/{$c['seo_url']}"
+                            : "https://khodat.com/dat/{$c['id']}";
+                        $productLines[] = "- {$c['title']} - {$price} → {$link}";
+                    }
+                    if (!empty($productLines)) {
+                        $productContext = "\n\nSẢN PHẨM BĐS LIÊN QUAN TÌM ĐƯỢC TỪ HỆ THỐNG:\n" . implode("\n", $productLines) . "\nHãy giới thiệu những sản phẩm này cho khách nếu phù hợp, kèm link.";
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Non-blocking
+        }
+
+        $systemPrompt = "Bạn là trợ lý AI bất động sản của Khodat (khodat.com). Trả lời HOÀN TOÀN bằng tiếng Việt, thân thiện, chuyên nghiệp. Không dùng tiếng Anh.{$provincesSection}{$productContext}";
+
+        // OpenAI first
+        $openaiKey = env('OPENAI_API_KEY', '');
+        if (!empty($openaiKey)) {
+            try {
+                $aiResponse = \Illuminate\Support\Facades\Http::timeout(30)
+                    ->withHeaders([
+                        'Authorization' => 'Bearer ' . $openaiKey,
+                        'Content-Type' => 'application/json',
+                    ])
+                    ->post(env('OPENAI_API_URL', 'https://api.openai.com/v1/chat/completions'), [
+                        'model' => env('OPENAI_API_MODEL', 'gpt-5.4-mini'),
+                        'messages' => [
+                            ['role' => 'system', 'content' => $systemPrompt],
+                            ['role' => 'user', 'content' => $message],
+                        ],
+                        'temperature' => 0.7,
+                    ]);
+
+                if ($aiResponse->successful()) {
+                    $text = $aiResponse->json('choices.0.message.content');
+                    if (!empty($text)) {
+                        return response()->json(['text' => $text]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('AI Chat: OpenAI failed, fallback', ['error' => $e->getMessage()]);
+            }
+        }
+
+        // Fallback to custom API
+        $fallbackResponse = \Illuminate\Support\Facades\Http::timeout(30)->post(
+            env('AI_API_URL', 'http://103.90.226.30:20128/v1/responses'),
+            [
+                'model' => env('AI_API_MODEL', 'cx/gpt-5-codex-mini'),
+                'input' => $systemPrompt . "\n\nKhách hỏi: " . $message,
+            ]
+        );
+
+        if ($fallbackResponse->successful()) {
+            $data = $fallbackResponse->json();
             $text = '';
             foreach (($data['output'] ?? []) as $output) {
                 if (($output['type'] ?? '') === 'message') {

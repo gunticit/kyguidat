@@ -55,6 +55,13 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      # AI Chatbot
+      - AI_API_URL=${AI_API_URL:-http://103.90.226.30:20128/v1/responses}
+      - AI_API_MODEL=${AI_API_MODEL:-cx/gpt-5-codex-mini}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_URL=${OPENAI_API_URL:-https://api.openai.com/v1/chat/completions}
+      - OPENAI_API_MODEL=${OPENAI_API_MODEL:-gpt-5.4-mini}
+      - BACKEND_API_URL=http://backend-nginx:80
     volumes:
       - sandat-storage:/var/www/html/storage/app
     networks:
