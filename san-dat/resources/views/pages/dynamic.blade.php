@@ -3,7 +3,7 @@
 @section('title', ($page['title'] ?? 'Trang') . ' - ' . ($settings['siteName'] ?? 'SànĐất'))
 
 @section('content')
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Breadcrumb -->
         <nav class="mb-4 text-sm">
             <a href="{{ route('home') }}" class="text-gray-400 hover:text-green-400 transition">Trang chủ</a>
