@@ -11,7 +11,7 @@
                 kênh bên dưới</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-full mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
             <!-- Contact Info -->
             <div class="space-y-6">
                 <div class="bg-navy-700 rounded-lg shadow-md p-6 border border-navy-600">
