@@ -140,11 +140,20 @@ class ConsignmentService
         $longitude = null;
         $mapLink = $data['google_map_link'] ?? null;
         if ($mapLink) {
-            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
+            // Priority 1: !3d (lat) and !4d (lng) — exact pin coordinates
+            if (preg_match('/!3d(-?\d+\.?\d*)/', $mapLink, $latM) && preg_match('/!4d(-?\d+\.?\d*)/', $mapLink, $lngM)) {
+                $latitude = $latM[1];
+                $longitude = $lngM[1];
+            // Priority 2: ?q=lat,lng
+            } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $mapLink, $matches)) {
                 $latitude = $matches[1];
                 $longitude = $matches[2];
+            // Priority 3: @lat,lng (viewport center, less accurate)
+            } elseif (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
+                $latitude = $matches[1];
+                $longitude = $matches[2];
+            // Fallback: resolve short URL
             } elseif (preg_match('/maps\.app\.goo\.gl|goo\.gl\/maps/i', $mapLink)) {
-                // Resolve short URL for coordinates
                 try {
                     $parser = app(QuickPostParserService::class);
                     $coords = $parser->resolveGoogleMapsCoords($mapLink);
@@ -248,9 +257,20 @@ class ConsignmentService
         $mapLink = $data['google_map_link'] ?? $consignment->google_map_link;
         $latitude = $consignment->latitude;
         $longitude = $consignment->longitude;
-        if ($mapLink && empty($latitude) && preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
-            $latitude = $matches[1];
-            $longitude = $matches[2];
+        if ($mapLink && empty($latitude)) {
+            // Priority 1: !3d (lat) and !4d (lng) — exact pin coordinates
+            if (preg_match('/!3d(-?\d+\.?\d*)/', $mapLink, $latM) && preg_match('/!4d(-?\d+\.?\d*)/', $mapLink, $lngM)) {
+                $latitude = $latM[1];
+                $longitude = $lngM[1];
+            // Priority 2: ?q=lat,lng
+            } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $mapLink, $matches)) {
+                $latitude = $matches[1];
+                $longitude = $matches[2];
+            // Priority 3: @lat,lng (viewport center, less accurate)
+            } elseif (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
+                $latitude = $matches[1];
+                $longitude = $matches[2];
+            }
         }
 
         $consignment->update([
