@@ -305,6 +305,10 @@
         escaped = escaped.replace(/\n/g, '<br>');
         // Convert "- " list items to styled list
         escaped = escaped.replace(/^- (.+)/gm, '<span style="display:block;padding-left:12px;text-indent:-12px;">• $1</span>');
+        // Convert URLs to clickable links
+        escaped = escaped.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#4ade80;text-decoration:underline;word-break:break-all;">$1</a>');
+        // Convert 👉 emoji links
+        escaped = escaped.replace(/👉\s*/g, '→ ');
 
         var html = '';
         if (sender === 'user') {

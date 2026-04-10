@@ -63,16 +63,18 @@ Route::post('/api/ai-chat', function (\Illuminate\Http\Request $request) {
     }
 
     try {
-        // Lấy danh sách tỉnh/xã thực tế từ API (cached 1 giờ)
-        $provincesContext = \Illuminate\Support\Facades\Cache::remember('ai_chat_provinces', 3600, function () {
+        // 1. Lấy danh sách tỉnh/xã thực tế từ API (cached 1 giờ)
+        $provincesData = \Illuminate\Support\Facades\Cache::remember('ai_chat_provinces_v2', 3600, function () {
             try {
                 $apiService = app(\App\Services\GolangApiService::class);
                 $provinces = $apiService->getProvinces();
-                if (empty($provinces)) return '';
+                if (empty($provinces)) return ['text' => '', 'count' => 0, 'names' => []];
 
                 $lines = [];
+                $names = [];
                 foreach ($provinces as $p) {
                     $name = $p['name'] ?? '';
+                    $names[] = $name;
                     $wards = array_column($p['wards'] ?? [], 'name');
                     if (!empty($wards)) {
                         $lines[] = "- {$name}: " . implode(', ', $wards);
@@ -80,28 +82,30 @@ Route::post('/api/ai-chat', function (\Illuminate\Http\Request $request) {
                         $lines[] = "- {$name}";
                     }
                 }
-                return implode("\n", $lines);
+                return [
+                    'text' => implode("\n", $lines),
+                    'count' => count($provinces),
+                    'names' => $names,
+                ];
             } catch (\Throwable $e) {
-                return '';
+                return ['text' => '', 'count' => 0, 'names' => []];
             }
         });
 
-        $provincesSection = '';
-        if (!empty($provincesContext)) {
-            $provincesSection = "\n\nDANH SÁCH TỈNH/THÀNH VÀ XÃ/PHƯỜNG HIỆN TẠI (đã cập nhật sau sát nhập 2024-2025):\n{$provincesContext}\n\nLƯU Ý: Việt Nam đã sát nhập nhiều tỉnh thành từ 2024. Khi trả lời về tỉnh thành, BẮT BUỘC dùng đúng tên trong danh sách trên. KHÔNG dùng danh sách 63 tỉnh cũ.";
-        }
+        $provinceCount = $provincesData['count'];
+        $provincesText = $provincesData['text'];
 
-        // Tìm sản phẩm liên quan nếu khách hỏi về BĐS
-        $productContext = '';
+        // 2. Tìm sản phẩm BĐS liên quan
+        $productLines = [];
+        $chatbotReply = null;
         try {
-            $backendUrl = config('services.backend.url', env('BACKEND_API_URL', 'http://backend-nginx:80'));
+            $backendUrl = env('BACKEND_API_URL', 'http://backend-nginx:80');
             $chatbotRes = \Illuminate\Support\Facades\Http::timeout(30)->post("{$backendUrl}/api/public/chatbot", [
                 'text' => $message,
             ]);
             if ($chatbotRes->successful()) {
                 $chatbotData = $chatbotRes->json('data');
                 if (!empty($chatbotData['is_property_query']) && !empty($chatbotData['consignments'])) {
-                    $productLines = [];
                     foreach ($chatbotData['consignments'] as $c) {
                         $price = ($c['price'] ?? 0) >= 1000000000
                             ? number_format(($c['price'] ?? 0) / 1000000000, 1) . ' tỷ'
@@ -109,18 +113,42 @@ Route::post('/api/ai-chat', function (\Illuminate\Http\Request $request) {
                         $link = !empty($c['seo_url'])
                             ? "https://khodat.com/dat/{$c['seo_url']}"
                             : "https://khodat.com/dat/{$c['id']}";
-                        $productLines[] = "- {$c['title']} - {$price} → {$link}";
+                        $productLines[] = "- {$c['title']} - {$price}\n  Xem chi tiết: {$link}";
                     }
-                    if (!empty($productLines)) {
-                        $productContext = "\n\nSẢN PHẨM BĐS LIÊN QUAN TÌM ĐƯỢC TỪ HỆ THỐNG:\n" . implode("\n", $productLines) . "\nHãy giới thiệu những sản phẩm này cho khách nếu phù hợp, kèm link.";
-                    }
+                }
+                // Nếu chatbot đã có reply (kèm link), dùng trực tiếp
+                if (!empty($chatbotData['is_property_query']) && !empty($chatbotData['reply'])) {
+                    $chatbotReply = $chatbotData['reply'];
                 }
             }
         } catch (\Throwable $e) {
             // Non-blocking
         }
 
-        $systemPrompt = "Bạn là trợ lý AI bất động sản của Khodat (khodat.com). Trả lời HOÀN TOÀN bằng tiếng Việt, thân thiện, chuyên nghiệp. Không dùng tiếng Anh.{$provincesSection}{$productContext}";
+        // 3. Nếu khách hỏi BĐS và có sản phẩm → trả trực tiếp (không cần AI)
+        if (!empty($chatbotReply)) {
+            return response()->json(['text' => $chatbotReply]);
+        }
+
+        // 4. Gọi AI cho các câu hỏi khác
+        $productContext = '';
+        if (!empty($productLines)) {
+            $productContext = "\n\nSẢN PHẨM BĐS TÌM ĐƯỢC TỪ HỆ THỐNG (dữ liệu thực):\n" . implode("\n", $productLines) . "\n\nHãy giới thiệu các sản phẩm trên cho khách, GIỮ NGUYÊN link.";
+        }
+
+        $systemPrompt = <<<SYSTEM
+Bạn là trợ lý AI bất động sản của Khodat (khodat.com).
+
+QUY TẮC BẮT BUỘC:
+1. Trả lời HOÀN TOÀN bằng tiếng Việt. TUYỆT ĐỐI KHÔNG dùng tiếng Anh.
+2. Việt Nam hiện tại có {$provinceCount} tỉnh/thành phố (ĐÃ SÁT NHẬP từ 2024-2025). KHÔNG BAO GIỜ nói "63 tỉnh thành". Dữ liệu cũ 63 tỉnh đã KHÔNG CÒN CHÍNH XÁC.
+3. Khi khách hỏi về tỉnh thành, xã phường, CHỈ dùng danh sách bên dưới. KHÔNG dùng kiến thức cũ.
+4. Nếu khách hỏi "bao nhiêu tỉnh thành" → trả lời: "Hiện tại Việt Nam có {$provinceCount} đơn vị hành chính cấp tỉnh (sau sát nhập 2024-2025)."
+5. Thân thiện, chuyên nghiệp.
+
+DANH SÁCH TỈNH/THÀNH VÀ XÃ/PHƯỜNG CHÍNH THỨC (dữ liệu thực từ hệ thống):
+{$provincesText}{$productContext}
+SYSTEM;
 
         // OpenAI first
         $openaiKey = env('OPENAI_API_KEY', '');
@@ -137,7 +165,7 @@ Route::post('/api/ai-chat', function (\Illuminate\Http\Request $request) {
                             ['role' => 'system', 'content' => $systemPrompt],
                             ['role' => 'user', 'content' => $message],
                         ],
-                        'temperature' => 0.7,
+                        'temperature' => 0.3,
                     ]);
 
                 if ($aiResponse->successful()) {
