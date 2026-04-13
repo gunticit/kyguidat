@@ -599,11 +599,12 @@
         function formatPrice(p) {
             if (!p) return 'Liên hệ';
             if (p >= 1000000000) {
-                const val = p / 1000000000;
-                return (val % 1 === 0 ? val.toFixed(0) : parseFloat(val.toFixed(1))) + ' tỷ';
+                const b = Math.floor(p / 1000000000);
+                const m = Math.round((p % 1000000000) / 1000000);
+                return b + ' tỷ' + (m > 0 ? ' ' + m + ' triệu' : '');
             } else if (p >= 1000000) {
                 const val = p / 1000000;
-                return (val % 1 === 0 ? val.toFixed(0) : parseFloat(val.toFixed(0))) + ' triệu';
+                return (val % 1 === 0 ? val.toFixed(0) : parseFloat(val.toFixed(1))) + ' triệu';
             }
             return new Intl.NumberFormat('vi-VN').format(p) + ' đ';
         }
@@ -780,10 +781,13 @@
                 'title' => $item['title'] ?? 'Bất động sản',
                 'price' => $item['price'] ?? 0,
                 'priceFormatted' => isset($item['price']) ? (function ($p) {
-                    if ($p >= 1000000000)
-                        return rtrim(rtrim(number_format($p / 1000000000, 1), '0'), '.') . ' tỷ';
+                    if ($p >= 1000000000) {
+                        $b = floor($p / 1000000000);
+                        $m = round(($p % 1000000000) / 1000000);
+                        return $b . ' tỷ' . ($m > 0 ? ' ' . $m . ' triệu' : '');
+                    }
                     if ($p >= 1000000)
-                        return rtrim(rtrim(number_format($p / 1000000, 0), '0'), '.') . ' triệu';
+                        return rtrim(rtrim(number_format($p / 1000000, 1), '0'), '.') . ' triệu';
                     return number_format($p) . ' đ';
                 })($item['price']) : 'Liên hệ',
                 'address' => $item['address'] ?? '',

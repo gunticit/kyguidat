@@ -323,7 +323,9 @@
                             @php
                                 $price = $consignment['price'] ?? 0;
                                 if ($price >= 1000000000) {
-                                    $priceFormatted = rtrim(rtrim(number_format($price / 1000000000, 2), '0'), '.') . ' tỷ';
+                                    $billions = floor($price / 1000000000);
+                                    $millions = round(($price % 1000000000) / 1000000);
+                                    $priceFormatted = $billions . ' tỷ' . ($millions > 0 ? ' ' . $millions . ' triệu' : '');
                                 } elseif ($price >= 1000000) {
                                     $priceFormatted = rtrim(rtrim(number_format($price / 1000000, 1), '0'), '.') . ' triệu';
                                 } else {
