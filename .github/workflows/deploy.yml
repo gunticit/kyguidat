@@ -1,21 +1,28 @@
-name: Build & Push API Docker Image
+name: Build & Push Docker Images
 
 on:
   push:
     branches:
       - pre-main
-    # paths:
-    #   - 'apps/api/**'
-    #   - 'packages/api/**'
-    #   - 'packages/core/**'
-    #   - 'packages/typescript-config/**'
-    #   - 'pnpm-lock.yaml'
-    #   - '.github/workflows/docker-publish-api.yml'
+    paths:
+      - 'api-gateway/**'
+      - 'clients/backend/**'
+      - 'socket/**'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
     inputs:
       tag:
         description: 'Docker image tag (e.g. 1.2.3). Defaults to git short SHA.'
         required: false
+      service:
+        description: 'Build specific service only (leave empty to build all)'
+        required: false
+        type: choice
+        options:
+          - all
+          - api-gateway
+          - backend
+          - socket
 
 env:
   IMAGE_NAME: hungdoanit95/hubs
@@ -23,11 +30,31 @@ env:
 
 jobs:
   build-and-push:
-    name: Build & Push
+    name: Build & Push - ${{ matrix.service }}
     runs-on: ubuntu-latest
-    environment: dockerhub
     permissions:
       contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api-gateway
+            context: ./api-gateway
+            dockerfile: ./api-gateway/Dockerfile
+          - service: backend
+            context: ./clients/backend
+            dockerfile: ./clients/backend/Dockerfile.prod
+          - service: socket
+            context: ./socket
+            dockerfile: ./socket/Dockerfile
+
+    # Skip if a specific service was chosen and it doesn't match
+    if: >-
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.service == 'all' ||
+      github.event.inputs.service == '' ||
+      github.event.inputs.service == matrix.service
 
     steps:
       - name: Checkout
@@ -36,9 +63,11 @@ jobs:
       - name: Set image tag
         id: tag
         run: |
-          LATEST="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-latest"
-          if [ -n "${{ github.event.inputs.tag }}" ]; then
-            VERSIONED="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-${{ github.event.inputs.tag }}"
+          LATEST="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-${{ matrix.service }}-latest"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+            echo "value=$TAG" >> "$GITHUB_OUTPUT"
+            VERSIONED="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-${{ matrix.service }}-$TAG"
             {
               echo "tags<<EOF"
               echo "$VERSIONED"
@@ -46,7 +75,15 @@ jobs:
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           else
-            printf 'tags=%s\n' "$LATEST" >> "$GITHUB_OUTPUT"
+            TAG="$(git rev-parse --short HEAD)"
+            echo "value=$TAG" >> "$GITHUB_OUTPUT"
+            VERSIONED="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-${{ matrix.service }}-$TAG"
+            {
+              echo "tags<<EOF"
+              echo "$VERSIONED"
+              echo "$LATEST"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set up Docker Buildx
@@ -61,9 +98,37 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: apps/api/Dockerfile
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.tag.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+      - name: Summary
+        run: |
+          echo "### ✅ ${{ matrix.service }} pushed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.tag.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    name: Trigger Deploy
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: always() && !contains(needs.build-and-push.result, 'failure')
+
+    steps:
+      - name: Trigger Dokploy redeploy
+        env:
+          WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "DOKPLOY_WEBHOOK_URL not set, skipping redeploy"
+            exit 0
+          fi
+          curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "$WEBHOOK_URL" \
+            | grep -q "^2" || (echo "Dokploy redeploy failed" && exit 1)
