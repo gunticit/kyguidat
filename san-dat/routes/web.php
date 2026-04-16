@@ -38,12 +38,12 @@ Route::get('/xoa-tai-khoan', function () {
     return view('pages.delete-account');
 })->name('delete-account');
 
-// Settings API (exempt from CSRF — called cross-origin from admin.khodat.com)
+// Settings API (protected by admin API key — called cross-origin from admin.khodat.com)
 Route::get('/api/settings', [SettingsController::class, 'index']);
-Route::post('/api/settings', [SettingsController::class, 'store'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
-Route::post('/api/settings/upload', [SettingsController::class, 'upload'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
-Route::post('/api/settings/api-keys', [SettingsController::class, 'storeApiKeys'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
-Route::post('/api/settings/seo', [SettingsController::class, 'storeSeo'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+Route::post('/api/settings', [SettingsController::class, 'store'])->middleware('admin.api_key');
+Route::post('/api/settings/upload', [SettingsController::class, 'upload'])->middleware('admin.api_key');
+Route::post('/api/settings/api-keys', [SettingsController::class, 'storeApiKeys'])->middleware('admin.api_key');
+Route::post('/api/settings/seo', [SettingsController::class, 'storeSeo'])->middleware('admin.api_key');
 
 // API Consignments (for AJAX pagination)
 Route::get('/api/consignments', [ConsignmentController::class, 'apiIndex']);
@@ -315,7 +315,7 @@ SYSTEM;
     } catch (\Exception $e) {
         return response()->json(['text' => 'Không thể kết nối tới AI. Vui lòng thử lại sau.'], 500);
     }
-})->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+})->middleware('throttle:10,1');
 
 // Dynamic CMS Pages (catch-all — must be last!)
 Route::get('/{slug}', [PageController::class, 'show'])->name('pages.show')

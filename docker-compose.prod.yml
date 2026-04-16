@@ -62,6 +62,7 @@ services:
       - OPENAI_API_URL=${OPENAI_API_URL:-https://api.openai.com/v1/chat/completions}
       - OPENAI_API_MODEL=${OPENAI_API_MODEL:-gpt-5.4-mini}
       - BACKEND_API_URL=http://backend-nginx:80
+      - ADMIN_API_KEY=${ADMIN_API_KEY}
     volumes:
       - sandat-storage:/var/www/html/storage/app
     networks:
@@ -79,6 +80,7 @@ services:
       args:
         - VITE_API_URL=https://api.khodat.com/api
         - VITE_SANDAT_API_URL=https://khodat.com/api
+        - VITE_ADMIN_API_KEY=${ADMIN_API_KEY}
     container_name: khodat-admin
     restart: always
     ports:
@@ -275,8 +277,8 @@ services:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9002:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-khodat_minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-khodat_minio_secret}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"

@@ -56,8 +56,8 @@ func (h *ProxyHandler) ProxyRequest(c *gin.Context) {
 		}
 	}
 
-	// Copy response body
-	body, _ := io.ReadAll(resp.Body)
+	// Copy response body (limit to 50MB to prevent memory exhaustion)
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 50*1024*1024))
 	c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), body)
 }
 
@@ -99,7 +99,7 @@ func (h *ProxyHandler) ProxyToPath(targetPath string) gin.HandlerFunc {
 			}
 		}
 
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 50*1024*1024))
 		c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), body)
 	}
 }

@@ -382,6 +382,12 @@ import Header from '@/components/layout/Header.vue'
 const sandatBaseUrl = import.meta.env.VITE_SANDAT_API_URL?.replace(/\/api$/, '') || ''
 const apiUrl = import.meta.env.VITE_SANDAT_API_URL + '/settings'
 
+// Settings API requires admin API key for write operations
+const adminApiKey = import.meta.env.VITE_ADMIN_API_KEY || ''
+const settingsAxios = axios.create({
+  headers: { 'X-Admin-Api-Key': adminApiKey }
+})
+
 // Resolve relative storage URLs to the san-dat domain
 const resolveUrl = (url) => {
   if (!url) return ''
@@ -453,7 +459,7 @@ const saveSettings = async () => {
   saving.value = true
   message.value = ''
   try {
-    await axios.post(apiUrl, settings.value)
+    await settingsAxios.post(apiUrl, settings.value)
     message.value = '✓ Đã lưu thành công!'
     messageType.value = 'success'
   } catch (error) {
@@ -469,7 +475,7 @@ const saveApiKeys = async () => {
   savingApi.value = true
   apiMessage.value = ''
   try {
-    await axios.post(`${apiUrl}/api-keys`, apiKeys.value)
+    await settingsAxios.post(`${apiUrl}/api-keys`, apiKeys.value)
     apiMessage.value = '✓ Đã lưu API Keys!'
     apiMessageType.value = 'success'
   } catch (error) {
@@ -485,7 +491,7 @@ const saveSeo = async () => {
   savingSeo.value = true
   seoMessage.value = ''
   try {
-    await axios.post(`${apiUrl}/seo`, seo.value)
+    await settingsAxios.post(`${apiUrl}/seo`, seo.value)
     seoMessage.value = '✓ Đã lưu SEO Settings!'
     seoMessageType.value = 'success'
   } catch (error) {
@@ -526,7 +532,7 @@ const uploadFile = async (file, type) => {
   formData.append('file', file)
   formData.append('type', type)
   try {
-    const response = await axios.post(`${apiUrl}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    const response = await settingsAxios.post(`${apiUrl}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     if (response.data.url) {
       settings.value[type] = response.data.url
       uploadMessage.value = `✓ Đã tải lên ${type}!`

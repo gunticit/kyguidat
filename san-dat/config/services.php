@@ -33,4 +33,7 @@ return [
         'maps_api_key' => env('GOOGLE_MAPS_API_KEY', ''),
     ],
 
+    // Admin API key for cross-origin settings management from admin.khodat.com
+    'admin_api_key' => env('ADMIN_API_KEY'),
+
 ];

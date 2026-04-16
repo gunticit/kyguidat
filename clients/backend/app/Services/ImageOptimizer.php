@@ -36,7 +36,17 @@ class ImageOptimizer
     }
 
     /**
-     * Upload and optimize an image file to WebP
+     * Responsive image variant sizes
+     */
+    protected array $variants = [
+        'thumb'  => ['width' => 150, 'height' => 150],
+        'small'  => ['width' => 400, 'height' => 400],
+        'medium' => ['width' => 800, 'height' => 600],
+        'large'  => ['width' => 1200, 'height' => 900],
+    ];
+
+    /**
+     * Upload and optimize an image file to WebP with responsive variants
      */
     public function optimizeAndUpload(UploadedFile $file, string $directory = 'images', array $options = []): array
     {
@@ -73,9 +83,9 @@ class ImageOptimizer
         ob_start();
         imagewebp($sourceImage, null, $quality);
         $webpData = ob_get_clean();
-        imagedestroy($sourceImage);
 
         if (!$webpData) {
+            imagedestroy($sourceImage);
             throw new \RuntimeException('Không thể convert sang WebP');
         }
 
@@ -85,21 +95,23 @@ class ImageOptimizer
         $filename = "{$timestamp}_{$random}.webp";
         $path = $directory . '/' . $filename;
 
-        // Store to disk
+        // Store original to disk
         Storage::disk($this->disk)->put($path, $webpData, 'public');
 
-        // Generate thumbnail
-        $thumbnailUrl = null;
-        if ($options['thumbnail'] ?? true) {
-            $thumbnailUrl = $this->createThumbnail($webpData, $directory, $timestamp, $random, $quality);
-        }
+        // Generate responsive variants
+        $variantUrls = $this->createResponsiveVariants(
+            $sourceImage, $directory, $timestamp, $random, $quality
+        );
+
+        imagedestroy($sourceImage);
 
         $url = $this->getFileUrl($path);
 
         return [
             'path' => $path,
             'url' => $url,
-            'thumbnail_url' => $thumbnailUrl,
+            'thumbnail_url' => $variantUrls['thumb'] ?? null,
+            'variants' => $variantUrls,
             'disk' => $this->disk,
             'size' => strlen($webpData),
             'width' => $newWidth,
@@ -191,41 +203,42 @@ class ImageOptimizer
     }
 
     /**
-     * Create a thumbnail from WebP data
+     * Create responsive image variants from a GD image resource
      */
-    protected function createThumbnail(string $webpData, string $directory, string $timestamp, string $random, int $quality): ?string
+    protected function createResponsiveVariants(\GdImage $sourceImage, string $directory, string $timestamp, string $random, int $quality): array
     {
-        $thumbWidth = 400;
-        $thumbHeight = 400;
+        $origW = imagesx($sourceImage);
+        $origH = imagesy($sourceImage);
+        $urls = [];
 
-        $source = @imagecreatefromstring($webpData);
-        if (!$source) {
-            return null;
+        foreach ($this->variants as $name => $dims) {
+            // Skip variants larger than original
+            if ($dims['width'] >= $origW && $dims['height'] >= $origH) {
+                continue;
+            }
+
+            [$tw, $th] = $this->calculateDimensions($origW, $origH, $dims['width'], $dims['height']);
+
+            $variant = imagecreatetruecolor($tw, $th);
+            imagealphablending($variant, false);
+            imagesavealpha($variant, true);
+            imagecopyresampled($variant, $sourceImage, 0, 0, 0, 0, $tw, $th, $origW, $origH);
+
+            ob_start();
+            imagewebp($variant, null, $quality);
+            $variantData = ob_get_clean();
+            imagedestroy($variant);
+
+            if (!$variantData) {
+                continue;
+            }
+
+            $variantPath = $directory . '/' . $name . '/' . "{$timestamp}_{$random}.webp";
+            Storage::disk($this->disk)->put($variantPath, $variantData, 'public');
+            $urls[$name] = $this->getFileUrl($variantPath);
         }
 
-        $origW = imagesx($source);
-        $origH = imagesy($source);
-        [$tw, $th] = $this->calculateDimensions($origW, $origH, $thumbWidth, $thumbHeight);
-
-        $thumb = imagecreatetruecolor($tw, $th);
-        imagealphablending($thumb, false);
-        imagesavealpha($thumb, true);
-        imagecopyresampled($thumb, $source, 0, 0, 0, 0, $tw, $th, $origW, $origH);
-        imagedestroy($source);
-
-        ob_start();
-        imagewebp($thumb, null, $quality);
-        $thumbData = ob_get_clean();
-        imagedestroy($thumb);
-
-        if (!$thumbData) {
-            return null;
-        }
-
-        $thumbPath = $directory . '/thumbs/' . "{$timestamp}_{$random}_thumb.webp";
-        Storage::disk($this->disk)->put($thumbPath, $thumbData, 'public');
-
-        return $this->getFileUrl($thumbPath);
+        return $urls;
     }
 
     /**
