@@ -49,13 +49,13 @@ description: Quy tắc và cấu trúc code cho dự án Khodat
 ## Environment Variables
 
 - Dev: `.env` trong mỗi service directory
-- Prod: `.env.prod` ở root, dùng với `docker-compose.prod.yml`
+- Prod: `.env.prod` ở root, dùng với `docker-compose.yml`
 - MinIO config: `AWS_*` variables trong backend `.env`
 
 ## Docker
 
 - Dev: `docker-compose.yml` — ports expose ra host
-- Prod: `docker-compose.prod.yml` — ports bind `127.0.0.1` only, Nginx proxy phía trước
+- Prod: `docker-compose.yml` — ports bind `127.0.0.1` only, Nginx proxy phía trước
 
 ## ⚠️ Cập nhật Documentation
 
@@ -66,7 +66,7 @@ description: Quy tắc và cấu trúc code cho dự án Khodat
 | Thêm/xóa/đổi port service | `README.md` (bảng Services + URLs), `PROJECT_STRUCTURE.md` (Docker table), `DEPLOYMENT.md` (architecture), `.agent/workflows/deploy.md` |
 | Thêm API endpoint mới | `README.md` (API Endpoints section) |
 | Thêm env variable mới | `README.md` (Config section), `DEPLOYMENT.md` (.env.prod), `.env.prod.example`, `clients/backend/.env.example` |
-| Thêm service Docker mới | `docker-compose.yml`, `docker-compose.prod.yml`, `README.md`, `PROJECT_STRUCTURE.md`, `DEPLOYMENT.md` |
+| Thêm service Docker mới | `docker-compose.yml`, `docker-compose.yml`, `README.md`, `PROJECT_STRUCTURE.md`, `DEPLOYMENT.md` |
 | Thêm controller/service/command | `PROJECT_STRUCTURE.md` (cây thư mục) |
 | Thêm artisan command mới | `README.md` (Artisan Commands), `.agent/workflows/dev.md` |
 | Fix bug hoặc đổi config | `DEPLOYMENT.md` (Troubleshooting nếu cần) |

@@ -1,8 +1,10 @@
 # ===========================================
-# PRODUCTION DOCKER COMPOSE - khodat.com
+# DOCKER COMPOSE - khodat.com (canonical)
 # ===========================================
-# Sử dụng với Nginx đã cài sẵn trên host Ubuntu
-# Usage: docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+# Production: docker compose -f docker-compose.yml --env-file .env.prod up -d
+# Local dev:  docker compose up -d  (auto-merges docker-compose.override.yml)
+# Dev overrides are in docker-compose.override.yml (APP_DEBUG=true, localhost URLs);
+# always pass -f explicitly on VPS to prevent accidental override merge.
 
 services:
   # ===========================================
@@ -55,6 +57,14 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      # AI Chatbot (mirrors backend — sandat can route some AI calls too)
+      - AI_API_URL=${AI_API_URL:-http://103.90.226.30:20128/v1/responses}
+      - AI_API_MODEL=${AI_API_MODEL:-cx/gpt-5-codex-mini}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_URL=${OPENAI_API_URL:-https://api.openai.com/v1/chat/completions}
+      - OPENAI_API_MODEL=${OPENAI_API_MODEL:-gpt-4o-mini}
+      - BACKEND_API_URL=http://backend-nginx:80
+      - ADMIN_API_KEY=${ADMIN_API_KEY}
     volumes:
       - sandat-storage:/var/www/html/storage/app
     networks:
@@ -72,6 +82,7 @@ services:
       args:
         - VITE_API_URL=https://api.khodat.com/api
         - VITE_SANDAT_API_URL=https://khodat.com/api
+        - VITE_ADMIN_API_KEY=${ADMIN_API_KEY}
     container_name: khodat-admin
     restart: always
     ports:
@@ -289,8 +300,8 @@ services:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9002:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-khodat_minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-khodat_minio_secret}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"

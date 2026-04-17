@@ -166,7 +166,7 @@ kyguidat/
 │       └── Dockerfile
 │
 ├── docker-compose.yml        # Development
-├── docker-compose.prod.yml   # Production
+├── docker-compose.override.yml # Local dev overlay (not committed)
 ├── deploy.sh
 └── README.md
 ```

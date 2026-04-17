@@ -17,8 +17,10 @@ set -euo pipefail
 # ===========================================
 # CONFIG
 # ===========================================
-COMPOSE_FILE="docker-compose.prod.yml"
+COMPOSE_FILE="docker-compose.yml"
 ENV_FILE=".env.prod"
+# Using -f explicitly in all `docker compose` calls prevents docker-compose.override.yml
+# (dev-only overrides with APP_DEBUG=true and localhost URLs) from being auto-merged on VPS.
 BACKUP_DIR="./backups"
 MYSQL_CONTAINER="khodat-mysql"
 MAX_BACKUPS=10  # Giữ tối đa 10 file backup

@@ -62,6 +62,6 @@ docker exec khodat-minio mc anonymous set public local/khodat
 
 4. Migrate base64 images (nếu cần):
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan images:migrate-base64 --dry-run
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan images:migrate-base64
+docker compose -f docker-compose.yml --env-file .env.prod exec backend php artisan images:migrate-base64 --dry-run
+docker compose -f docker-compose.yml --env-file .env.prod exec backend php artisan images:migrate-base64
 ```

@@ -11,7 +11,7 @@ kyguidat/
 │   ├── backend/          # Laravel Backend User (Port 8015)
 │   └── frontend/         # Next.js Frontend User (Port 3015)
 ├── docker-compose.yml
-├── docker-compose.prod.yml
+├── docker-compose.yml
 ├── deploy.sh
 └── README.md
 ```

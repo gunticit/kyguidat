@@ -237,7 +237,7 @@ bash deploy.sh --build
 
 ### Kiểm tra containers:
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod ps
+docker compose -f docker-compose.yml --env-file .env.prod ps
 ```
 
 Tất cả phải ở trạng thái `Up`:
@@ -271,11 +271,11 @@ ssh -L 9002:127.0.0.1:9002 user@vps
 ### Migrate dữ liệu hình ảnh cũ (base64 → MinIO WebP):
 ```bash
 # Xem trước (không thay đổi data)
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+docker compose -f docker-compose.yml --env-file .env.prod exec backend \
   php artisan images:migrate-base64 --dry-run
 
 # Thực hiện migrate
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+docker compose -f docker-compose.yml --env-file .env.prod exec backend \
   php artisan images:migrate-base64
 ```
 
@@ -308,12 +308,12 @@ sudo tail -f /var/log/nginx/error.log
 |-------|--------|
 | `bash deploy.sh` | Deploy nhanh (dùng cache) |
 | `bash deploy.sh --build` | Deploy full rebuild |
-| `docker compose -f docker-compose.prod.yml --env-file .env.prod ps` | Xem status |
-| `docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f backend` | Xem log backend |
-| `docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan migrate` | Chạy migration |
-| `docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan tinker` | Laravel tinker |
-| `docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend php artisan images:migrate-base64` | Migrate base64 → WebP |
-| `docker compose -f docker-compose.prod.yml --env-file .env.prod restart backend backend-nginx` | Restart backend |
+| `docker compose -f docker-compose.yml --env-file .env.prod ps` | Xem status |
+| `docker compose -f docker-compose.yml --env-file .env.prod logs -f backend` | Xem log backend |
+| `docker compose -f docker-compose.yml --env-file .env.prod exec backend php artisan migrate` | Chạy migration |
+| `docker compose -f docker-compose.yml --env-file .env.prod exec backend php artisan tinker` | Laravel tinker |
+| `docker compose -f docker-compose.yml --env-file .env.prod exec backend php artisan images:migrate-base64` | Migrate base64 → WebP |
+| `docker compose -f docker-compose.yml --env-file .env.prod restart backend backend-nginx` | Restart backend |
 | `sudo certbot renew` | Gia hạn SSL |
 | `sudo nginx -t && sudo systemctl reload nginx` | Test & reload Nginx |
 
@@ -342,7 +342,7 @@ sudo nginx -t
 ### Email verification không gửi?
 ```bash
 # Kiểm tra SMTP config
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+docker compose -f docker-compose.yml --env-file .env.prod exec backend \
   php artisan tinker --execute="Mail::raw('Test', fn(\$m) => \$m->to('your@email.com')->subject('Test'));"
 
 # Xem log
@@ -351,7 +351,7 @@ docker logs khodat-backend --tail 50 | grep -i mail
 
 ### Tạo Admin user:
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+docker compose -f docker-compose.yml --env-file .env.prod exec backend \
   php artisan tinker --execute="
     \$user = App\Models\User::where('email', 'admin@khodat.com')->first();
     if (\$user) {
@@ -364,6 +364,6 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
 
 ### Seed dữ liệu ban đầu:
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend \
+docker compose -f docker-compose.yml --env-file .env.prod exec backend \
   php artisan db:seed --force
 ```
