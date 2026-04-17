@@ -2,9 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Consignment;
 use App\Models\Province;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -14,341 +12,344 @@ class ChatbotService
     private string $openaiApiKey;
     private string $openaiApiUrl;
     private string $openaiModel;
-    private string $fallbackApiUrl;
-    private string $fallbackModel;
     private string $siteUrl;
+    private bool $ragEnabled;
 
-    public function __construct()
-    {
+    public function __construct(
+        private RAGRetrievalService $retrieval,
+    ) {
         $this->openaiApiKey = env('OPENAI_API_KEY', '');
         $this->openaiApiUrl = env('OPENAI_API_URL', 'https://api.openai.com/v1/chat/completions');
-        $this->openaiModel = env('OPENAI_API_MODEL', 'gpt-5.4-mini');
-        $this->fallbackApiUrl = env('AI_API_URL', 'http://103.90.226.30:20128/v1/responses');
-        $this->fallbackModel = env('AI_API_MODEL', 'cx/gpt-5-codex-mini');
-        $this->siteUrl = env('APP_URL_SANDAT', 'https://khodat.com');
+        $this->openaiModel  = config('rag.llm.model', env('OPENAI_API_MODEL', 'gpt-4o-mini'));
+        $this->siteUrl      = env('APP_URL_SANDAT', 'https://khodat.com');
+        $this->ragEnabled   = (bool) config('rag.enabled', true);
     }
 
     /**
-     * Handle incoming chat message and return auto-reply if relevant
-     *
-     * @return array{is_property_query: bool, reply: string|null, consignments: array}
+     * @return array{is_property_query: bool, reply: string|null, consignments: array, debug?: array}
      */
     public function handleMessage(string $text): array
     {
         try {
-            // Step 1: AI extract search intent
-            $intent = $this->extractSearchIntent($text);
+            // RAG kill switch → chỉ answer general, không gọi retrieval/embedding.
+            if (!$this->ragEnabled) {
+                return [
+                    'is_property_query' => false,
+                    'reply'             => $this->answerGeneralQuestion($text),
+                    'consignments'      => [],
+                ];
+            }
+
+            $intent = $this->extractIntent($text);
 
             if (!$intent['is_property_query']) {
                 return [
                     'is_property_query' => false,
-                    'reply' => null,
-                    'consignments' => [],
+                    'reply'             => $this->answerGeneralQuestion($text),
+                    'consignments'      => [],
                 ];
             }
 
-            // Step 2: Search consignments
-            $results = $this->searchConsignments($intent);
+            $filters = $this->intentToFilters($intent);
+            $retrieved = $this->retrieval->retrieve($text, $filters, (int) config('rag.retrieval.top_k'));
 
-            // Step 3: Format response
-            $reply = $this->formatResponse($results, $intent, $text);
+            $finalK = (int) config('rag.retrieval.final_k', 3);
+            $recommended = array_slice($retrieved, 0, $finalK);
 
-            return [
+            $reply = $this->generateAnswer($text, $recommended, $intent);
+
+            $response = [
                 'is_property_query' => true,
-                'reply' => $reply,
-                'consignments' => $results->map(fn($c) => [
-                    'id' => $c->id,
-                    'title' => $c->title,
-                    'price' => $c->price,
-                    'address' => $c->address,
-                    'seo_url' => $c->seo_url,
-                    'featured_image' => $c->featured_image,
-                ])->values()->toArray(),
+                'reply'             => $reply,
+                'consignments'      => array_map(fn($r) => $this->formatConsignmentForClient($r), $recommended),
             ];
+
+            if (config('rag.debug')) {
+                $response['debug'] = [
+                    'intent'          => $intent,
+                    'filters'         => $filters,
+                    'retrieved_count' => count($retrieved),
+                    'scores'          => array_map(fn($r) => $r['_score'] ?? 0, $retrieved),
+                ];
+            }
+
+            return $response;
         } catch (\Throwable $e) {
-            Log::error('Chatbot error', ['error' => $e->getMessage(), 'text' => $text]);
+            Log::error('Chatbot error', [
+                'error' => $e->getMessage(),
+                'text'  => $text,
+                'trace' => $e->getTraceAsString(),
+            ]);
             return [
                 'is_property_query' => false,
-                'reply' => null,
-                'consignments' => [],
+                'reply'             => 'Dạ xin lỗi anh/chị, hệ thống đang gặp trục trặc. Anh/chị vui lòng thử lại sau hoặc gọi hotline 1900 8041 ạ.',
+                'consignments'      => [],
             ];
         }
     }
 
     /**
-     * Use AI to extract search criteria from natural language
+     * LLM classify + extract filters + rewrite query for better vector retrieval.
      */
-    private function extractSearchIntent(string $text): array
+    private function extractIntent(string $text): array
     {
         $provincesRef = $this->getProvincesReference();
 
         $prompt = <<<PROMPT
-Bạn là chatbot bất động sản. Phân tích tin nhắn khách hàng và xác định xem họ có đang hỏi về bất động sản/đất đai không.
-
-Nếu CÓ, extract các tiêu chí tìm kiếm. Nếu KHÔNG (ví dụ: chào hỏi, hỏi giờ mở cửa, v.v.), trả is_property_query = false.
+Bạn là chatbot bất động sản Khodat.com. Phân tích tin nhắn khách hàng.
 
 DANH SÁCH TỈNH/THÀNH VÀ XÃ/PHƯỜNG:
 {$provincesRef}
 
-Trả về JSON thuần (không markdown, không code block):
+Trả về JSON THUẦN, không markdown:
 {
   "is_property_query": true/false,
-  "province": "tên tỉnh/thành (khớp chính xác danh sách trên)" | null,
+  "province": "tên tỉnh/thành khớp danh sách" | null,
   "ward": "tên xã/phường" | null,
-  "min_price": số nguyên VNĐ | null,
-  "max_price": số nguyên VNĐ | null,
-  "direction": "hướng (Đông/Tây/Nam/Bắc/Đông Nam/...)" | null,
-  "property_type": "loại đất (đất vườn/đất thổ cư/đất nông nghiệp/...)" | null,
-  "search_keywords": "từ khóa tìm kiếm bổ sung" | null
+  "min_price": số nguyên VND | null,
+  "max_price": số nguyên VND | null,
+  "property_type": "đất nền" | "đất tái định cư" | "đất sào" | "đất rẫy" | "bất động sản nghỉ dưỡng" | "đất phân lô dự án" | "chung cư" | "đang sử dụng kinh doanh" | null,
+  "direction": "Đông" | "Tây" | "Nam" | "Bắc" | "Đông Nam" | "Đông Bắc" | "Tây Nam" | "Tây Bắc" | null,
+  "rewritten_query": "câu truy vấn được viết lại giàu ngữ nghĩa hơn để dùng cho vector search"
 }
 
-Lưu ý quy đổi giá:
+Quy đổi giá:
 - "500 triệu" = 500000000
 - "1 tỷ" = 1000000000
-- "tầm 500 triệu" → max_price = 600000000 (thêm buffer 20%)
-- "từ 500 triệu đến 1 tỷ" → min_price = 500000000, max_price = 1000000000
-- "dưới 1 tỷ" → max_price = 1000000000
-- "trên 2 tỷ" → min_price = 2000000000
+- "tầm X" → max_price = X * 1.2 (buffer 20%)
+- "dưới X" → max_price = X
+- "trên X" → min_price = X
+- "X đến Y" → min_price = X, max_price = Y
 
-Tin nhắn khách:
+Ví dụ rewritten_query:
+- User: "đất nghỉ dưỡng tầm 2 tỷ Lâm Đồng view đẹp"
+- rewritten_query: "bất động sản nghỉ dưỡng Lâm Đồng view đẹp có cảnh thiên nhiên thư giãn farmstay homestay"
+
+is_property_query = true nếu khách đang TÌM, MUA, HỎI VỀ BĐS cụ thể.
+is_property_query = false nếu chỉ chào hỏi / hỏi thông tin công ty / ký gửi bán / pháp lý chung.
+
+Tin nhắn:
 ---
 {$text}
 ---
 PROMPT;
 
-        $response = $this->callAI($prompt);
+        $response = $this->callLLM([
+            ['role' => 'user', 'content' => $prompt],
+        ], temperature: 0.1, maxTokens: 400);
 
         $defaults = [
             'is_property_query' => false,
-            'province' => null,
-            'ward' => null,
-            'min_price' => null,
-            'max_price' => null,
-            'direction' => null,
-            'property_type' => null,
-            'search_keywords' => null,
+            'province'          => null,
+            'ward'              => null,
+            'min_price'         => null,
+            'max_price'         => null,
+            'property_type'     => null,
+            'direction'         => null,
+            'rewritten_query'   => $text,
         ];
 
         if (!$response) {
             return $defaults;
         }
 
-        // Clean markdown
-        $response = preg_replace('/^```(?:json)?\s*/m', '', $response);
+        $response = preg_replace('/^```(?:json)?\s*/m', '', trim($response));
         $response = preg_replace('/\s*```$/m', '', $response);
-        $response = trim($response);
-
         $parsed = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::warning('Chatbot: AI response not valid JSON', ['response' => $response]);
+            Log::warning('Chatbot: intent extraction JSON invalid', ['response' => $response]);
             return $defaults;
         }
 
         return array_merge($defaults, array_intersect_key($parsed, $defaults));
     }
 
-    /**
-     * Search consignments in database based on extracted criteria
-     */
-    private function searchConsignments(array $criteria): Collection
+    private function intentToFilters(array $intent): array
     {
-        $query = Consignment::query()
-            ->whereIn('status', [Consignment::STATUS_APPROVED, Consignment::STATUS_SELLING])
-            ->with('user:id,name');
+        $filters = [];
+        if (!empty($intent['province']))  $filters['province']  = $intent['province'];
+        if (!empty($intent['ward']))      $filters['ward']      = $intent['ward'];
+        if (!empty($intent['min_price'])) $filters['min_price'] = $intent['min_price'];
+        if (!empty($intent['max_price'])) $filters['max_price'] = $intent['max_price'];
 
-        if (!empty($criteria['province'])) {
-            $query->where('province', $criteria['province']);
+        if (!empty($intent['property_type'])) {
+            $filters['land_types'] = [$intent['property_type']];
         }
-
-        if (!empty($criteria['ward'])) {
-            $query->where('ward', $criteria['ward']);
+        if (!empty($intent['direction'])) {
+            $filters['land_directions'] = [$intent['direction']];
         }
-
-        if (!empty($criteria['min_price'])) {
-            $query->where('price', '>=', $criteria['min_price']);
-        }
-
-        if (!empty($criteria['max_price'])) {
-            $query->where('price', '<=', $criteria['max_price']);
-        }
-
-        if (!empty($criteria['direction'])) {
-            $query->whereJsonContains('land_directions', $criteria['direction']);
-        }
-
-        if (!empty($criteria['property_type'])) {
-            $query->whereJsonContains('land_types', $criteria['property_type']);
-        }
-
-        if (!empty($criteria['search_keywords'])) {
-            $keywords = $criteria['search_keywords'];
-            $query->where(function ($q) use ($keywords) {
-                $q->where('title', 'like', "%{$keywords}%")
-                    ->orWhere('address', 'like', "%{$keywords}%")
-                    ->orWhere('description', 'like', "%{$keywords}%");
-            });
-        }
-
-        return $query
-            ->orderByDesc('created_at')
-            ->limit(5)
-            ->get();
+        return $filters;
     }
 
-    /**
-     * Format friendly response with consignment links
-     */
-    private function formatResponse(Collection $results, array $criteria, string $originalText): string
+    private function generateAnswer(string $originalQuery, array $recommendedConsignments, array $intent): string
     {
-        $locationParts = [];
-        if (!empty($criteria['ward'])) {
-            $locationParts[] = $criteria['ward'];
-        }
-        if (!empty($criteria['province'])) {
-            $locationParts[] = $criteria['province'];
-        }
-        $location = !empty($locationParts) ? implode(', ', $locationParts) : 'khu vực bạn tìm';
+        $persona      = $this->loadPersona();
+        $contextBlock = $this->buildContextBlock($recommendedConsignments);
+        $hasResults   = !empty($recommendedConsignments);
 
-        if ($results->isEmpty()) {
-            return "Xin lỗi, hiện tại mình chưa có sản phẩm nào phù hợp ở {$location}. "
-                . "Bạn có thể để lại số điện thoại, khi có đất phù hợp mình sẽ liên hệ ngay ạ! 😊";
-        }
+        $userPrompt = $hasResults
+            ? <<<PROMPT
+Dưới đây là {$this->countWord($recommendedConsignments)} sản phẩm có trong kho Khodat.com phù hợp nhất với nhu cầu khách:
 
-        $count = $results->count();
-        $lines = ["Mình tìm được {$count} sản phẩm phù hợp ở {$location}:\n"];
+{$contextBlock}
 
-        foreach ($results as $index => $consignment) {
-            $num = $index + 1;
-            $title = $consignment->title;
-            $price = $this->formatPrice($consignment->price);
-            $link = $this->buildConsignmentLink($consignment);
-            $lines[] = "{$num}. {$title} - {$price}\n   👉 {$link}";
-        }
+Câu hỏi của khách: "{$originalQuery}"
 
-        $lines[] = "\nBạn muốn xem chi tiết sản phẩm nào ạ? 😊";
+Hãy trả lời tự nhiên theo persona. Chọn 2-3 sản phẩm phù hợp nhất từ danh sách TRÊN, mô tả ngắn gọn mỗi sản phẩm 1 câu tại sao phù hợp. LUÔN gắn link đúng từ trường `Link` đã cho. KHÔNG được bịa ra sản phẩm ngoài danh sách. Kết thúc bằng 1 câu hỏi gợi mở.
+PROMPT
+            : <<<PROMPT
+Câu hỏi của khách: "{$originalQuery}"
 
-        return implode("\n", $lines);
+Hiện tại trong kho Khodat.com chưa có sản phẩm nào khớp chính xác tiêu chí trên. Hãy trả lời chân thành theo persona: nói thẳng là chưa có tin phù hợp, hỏi khách có thể nới lỏng tiêu chí nào (ngân sách / khu vực / loại hình), và gợi ý để lại số điện thoại để được thông báo khi có tin mới. Gửi kèm link tìm kiếm chung: {$this->siteUrl}/tim-kiem
+PROMPT;
+
+        $reply = $this->callLLM([
+            ['role' => 'system', 'content' => $persona],
+            ['role' => 'user',   'content' => $userPrompt],
+        ], temperature: (float) config('rag.llm.temperature', 0.4), maxTokens: (int) config('rag.llm.max_tokens', 800));
+
+        return $reply ?? 'Dạ em xin lỗi, em chưa thể trả lời ngay lúc này. Anh/chị thử lại giúp em ạ.';
     }
 
-    /**
-     * Format price in Vietnamese
-     */
+    private function answerGeneralQuestion(string $text): string
+    {
+        $persona = $this->loadPersona();
+
+        $reply = $this->callLLM([
+            ['role' => 'system', 'content' => $persona],
+            ['role' => 'user',   'content' => $text],
+        ], temperature: 0.5, maxTokens: 500);
+
+        return $reply ?? 'Dạ em xin lỗi, anh/chị vui lòng gọi 1900 8041 để được hỗ trợ nhanh nhất ạ.';
+    }
+
+    private function buildContextBlock(array $consignments): string
+    {
+        if (empty($consignments)) return '(không có sản phẩm)';
+
+        $lines = [];
+        foreach ($consignments as $i => $c) {
+            $n       = $i + 1;
+            $title   = $c['title'] ?? 'Không có tiêu đề';
+            $price   = $this->formatPrice($c['price'] ?? 0);
+            $address = $c['address'] ?? (($c['ward'] ?? '') . ', ' . ($c['province'] ?? ''));
+            $area    = $c['area_dimensions'] ?? '';
+            $types   = !empty($c['land_types']) ? implode(', ', (array) $c['land_types']) : '';
+            $url     = $this->buildConsignmentUrl($c);
+
+            $lines[] = "[{$n}] {$title}"
+                . "\n    Giá: {$price} | Diện tích: {$area}"
+                . "\n    Địa chỉ: {$address}"
+                . ($types ? "\n    Loại: {$types}" : '')
+                . "\n    Link: {$url}";
+        }
+        return implode("\n\n", $lines);
+    }
+
+    private function formatConsignmentForClient(array $c): array
+    {
+        return [
+            'id'             => $c['consignment_id'] ?? null,
+            'title'          => $c['title'] ?? '',
+            'price'          => $c['price'] ?? 0,
+            'price_display'  => $this->formatPrice($c['price'] ?? 0),
+            'address'        => $c['address'] ?? '',
+            'province'       => $c['province'] ?? '',
+            'ward'           => $c['ward'] ?? '',
+            'area'           => $c['area_dimensions'] ?? '',
+            'featured_image' => $c['featured_image'] ?? '',
+            'url'            => $this->buildConsignmentUrl($c),
+            'score'          => round((float) ($c['_score'] ?? 0), 3),
+        ];
+    }
+
+    private function buildConsignmentUrl(array $c): string
+    {
+        if (!empty($c['seo_url'])) {
+            return rtrim($this->siteUrl, '/') . '/dat/' . $c['seo_url'];
+        }
+        if (!empty($c['consignment_id'])) {
+            return rtrim($this->siteUrl, '/') . '/dat/' . $c['consignment_id'];
+        }
+        return $this->siteUrl;
+    }
+
     private function formatPrice(?float $price): string
     {
         if (!$price) return 'Liên hệ';
-
-        if ($price >= 1000000000) {
-            $ty = $price / 1000000000;
-            if ($ty == floor($ty)) {
-                return number_format($ty) . ' tỷ';
-            }
-            return number_format($ty, 1) . ' tỷ';
+        if ($price >= 1_000_000_000) {
+            $ty = $price / 1_000_000_000;
+            return ($ty == floor($ty)) ? number_format($ty) . ' tỷ' : number_format($ty, 1) . ' tỷ';
         }
-
-        if ($price >= 1000000) {
-            $trieu = $price / 1000000;
-            return number_format($trieu) . ' triệu';
+        if ($price >= 1_000_000) {
+            return number_format($price / 1_000_000) . ' triệu';
         }
-
         return number_format($price) . ' đ';
     }
 
-    /**
-     * Build public URL for a consignment
-     */
-    private function buildConsignmentLink(Consignment $consignment): string
+    private function loadPersona(): string
     {
-        if ($consignment->seo_url) {
-            return "{$this->siteUrl}/dat/{$consignment->seo_url}";
+        $personaFile = storage_path('app/chatbot_prompt.php');
+        if (file_exists($personaFile)) {
+            ob_start();
+            include $personaFile;
+            $content = trim((string) ob_get_clean());
+            if ($content !== '') {
+                return $content;
+            }
         }
-        return "{$this->siteUrl}/dat/{$consignment->id}";
+        return 'Bạn là chuyên viên tư vấn bất động sản của Khodat.com. Trả lời lễ phép, xưng "em", gọi khách là "anh/chị". Ngắn gọn, thân thiện, tập trung hỗ trợ khách mua đất ký gửi.';
     }
 
-    /**
-     * Get provinces reference for AI context (cached 1 hour)
-     */
     private function getProvincesReference(): string
     {
         return Cache::remember('chatbot_provinces_reference', 3600, function () {
-            $provinces = Province::active()
-                ->ordered()
-                ->with('activeWards')
-                ->get();
-
-            if ($provinces->isEmpty()) {
-                return '';
-            }
+            $provinces = Province::active()->ordered()->with('activeWards')->get();
+            if ($provinces->isEmpty()) return '';
 
             $lines = [];
-            foreach ($provinces as $province) {
-                $wards = $province->activeWards->pluck('name')->toArray();
-                if (!empty($wards)) {
-                    $lines[] = "- {$province->name}: " . implode(', ', $wards);
-                } else {
-                    $lines[] = "- {$province->name}";
-                }
+            foreach ($provinces as $p) {
+                $wards = $p->activeWards->pluck('name')->toArray();
+                $lines[] = "- {$p->name}" . (!empty($wards) ? ': ' . implode(', ', $wards) : '');
             }
-
             return implode("\n", $lines);
         });
     }
 
-    /**
-     * Call AI: OpenAI first, fallback to custom API
-     */
-    private function callAI(string $prompt): ?string
+    private function callLLM(array $messages, float $temperature = 0.3, int $maxTokens = 800): ?string
     {
-        // Try OpenAI first
-        if (!empty($this->openaiApiKey)) {
-            try {
-                $response = Http::timeout(30)
-                    ->withHeaders([
-                        'Authorization' => 'Bearer ' . $this->openaiApiKey,
-                        'Content-Type' => 'application/json',
-                    ])
-                    ->post($this->openaiApiUrl, [
-                        'model' => $this->openaiModel,
-                        'messages' => [
-                            ['role' => 'user', 'content' => $prompt],
-                        ],
-                        'temperature' => 0.1,
-                    ]);
-
-                if ($response->successful()) {
-                    return $response->json('choices.0.message.content');
-                }
-
-                Log::warning('Chatbot: OpenAI failed, trying fallback', [
-                    'status' => $response->status(),
-                ]);
-            } catch (\Throwable $e) {
-                Log::warning('Chatbot: OpenAI connection failed', ['error' => $e->getMessage()]);
-            }
+        if (empty($this->openaiApiKey)) {
+            Log::warning('OPENAI_API_KEY is empty');
+            return null;
         }
-
-        // Fallback to custom API
         try {
-            $response = Http::timeout(30)->post($this->fallbackApiUrl, [
-                'model' => $this->fallbackModel,
-                'input' => $prompt,
-            ]);
+            $response = Http::timeout(60)
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $this->openaiApiKey,
+                    'Content-Type'  => 'application/json',
+                ])
+                ->post($this->openaiApiUrl, [
+                    'model'       => $this->openaiModel,
+                    'messages'    => $messages,
+                    'temperature' => $temperature,
+                    'max_tokens'  => $maxTokens,
+                ]);
 
             if ($response->successful()) {
-                $data = $response->json();
-                foreach ($data['output'] ?? [] as $output) {
-                    if (($output['type'] ?? '') === 'message') {
-                        foreach ($output['content'] ?? [] as $content) {
-                            if (($content['type'] ?? '') === 'output_text') {
-                                return $content['text'] ?? null;
-                            }
-                        }
-                    }
-                }
+                return $response->json('choices.0.message.content');
             }
+            Log::warning('LLM call failed', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
         } catch (\Throwable $e) {
-            Log::error('Chatbot: Both APIs failed', ['error' => $e->getMessage()]);
+            Log::error('LLM exception', ['error' => $e->getMessage()]);
         }
-
         return null;
+    }
+
+    private function countWord(array $items): string
+    {
+        return count($items) . ' sản phẩm';
     }
 }

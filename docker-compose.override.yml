@@ -1,0 +1,52 @@
+# ===========================================
+# LOCAL DEV OVERRIDES
+# ===========================================
+# Tự động merge với docker-compose.yml khi chạy docker-compose up
+# KHÔNG commit file này lên git
+
+services:
+  # --- Backend: chuyển sang local mode ---
+  backend:
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8015
+      - FRONTEND_URL=http://localhost:3015
+      - APP_URL_SANDAT=http://localhost:8088
+      - APP_URL_ADMIN=http://localhost:8089
+
+  # --- Frontend: build với local URLs ---
+  frontend:
+    build:
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8015/api
+        - NEXT_PUBLIC_SOCKET_URL=http://localhost:3020
+        - NEXT_PUBLIC_APP_NAME=Khodat-Dev
+        - NEXT_PUBLIC_GOOGLE_LOGIN_URL=http://localhost:8080/api/auth/google
+        - NEXT_PUBLIC_FACEBOOK_LOGIN_URL=http://localhost:8080/api/auth/facebook
+        - NEXT_PUBLIC_ZALO_LOGIN_URL=http://localhost:8080/api/auth/zalo
+        - NEXT_PUBLIC_GITHUB_LOGIN_URL=http://localhost:8015/api/auth/github
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8015/api
+      - NEXT_PUBLIC_SOCKET_URL=http://localhost:3020
+      - NEXT_PUBLIC_APP_NAME=Khodat-Dev
+
+  # --- Admin: build với local API ---
+  admin:
+    build:
+      args:
+        - VITE_API_URL=http://localhost:8080/api
+        - VITE_SANDAT_API_URL=http://localhost:8088/api
+
+  # --- San Dat: local mode ---
+  san-dat:
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8088
+
+  # --- Socket: allow localhost CORS ---
+  socket:
+    environment:
+      - CORS_ORIGINS=http://localhost:3015,http://localhost:8089

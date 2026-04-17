@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Consignment;
+use App\Observers\ConsignmentEmbeddingObserver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -31,5 +33,8 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('zalo', \SocialiteProviders\Zalo\Provider::class);
         });
+
+        // RAG: auto re-embed Consignment whenever text-bearing fields change.
+        Consignment::observe(ConsignmentEmbeddingObserver::class);
     }
 }

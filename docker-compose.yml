@@ -156,6 +156,28 @@ services:
       # AI Quick Post Parser
       - AI_API_URL=${AI_API_URL:-http://103.90.226.30:20128/v1/responses}
       - AI_API_MODEL=${AI_API_MODEL:-cx/gpt-5-codex-mini}
+      # OpenAI (Chatbot + RAG embeddings/generation)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_URL=${OPENAI_API_URL:-https://api.openai.com/v1/chat/completions}
+      - OPENAI_API_MODEL=${OPENAI_API_MODEL:-gpt-4o-mini}
+      - OPENAI_EMBEDDING_URL=${OPENAI_EMBEDDING_URL:-https://api.openai.com/v1/embeddings}
+      # RAG / Elasticsearch
+      - RAG_ENABLED=${RAG_ENABLED:-true}
+      - RAG_DEBUG=${RAG_DEBUG:-false}
+      - RAG_EMBEDDING_PROVIDER=${RAG_EMBEDDING_PROVIDER:-openai}
+      - RAG_EMBEDDING_MODEL=${RAG_EMBEDDING_MODEL:-text-embedding-3-small}
+      - RAG_EMBEDDING_DIMENSIONS=${RAG_EMBEDDING_DIMENSIONS:-1536}
+      - RAG_EMBEDDING_BATCH_SIZE=${RAG_EMBEDDING_BATCH_SIZE:-50}
+      - RAG_TOP_K=${RAG_TOP_K:-10}
+      - RAG_FINAL_K=${RAG_FINAL_K:-3}
+      - RAG_NUM_CANDIDATES=${RAG_NUM_CANDIDATES:-100}
+      - RAG_MIN_SCORE=${RAG_MIN_SCORE:-0.0}
+      - RAG_BM25_WEIGHT=${RAG_BM25_WEIGHT:-0.5}
+      - RAG_VECTOR_WEIGHT=${RAG_VECTOR_WEIGHT:-0.5}
+      - RAG_LLM_TEMPERATURE=${RAG_LLM_TEMPERATURE:-0.4}
+      - RAG_LLM_MAX_TOKENS=${RAG_LLM_MAX_TOKENS:-800}
+      - RAG_ES_INDEX=${RAG_ES_INDEX:-consignments_rag}
+      - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://elasticsearch:9200}
     networks:
       - khodat-network
     depends_on:
@@ -164,6 +186,8 @@ services:
       redis:
         condition: service_started
       minio:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
 
   # ===========================================
@@ -299,6 +323,76 @@ services:
       - redis
       - backend
 
+  # ===========================================
+  # ELASTICSEARCH (Hybrid RAG vector store + BM25)
+  # ===========================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: khodat-elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "127.0.0.1:9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - khodat-network
+
+  # ===========================================
+  # RAG QUEUE WORKER (embedding consignments async)
+  # ===========================================
+  rag-worker:
+    build:
+      context: ./clients/backend
+      dockerfile: Dockerfile.prod
+    container_name: khodat-rag-worker
+    restart: always
+    command: php artisan queue:work redis --queue=rag --tries=3 --sleep=3 --timeout=120
+    environment:
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - QUEUE_CONNECTION=redis
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_EMBEDDING_URL=${OPENAI_EMBEDDING_URL:-https://api.openai.com/v1/embeddings}
+      - RAG_ENABLED=${RAG_ENABLED:-true}
+      - RAG_EMBEDDING_PROVIDER=${RAG_EMBEDDING_PROVIDER:-openai}
+      - RAG_EMBEDDING_MODEL=${RAG_EMBEDDING_MODEL:-text-embedding-3-small}
+      - RAG_EMBEDDING_DIMENSIONS=${RAG_EMBEDDING_DIMENSIONS:-1536}
+      - RAG_ES_INDEX=${RAG_ES_INDEX:-consignments_rag}
+      - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://elasticsearch:9200}
+    networks:
+      - khodat-network
+    depends_on:
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+
 networks:
   khodat-network:
     driver: bridge
@@ -308,3 +402,4 @@ volumes:
   redis-data:
   minio-data:
   sandat-storage:
+  elasticsearch-data:
