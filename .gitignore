@@ -11,8 +11,9 @@ node_modules/
 !.yarn/versions
 vendor/
 
-# Go module cache
+# Go module/build cache
 .gopath/
+.cache/
 
 # Python virtual environments
 .venv/
