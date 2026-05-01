@@ -62,6 +62,7 @@ class Consignment extends Model
         'published_at',
         'auto_deactivated',
         'deactivated_at',
+        'expires_at',
         'cancelled_at',
     ];
 
@@ -80,6 +81,7 @@ class Consignment extends Model
         'published_at' => 'datetime',
         'auto_deactivated' => 'boolean',
         'deactivated_at' => 'datetime',
+        'expires_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
 
@@ -116,7 +118,8 @@ class Consignment extends Model
     }
 
     /**
-     * Reactivate a deactivated consignment
+     * Reactivate a deactivated consignment.
+     * Resets countdown to 30 days from now.
      */
     public function reactivate(): bool
     {
@@ -129,9 +132,27 @@ class Consignment extends Model
             'auto_deactivated' => false,
             'deactivated_at' => null,
             'published_at' => now(),
+            'expires_at' => now()->addDays(30),
         ]);
 
         return true;
+    }
+
+    /**
+     * Whether the listing has passed its expiration timestamp.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    /**
+     * Set expires_at to now() + N days. Does not save.
+     */
+    public function setExpirationDays(int $days = 30): self
+    {
+        $this->expires_at = now()->addDays($days);
+        return $this;
     }
 }
 

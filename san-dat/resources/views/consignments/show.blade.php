@@ -666,7 +666,7 @@
                             <div class="flex justify-between text-sm text-gray-400 mt-2">
                                 <span>Cập nhật:</span>
                                 <span
-                                    class="font-medium text-gray-300">{{ \Carbon\Carbon::parse($consignment['updated_at'])->diffForHumans() }}</span>
+                                    class="font-medium text-gray-300">{{ \Carbon\Carbon::parse($consignment['updated_at'])->locale('vi')->diffForHumans() }}</span>
                             </div>
                         @endif
                     </div>

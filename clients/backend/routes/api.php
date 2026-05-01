@@ -241,6 +241,8 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::put('/consignments/{id}/approve', [App\Http\Controllers\AdminController::class, 'approveConsignment']);
         Route::put('/consignments/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectConsignment']);
         Route::post('/consignments/{id}/reactivate', [App\Http\Controllers\AdminController::class, 'reactivateConsignment']);
+        Route::put('/consignments/{id}/expiration', [App\Http\Controllers\AdminController::class, 'updateConsignmentExpiration']);
+        Route::post('/consignments/{id}/reset', [App\Http\Controllers\AdminController::class, 'resetConsignmentCountdown']);
         Route::post('/resolve-map-url', [App\Http\Controllers\AdminController::class, 'resolveMapUrl']);
 
         // Support Tickets - Admin Management

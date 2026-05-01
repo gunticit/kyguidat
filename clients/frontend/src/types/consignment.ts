@@ -14,11 +14,15 @@ export interface Consignment {
     approved_at?: string;
     sold_at?: string;
     cancelled_at?: string;
+    published_at?: string | null;
+    expires_at?: string | null;
+    auto_deactivated?: boolean;
+    deactivated_at?: string | null;
     created_at: string;
     updated_at: string;
 }
 
-export type ConsignmentStatus = 'pending' | 'approved' | 'rejected' | 'selling' | 'sold' | 'cancelled';
+export type ConsignmentStatus = 'pending' | 'approved' | 'rejected' | 'selling' | 'sold' | 'cancelled' | 'deactivated';
 
 export interface ConsignmentHistory {
     id: number;

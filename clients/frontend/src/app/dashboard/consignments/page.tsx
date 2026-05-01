@@ -23,6 +23,7 @@ interface Consignment {
     published_at?: string;
     deactivated_at?: string;
     auto_deactivated?: boolean;
+    expires_at?: string | null;
     images?: string[];
     description_files?: string[];
     note_to_admin?: string;
@@ -63,16 +64,25 @@ const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('vi-VN');
 };
 
-/** Calculate days remaining before auto-deactivation (30-day rule) */
+/** Days remaining before auto-deactivation. Reads `expires_at` from API; falls back to published_at + 30d for legacy rows. */
 const getDaysRemaining = (item: Consignment): number | null => {
     if (!['approved', 'selling'].includes(item.status)) return null;
-    const refDate = item.published_at || item.created_at;
-    if (!refDate) return null;
-    const publishDate = new Date(refDate);
-    const expireDate = new Date(publishDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-    const now = new Date();
-    const diff = Math.ceil((expireDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    return diff;
+    let expireMs: number | null = null;
+    if (item.expires_at) {
+        expireMs = new Date(item.expires_at).getTime();
+    } else if (item.published_at) {
+        expireMs = new Date(item.published_at).getTime() + 30 * 24 * 60 * 60 * 1000;
+    }
+    if (expireMs === null || isNaN(expireMs)) return null;
+    return Math.ceil((expireMs - Date.now()) / (1000 * 60 * 60 * 24));
+};
+
+/** Whether user can edit this consignment (FE check; backend enforces too). */
+const isLocked = (item: Consignment): boolean => {
+    if (item.auto_deactivated) return true;
+    if (['deactivated', 'sold', 'cancelled'].includes(item.status)) return true;
+    if (item.expires_at && new Date(item.expires_at).getTime() <= Date.now()) return true;
+    return false;
 };
 
 export default function ConsignmentsPage() {
@@ -286,6 +296,7 @@ export default function ConsignmentsPage() {
                             {consignments.map((item) => {
                                 const status = getStatusBadge(item.status);
                                 const daysRemaining = getDaysRemaining(item);
+                                const locked = isLocked(item);
                                 return (
                                     <tr key={item.id}>
                                         <td className={styles.code}>{item.code}</td>
@@ -322,7 +333,7 @@ export default function ConsignmentsPage() {
                                                     <FiEye />
                                                 </Link>
                                                 {/* Pending: edit + delete */}
-                                                {item.status === 'pending' && (
+                                                {item.status === 'pending' && !locked && (
                                                     <>
                                                         <Link
                                                             href={`/dashboard/consignments/${item.id}/edit`}
@@ -341,7 +352,7 @@ export default function ConsignmentsPage() {
                                                     </>
                                                 )}
                                                 {/* Approved/Selling: update price + delete */}
-                                                {['approved', 'selling'].includes(item.status) && (
+                                                {['approved', 'selling'].includes(item.status) && !locked && (
                                                     <>
                                                         <button
                                                             className={styles.actionBtn}
@@ -360,7 +371,7 @@ export default function ConsignmentsPage() {
                                                         </button>
                                                     </>
                                                 )}
-                                                {/* Deactivated: reactivate + update price + delete */}
+                                                {/* Deactivated: reactivate (toggle) + delete only — edit/price locked, must contact admin */}
                                                 {item.status === 'deactivated' && (
                                                     <>
                                                         <button
@@ -373,14 +384,6 @@ export default function ConsignmentsPage() {
                                                             <FiRefreshCw className={reactivating === item.id ? styles.spinning : ''} />
                                                         </button>
                                                         <button
-                                                            className={styles.actionBtn}
-                                                            title="Cập nhật giá"
-                                                            onClick={() => openPriceModal(item)}
-                                                            style={{ color: '#3b82f6' }}
-                                                        >
-                                                            <FiDollarSign />
-                                                        </button>
-                                                        <button
                                                             className={`${styles.actionBtn} ${styles.deleteBtn}`}
                                                             title="Xóa bài"
                                                             onClick={() => setDeleteConfirm(item.id)}
@@ -388,6 +391,9 @@ export default function ConsignmentsPage() {
                                                             <FiTrash2 />
                                                         </button>
                                                     </>
+                                                )}
+                                                {locked && item.status !== 'deactivated' && (
+                                                    <span title="Bài đã hết hạn, liên hệ admin" style={{ fontSize: '11px', color: '#92400e' }}>🔒</span>
                                                 )}
                                             </div>
                                         </td>

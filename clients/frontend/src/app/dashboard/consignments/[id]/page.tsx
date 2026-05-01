@@ -60,6 +60,7 @@ interface Consignment {
     seo_url?: string;
     latitude?: string;
     longitude?: string;
+    expires_at?: string | null;
 }
 
 const statusConfig: Record<string, { label: string; class: string; icon: any; color: string }> = {
@@ -104,11 +105,21 @@ const formatDate = (dateString: string): string => {
 
 const getDaysRemaining = (item: Consignment): number | null => {
     if (!['approved', 'selling'].includes(item.status)) return null;
-    const refDate = item.published_at || item.created_at;
-    if (!refDate) return null;
-    const publishDate = new Date(refDate);
-    const expireDate = new Date(publishDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-    return Math.ceil((expireDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    let expireMs: number | null = null;
+    if (item.expires_at) {
+        expireMs = new Date(item.expires_at).getTime();
+    } else if (item.published_at) {
+        expireMs = new Date(item.published_at).getTime() + 30 * 24 * 60 * 60 * 1000;
+    }
+    if (expireMs === null || isNaN(expireMs)) return null;
+    return Math.ceil((expireMs - Date.now()) / (1000 * 60 * 60 * 24));
+};
+
+const isConsignmentLocked = (item: Consignment): boolean => {
+    if (item.auto_deactivated) return true;
+    if (['deactivated', 'sold', 'cancelled'].includes(item.status)) return true;
+    if (item.expires_at && new Date(item.expires_at).getTime() <= Date.now()) return true;
+    return false;
 };
 
 export default function ConsignmentDetailPage() {
@@ -276,13 +287,36 @@ export default function ConsignmentDetailPage() {
         }
     } catch { /* ignore */ }
 
-    const canUpdatePrice = isOwner && ['approved', 'selling', 'deactivated'].includes(consignment.status);
+    const locked = isConsignmentLocked(consignment);
+    // Lock content edits when expired/deactivated. Reactivate/delete remain available.
+    const canUpdatePrice = isOwner && ['approved', 'selling'].includes(consignment.status) && !locked;
     const canDelete = isOwner && ['pending', 'rejected', 'cancelled', 'approved', 'selling', 'deactivated'].includes(consignment.status);
     const canReactivate = isOwner && consignment.status === 'deactivated';
-    const canEdit = isOwner && consignment.status === 'pending';
+    const canEdit = isOwner && consignment.status === 'pending' && !locked;
 
     return (
         <div className={styles.container}>
+            {locked && (
+                <div style={{
+                    background: '#fef3c7',
+                    border: '1px solid #f59e0b',
+                    color: '#92400e',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                }}>
+                    <FiClock />
+                    <div>
+                        <strong>Bài đăng đã hết thời gian hiển thị.</strong>
+                        <p style={{ fontSize: '13px', margin: '4px 0 0' }}>
+                            Bạn không thể chỉnh sửa nội dung. Vui lòng nhấn &quot;Bật lại&quot; (nếu khả dụng) hoặc liên hệ admin để được kích hoạt lại.
+                        </p>
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div className={styles.header}>
                 <Link href="/dashboard/consignments" className={styles.backLink}>

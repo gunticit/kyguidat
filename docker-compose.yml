@@ -202,6 +202,44 @@ services:
         condition: service_healthy
 
   # ===========================================
+  # LARAVEL SCHEDULER (cron) — runs schedule:run every minute
+  # Drives consignments:auto-deactivate (every 4h) and any other scheduled jobs.
+  # ===========================================
+  backend-cron:
+    build:
+      context: ./clients/backend
+      dockerfile: Dockerfile.prod
+    container_name: khodat-backend-cron
+    restart: always
+    command: >
+      sh -c "while true; do php artisan schedule:run --no-interaction >> /var/log/schedule.log 2>&1; sleep 60; done"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - APP_URL=https://backend.khodat.com
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CACHE_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+    networks:
+      - khodat-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      backend:
+        condition: service_started
+
+  # ===========================================
   # NGINX FOR LARAVEL BACKEND (PHP-FPM proxy)
   # ===========================================
   backend-nginx:

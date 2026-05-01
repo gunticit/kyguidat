@@ -84,6 +84,30 @@ class ConsignmentController extends Controller
      */
     public function update(UpdateConsignmentRequest $request, int $id): JsonResponse
     {
+        $existing = \App\Models\Consignment::where('user_id', $request->user()->id)->find($id);
+        if (!$existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy yêu cầu ký gửi'
+            ], 404);
+        }
+
+        if ($existing->isDeactivated() || $existing->isExpired()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bài đăng đã hết hạn. Vui lòng liên hệ admin để kích hoạt lại.',
+                'code' => 'CONSIGNMENT_LOCKED',
+            ], 403);
+        }
+
+        if (in_array($existing->status, [\App\Models\Consignment::STATUS_SOLD, \App\Models\Consignment::STATUS_CANCELLED])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bài đăng đã đóng. Không thể chỉnh sửa.',
+                'code' => 'CONSIGNMENT_LOCKED',
+            ], 403);
+        }
+
         $consignment = $this->consignmentService->update(
             $request->user(),
             $id,
@@ -165,6 +189,15 @@ class ConsignmentController extends Controller
         $request->validate([
             'price' => 'required|numeric|min:0',
         ]);
+
+        $existing = \App\Models\Consignment::where('user_id', $request->user()->id)->find($id);
+        if ($existing && ($existing->isDeactivated() || $existing->isExpired())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bài đăng đã hết hạn. Vui lòng liên hệ admin để kích hoạt lại.',
+                'code' => 'CONSIGNMENT_LOCKED',
+            ], 403);
+        }
 
         $consignment = $this->consignmentService->updatePrice(
             $request->user(),

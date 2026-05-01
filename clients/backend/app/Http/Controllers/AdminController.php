@@ -173,6 +173,7 @@ class AdminController extends Controller
             'published_at',
             'deactivated_at',
             'auto_deactivated',
+            'expires_at',
             'created_at',
             'updated_at'
         ])->with('user:id,name,email');
@@ -399,6 +400,7 @@ class AdminController extends Controller
             'seo_url' => 'nullable|string|max:500|unique:consignments,seo_url,' . $id,
             'display_order' => 'nullable|integer',
             'status' => 'nullable|in:pending,approved,rejected',
+            'expires_at' => 'nullable|date',
         ]);
 
         // Check cross-table uniqueness for seo_url
@@ -518,6 +520,7 @@ class AdminController extends Controller
             'auto_deactivated' => false,
             'deactivated_at' => null,
             'published_at' => now(),
+            'expires_at' => now()->addDays(30),
         ]);
 
         // Create history
@@ -535,6 +538,85 @@ class AdminController extends Controller
             'success' => true,
             'message' => 'Đã bật lại bài đăng',
             'data' => $consignment->fresh()
+        ]);
+    }
+
+    /**
+     * Update expiration timestamp of a consignment (Admin).
+     * Body: { expires_at: ISO 8601 datetime, nullable to clear }
+     */
+    public function updateConsignmentExpiration(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'expires_at' => ['nullable', 'date', 'after:1 year ago', 'before:+5 years'],
+        ]);
+
+        $consignment = \Illuminate\Support\Facades\DB::transaction(function () use ($id, $request) {
+            $c = Consignment::lockForUpdate()->findOrFail($id);
+            $oldExpires = $c->expires_at?->toIso8601String();
+            $newExpires = $request->input('expires_at');
+            $c->expires_at = $newExpires ? \Carbon\Carbon::parse($newExpires) : null;
+            $c->save();
+            \App\Models\ConsignmentHistory::create([
+                'consignment_id' => $c->id,
+                'status' => $c->status,
+                'note' => "Admin đổi thời hạn: {$oldExpires} → " . ($c->expires_at?->toIso8601String() ?? 'null'),
+                'changed_by' => $request->user()->id,
+            ]);
+            return $c;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật thời hạn thành công',
+            'data' => $consignment->fresh(),
+        ]);
+    }
+
+    /**
+     * Reset countdown of a consignment (Admin).
+     * Body: { days?: int (default 30, range 1-365) }
+     * If status was deactivated, restore to 'approved'.
+     */
+    public function resetConsignmentCountdown(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'days' => ['nullable', 'integer', 'min:1', 'max:365'],
+        ]);
+
+        $days = (int) $request->input('days', 30);
+
+        [$consignment, $wasDeactivated] = \Illuminate\Support\Facades\DB::transaction(function () use ($id, $days, $request) {
+            $c = Consignment::lockForUpdate()->findOrFail($id);
+            $wasDeactivated = $c->status === Consignment::STATUS_DEACTIVATED;
+            $newExpires = now()->addDays($days);
+
+            $c->update([
+                'expires_at' => $newExpires,
+                'status' => $wasDeactivated ? Consignment::STATUS_APPROVED : $c->status,
+                'auto_deactivated' => false,
+                'deactivated_at' => null,
+                'published_at' => $wasDeactivated ? now() : $c->published_at,
+            ]);
+
+            \App\Models\ConsignmentHistory::create([
+                'consignment_id' => $c->id,
+                'status' => $c->status,
+                'note' => "Admin reset thời hạn {$days} ngày, expires_at={$newExpires->toIso8601String()}" . ($wasDeactivated ? ' (kích hoạt lại từ deactivated)' : ''),
+                'changed_by' => $request->user()->id,
+            ]);
+
+            return [$c, $wasDeactivated];
+        });
+
+        if ($wasDeactivated) {
+            $this->triggerEsSync();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Đã reset thời hạn {$days} ngày",
+            'data' => $consignment->fresh(),
         ]);
     }
 

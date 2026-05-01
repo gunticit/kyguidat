@@ -367,3 +367,66 @@ docker compose -f docker-compose.yml --env-file .env.prod exec backend \
 docker compose -f docker-compose.yml --env-file .env.prod exec backend \
   php artisan db:seed --force
 ```
+
+---
+
+## Cron & Scheduler (Backend Auto-Tasks)
+
+Laravel scheduler chạy các tác vụ định kỳ như auto-deactivate consignments hết hạn, gửi email nhắc nhở, v.v.
+
+### Container Setup
+
+Container `backend-cron` tự động chạy `php artisan schedule:run` mỗi phút:
+
+```bash
+# Kiểm tra container đang chạy
+docker compose -f docker-compose.yml --env-file .env.prod ps | grep backend-cron
+
+# Xem log scheduler
+docker logs khodat-backend-cron --tail 100
+```
+
+### Các Scheduled Tasks Hiện Tại
+
+| Task | Schedule | Mô tả |
+|------|----------|-------|
+| `consignments:auto-deactivate` | Mỗi 4 giờ, `withoutOverlapping(15)` | Auto tắt bài hết hạn (`expires_at <= now()`) |
+
+### Test & Debug Scheduler
+
+#### Chạy dry-run (không thay đổi data):
+```bash
+docker compose -f docker-compose.yml --env-file .env.prod exec backend \
+  php artisan consignments:auto-deactivate --dry-run
+```
+
+#### Chạy thực tế:
+```bash
+docker compose -f docker-compose.yml --env-file .env.prod exec backend \
+  php artisan consignments:auto-deactivate
+```
+
+#### Kiểm tra scheduler logs:
+```bash
+docker logs khodat-backend-cron --follow
+```
+
+Logs sẽ được ghi vào `/var/log/schedule.log` bên trong container. Để truy cập qua host:
+
+```bash
+# Mount volume khi tạo container (đã có trong docker-compose.yml)
+docker compose -f docker-compose.yml --env-file .env.prod exec backend \
+  tail -f /var/log/schedule.log
+```
+
+### Troubleshooting
+
+**Scheduler không chạy task?**
+- Kiểm tra `backend-cron` container đang chạy: `docker ps | grep backend-cron`
+- Xem log: `docker logs khodat-backend-cron --tail 50`
+- Kiểm tra `schedule:run` không bị lỗi: `docker compose exec backend php artisan schedule:list`
+
+**Task chạy quá lâu hoặc bị timeout?**
+- Kiểm tra load DB: `docker logs khodat-mysql --tail 50`
+- Giảm `limit` nếu task xử lý quá nhiều records một lúc
+- Dùng `--dry-run` để check số lượng records sẽ xử lý

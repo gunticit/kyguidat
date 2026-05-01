@@ -98,6 +98,9 @@
                   <template v-if="item.status === 'deactivated'">
                     <button @click="reactivateConsignment(item.id)" class="text-green-600 hover:underline text-sm">Bật lại</button>
                   </template>
+                  <template v-if="['approved','selling','deactivated'].includes(item.status)">
+                    <button @click="confirmReset(item)" class="text-amber-600 hover:underline text-sm" title="Reset thời hạn đếm ngược">Reset</button>
+                  </template>
                   <template v-if="canEdit(item)">
                     <button @click="openEditModal(item)" class="text-indigo-600 hover:underline text-sm">Sửa</button>
                   </template>
@@ -498,6 +501,11 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Thứ tự hiển thị</label>
                     <input v-model.number="form.display_order" type="number" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                  </div>
+                  <div v-if="authStore.isAdmin && editingId" class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Thời hạn hiển thị (expires_at)</label>
+                    <input v-model="form.expires_at" type="datetime-local" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <p class="text-xs text-gray-500 mt-1">Để trống = không giới hạn. Sau thời điểm này, bài tự động chuyển sang trạng thái "Đã tắt".</p>
                   </div>
                 </div>
               </div>
@@ -1057,7 +1065,8 @@ const defaultForm = {
   seo_url: '',
   status: 'pending',
   category: '',
-  display_order: 1
+  display_order: 1,
+  expires_at: ''
 }
 const form = ref({ ...defaultForm })
 
@@ -1331,7 +1340,8 @@ const openEditModal = async (item) => {
     seo_url: data.seo_url || '',
     status: data.status || 'pending',
     category: data.category || '',
-    display_order: data.display_order || 1
+    display_order: data.display_order || 1,
+    expires_at: data.expires_at ? toLocalDatetimeInput(data.expires_at) : ''
   }
   
   console.log('Form after assignment:', form.value) // Debug log
@@ -1358,7 +1368,14 @@ const saveConsignment = async () => {
   
   // Create a non-reactive copy of form data to avoid v-model overriding description
   const payload = JSON.parse(JSON.stringify(form.value))
-  
+
+  // Convert local datetime input → ISO 8601; null means clear
+  if (payload.expires_at && typeof payload.expires_at === 'string' && payload.expires_at.includes('T')) {
+    payload.expires_at = new Date(payload.expires_at).toISOString()
+  } else if (!payload.expires_at) {
+    payload.expires_at = null
+  }
+
   // Sync Quill editor HTML into payload.description (NOT form.value)
   // v-model:content does not capture programmatic insertEmbed changes reliably
   const qlEditor = document.querySelector('#description-editor-wrapper .ql-editor')
@@ -1450,12 +1467,22 @@ const statusClass = (s) => ({
   deactivated: 'bg-orange-100 text-orange-800'
 }[s] || 'bg-gray-100')
 
+// Convert ISO datetime → local datetime-local input format (YYYY-MM-DDTHH:mm)
+const toLocalDatetimeInput = (iso) => {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 const getDaysRemaining = (item) => {
   if (!['approved', 'selling'].includes(item.status)) return null
-  const refDate = item.published_at || item.created_at
-  if (!refDate) return null
-  const publishDate = new Date(refDate)
-  const expireDate = new Date(publishDate.getTime() + 30 * 24 * 60 * 60 * 1000)
+  // Prefer authoritative expires_at from API; fallback to legacy published_at + 30d
+  const expireSource = item.expires_at
+    ? item.expires_at
+    : (item.published_at ? new Date(new Date(item.published_at).getTime() + 30 * 86400000).toISOString() : null)
+  if (!expireSource) return null
+  const expireDate = new Date(expireSource)
   const now = new Date()
   return Math.ceil((expireDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 }
@@ -1467,6 +1494,24 @@ const reactivateConsignment = async (id) => {
   } catch (err) {
     console.error('Error reactivating:', err)
     alert('Có lỗi xảy ra khi bật lại bài đăng')
+  }
+}
+
+const confirmReset = async (item) => {
+  const input = prompt(`Reset thời hạn cho "${item.title}" (số ngày, 1-365):`, '30')
+  if (input === null) return
+  const days = parseInt(input, 10)
+  if (!Number.isFinite(days) || days < 1 || days > 365) {
+    alert('Số ngày phải từ 1 đến 365')
+    return
+  }
+  if (!confirm(`Reset countdown ${days} ngày cho bài "${item.title}"?`)) return
+  try {
+    await adminApi.post(`/admin/consignments/${item.id}/reset`, { days })
+    fetchData()
+  } catch (err) {
+    console.error('Error resetting:', err)
+    alert(err.response?.data?.message || 'Có lỗi xảy ra khi reset thời hạn')
   }
 }
 
