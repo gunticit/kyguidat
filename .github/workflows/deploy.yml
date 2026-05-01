@@ -7,6 +7,9 @@ on:
     paths:
       - 'api-gateway/**'
       - 'clients/backend/**'
+      - 'clients/frontend/**'
+      - 'admin/**'
+      - 'san-dat/**'
       - 'socket/**'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
@@ -22,6 +25,9 @@ on:
           - all
           - api-gateway
           - backend
+          - frontend
+          - admin
+          - san-dat
           - socket
 
 env:
@@ -42,12 +48,37 @@ jobs:
           - service: api-gateway
             context: ./api-gateway
             dockerfile: ./api-gateway/Dockerfile
+            build-args: ''
           - service: backend
             context: ./clients/backend
             dockerfile: ./clients/backend/Dockerfile.prod
+            build-args: ''
           - service: socket
             context: ./socket
             dockerfile: ./socket/Dockerfile
+            build-args: ''
+          - service: san-dat
+            context: ./san-dat
+            dockerfile: ./san-dat/Dockerfile
+            build-args: ''
+          - service: frontend
+            context: ./clients/frontend
+            dockerfile: ./clients/frontend/Dockerfile.prod
+            build-args: |
+              NEXT_PUBLIC_API_URL=https://backend.khodat.com/api
+              NEXT_PUBLIC_SOCKET_URL=https://socket.khodat.com
+              NEXT_PUBLIC_APP_NAME=Khodat
+              NEXT_PUBLIC_GOOGLE_LOGIN_URL=https://api.khodat.com/api/auth/google
+              NEXT_PUBLIC_FACEBOOK_LOGIN_URL=https://api.khodat.com/api/auth/facebook
+              NEXT_PUBLIC_ZALO_LOGIN_URL=https://api.khodat.com/api/auth/zalo
+              NEXT_PUBLIC_GITHUB_LOGIN_URL=https://backend.khodat.com/api/auth/github
+          - service: admin
+            context: ./admin
+            dockerfile: ./admin/Dockerfile
+            build-args: |
+              VITE_API_URL=https://api.khodat.com/api
+              VITE_SANDAT_API_URL=https://khodat.com/api
+              VITE_ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}
 
     steps:
       - name: Check if should run
@@ -72,25 +103,17 @@ jobs:
           LATEST="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-${{ matrix.service }}-latest"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag }}" ]; then
             TAG="${{ github.event.inputs.tag }}"
-            echo "value=$TAG" >> "$GITHUB_OUTPUT"
-            VERSIONED="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-${{ matrix.service }}-$TAG"
-            {
-              echo "tags<<EOF"
-              echo "$VERSIONED"
-              echo "$LATEST"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
           else
             TAG="$(git rev-parse --short HEAD)"
-            echo "value=$TAG" >> "$GITHUB_OUTPUT"
-            VERSIONED="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-${{ matrix.service }}-$TAG"
-            {
-              echo "tags<<EOF"
-              echo "$VERSIONED"
-              echo "$LATEST"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
           fi
+          VERSIONED="${{ env.IMAGE_NAME }}:${{ env.APP_NAME }}-${{ matrix.service }}-$TAG"
+          echo "value=$TAG" >> "$GITHUB_OUTPUT"
+          {
+            echo "tags<<EOF"
+            echo "$VERSIONED"
+            echo "$LATEST"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         if: steps.check.outputs.skip != 'true'
@@ -111,24 +134,29 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.tag.outputs.tags }}
+          build-args: ${{ matrix.build-args }}
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
 
       - name: Summary
         if: steps.check.outputs.skip != 'true'
         run: |
-          echo "### ✅ ${{ matrix.service }} pushed successfully" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.tag.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          {
+            echo "### ✅ ${{ matrix.service }} pushed successfully"
+            echo ""
+            echo "**Tags:**"
+            echo '```'
+            echo "${{ steps.tag.outputs.tags }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     name: Trigger Deploy
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: always() && !contains(needs.build-and-push.result, 'failure')
+    # Only trigger redeploy when ALL builds succeeded. Prevents partial deploys
+    # where backend image is updated but frontend image is stale (or vice-versa).
+    if: success()
 
     steps:
       - name: Trigger Dokploy redeploy
@@ -139,6 +167,9 @@ jobs:
             echo "DOKPLOY_WEBHOOK_URL not set, skipping redeploy"
             exit 0
           fi
-          curl -s -o /dev/null -w "%{http_code}" \
-            -X POST "$WEBHOOK_URL" \
-            | grep -q "^2" || (echo "Dokploy redeploy failed" && exit 1)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$WEBHOOK_URL")
+          echo "Webhook returned HTTP $STATUS"
+          case "$STATUS" in
+            2*) echo "Dokploy redeploy triggered" ;;
+            *) echo "Dokploy redeploy failed (HTTP $STATUS)"; exit 1 ;;
+          esac

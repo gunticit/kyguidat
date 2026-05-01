@@ -119,9 +119,14 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
 # Cache routes for production performance (do NOT cache config - it depends on runtime env vars)
 RUN php artisan route:cache
 
+# Production entrypoint: runs migrate + caches on php-fpm container, no-op for cron/worker
+COPY --chown=$user:$user docker/entrypoint-prod.sh /usr/local/bin/entrypoint-prod.sh
+RUN chmod +x /usr/local/bin/entrypoint-prod.sh
+
 USER $user
 
 # Expose port 9000
 EXPOSE 9000
 
+ENTRYPOINT ["/usr/local/bin/entrypoint-prod.sh"]
 CMD ["php-fpm"]
