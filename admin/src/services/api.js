@@ -68,6 +68,9 @@ export const adminApi = {
     deleteConsignment: (id) => api.delete(`/admin/consignments/${id}`),
     approveConsignment: (id) => api.put(`/admin/consignments/${id}/approve`),
     rejectConsignment: (id, reason) => api.put(`/admin/consignments/${id}/reject`, { reason }),
+    reactivateConsignment: (id) => api.post(`/admin/consignments/${id}/reactivate`),
+    resetConsignmentCountdown: (id, days = 30) => api.post(`/admin/consignments/${id}/reset`, { days }),
+    updateConsignmentExpiration: (id, expires_at) => api.put(`/admin/consignments/${id}/expiration`, { expires_at }),
     resolveMapUrl: (url) => api.post('/admin/resolve-map-url', { url }),
 
     // Transactions

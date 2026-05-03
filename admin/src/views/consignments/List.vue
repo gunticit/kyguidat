@@ -1504,11 +1504,11 @@ const displayStatus = (item) => {
 
 const reactivateConsignment = async (id) => {
   try {
-    await adminApi.post(`/admin/consignments/${id}/reactivate`)
+    await adminApi.reactivateConsignment(id)
     fetchData()
   } catch (err) {
     console.error('Error reactivating:', err)
-    alert('Có lỗi xảy ra khi bật lại bài đăng')
+    alert(err.response?.data?.message || 'Có lỗi xảy ra khi bật lại bài đăng')
   }
 }
 
@@ -1522,7 +1522,7 @@ const confirmReset = async (item) => {
   }
   if (!confirm(`Reset countdown ${days} ngày cho bài "${item.title}"?`)) return
   try {
-    await adminApi.post(`/admin/consignments/${item.id}/reset`, { days })
+    await adminApi.resetConsignmentCountdown(item.id, days)
     fetchData()
   } catch (err) {
     console.error('Error resetting:', err)
