@@ -33,7 +33,13 @@ class UpdateProfileRequest extends FormRequest
                 'max:255',
                 Rule::unique('users')->ignore($userId),
             ],
-            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
+            'phone' => [
+                'nullable',
+                'string',
+                // Vietnamese mobile: 0 + carrier prefix (3,5,7,8,9) + 8 digits = 10 total.
+                'regex:/^0(3|5|7|8|9)[0-9]{8}$/',
+                Rule::unique('users', 'phone')->ignore($userId)->whereNotNull('phone'),
+            ],
             'address' => ['nullable', 'string', 'max:500'],
             'avatar' => ['nullable', 'string', 'max:255'],
         ];
@@ -53,8 +59,8 @@ class UpdateProfileRequest extends FormRequest
             'email.email' => 'Địa chỉ email không hợp lệ.',
             'email.unique' => 'Địa chỉ email này đã được sử dụng.',
             'email.max' => 'Email không được vượt quá :max ký tự.',
-            'phone.max' => 'Số điện thoại không được vượt quá :max ký tự.',
-            'phone.regex' => 'Số điện thoại không hợp lệ.',
+            'phone.regex' => 'Số điện thoại không hợp lệ. Định dạng: 10 chữ số bắt đầu bằng 03/05/07/08/09.',
+            'phone.unique' => 'Số điện thoại này đã được sử dụng bởi tài khoản khác.',
             'address.max' => 'Địa chỉ không được vượt quá :max ký tự.',
             'avatar.max' => 'Đường dẫn avatar không được vượt quá :max ký tự.',
         ];
