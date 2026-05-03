@@ -115,11 +115,20 @@ const getDaysRemaining = (item: Consignment): number | null => {
     return Math.ceil((expireMs - Date.now()) / (1000 * 60 * 60 * 24));
 };
 
+const isExpiredConsignment = (item: Consignment): boolean =>
+    !!item.expires_at && new Date(item.expires_at).getTime() <= Date.now();
+
 const isConsignmentLocked = (item: Consignment): boolean => {
     if (item.auto_deactivated) return true;
     if (['deactivated', 'sold', 'cancelled'].includes(item.status)) return true;
-    if (item.expires_at && new Date(item.expires_at).getTime() <= Date.now()) return true;
+    if (isExpiredConsignment(item)) return true;
     return false;
+};
+
+/** Effective status — flips approved/selling to 'deactivated' once expires_at passes. */
+const effectiveStatus = (item: Consignment): string => {
+    if (['approved', 'selling'].includes(item.status) && isExpiredConsignment(item)) return 'deactivated';
+    return item.status;
 };
 
 export default function ConsignmentDetailPage() {
@@ -273,9 +282,10 @@ export default function ConsignmentDetailPage() {
         );
     }
 
-    const status = statusConfig[consignment.status] || { label: consignment.status, class: 'badge-info', icon: FiClock, color: '#6b7280' };
+    const effective = effectiveStatus(consignment);
+    const status = statusConfig[effective] || { label: effective, class: 'badge-info', icon: FiClock, color: '#6b7280' };
     const StatusIcon = status.icon;
-    const daysRemaining = getDaysRemaining(consignment);
+    const daysRemaining = isExpiredConsignment(consignment) ? null : getDaysRemaining(consignment);
 
     // Check ownership: only the consignment owner can edit/delete/update price
     let isOwner = false;

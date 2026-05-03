@@ -77,17 +77,17 @@
                 <td class="px-6 py-4 text-sm">{{ item.user?.name || 'N/A' }}</td>
                 <td class="px-6 py-4">{{ formatCurrency(item.price) }}</td>
                 <td class="px-6 py-4">
-                  <span :class="statusClass(item.status)" class="px-2 py-1 rounded-full text-xs">
-                    {{ statusText(item.status) }}
+                  <span :class="statusClass(displayStatus(item))" class="px-2 py-1 rounded-full text-xs">
+                    {{ statusText(displayStatus(item)) }}
                   </span>
                   <p v-if="item.status === 'rejected' && item.reject_reason" class="text-xs text-red-500 mt-1">
                     Lý do: {{ item.reject_reason }}
                   </p>
-                  <p v-if="['approved','selling'].includes(item.status)" class="text-xs mt-1" :class="getDaysRemaining(item) <= 7 ? 'text-red-500' : 'text-amber-500'">
+                  <p v-if="['approved','selling'].includes(item.status) && !isExpired(item)" class="text-xs mt-1" :class="getDaysRemaining(item) <= 7 ? 'text-red-500' : 'text-amber-500'">
                     ⏱ {{ getDaysRemaining(item) > 0 ? `Còn ${getDaysRemaining(item)} ngày` : 'Sắp bị tắt' }}
                   </p>
-                  <p v-if="item.status === 'deactivated' && item.auto_deactivated" class="text-xs text-amber-500 mt-1">
-                    Tắt tự động sau 30 ngày
+                  <p v-if="displayStatus(item) === 'deactivated'" class="text-xs text-amber-500 mt-1">
+                    {{ item.auto_deactivated || isExpired(item) ? 'Hết hạn hiển thị' : 'Đã tắt thủ công' }}
                   </p>
                 </td>
                 <td class="px-6 py-4 space-x-2">
@@ -98,7 +98,7 @@
                   <template v-if="item.status === 'deactivated'">
                     <button @click="reactivateConsignment(item.id)" class="text-green-600 hover:underline text-sm">Bật lại</button>
                   </template>
-                  <template v-if="['approved','selling','deactivated'].includes(item.status)">
+                  <template v-if="displayStatus(item) === 'deactivated'">
                     <button @click="confirmReset(item)" class="text-amber-600 hover:underline text-sm" title="Reset thời hạn đếm ngược">Reset</button>
                   </template>
                   <template v-if="canEdit(item)">
@@ -1485,6 +1485,21 @@ const getDaysRemaining = (item) => {
   const expireDate = new Date(expireSource)
   const now = new Date()
   return Math.ceil((expireDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+// Whether the listing has passed its expires_at (real-time check, not waiting for scheduler).
+const isExpired = (item) => {
+  if (!item.expires_at) return false
+  return new Date(item.expires_at).getTime() <= Date.now()
+}
+
+// Effective status as user should see it: expired approved/selling row appears as 'deactivated'
+// even before the scheduler flips the DB column. Other statuses pass through.
+const displayStatus = (item) => {
+  if (['approved', 'selling'].includes(item.status) && isExpired(item)) {
+    return 'deactivated'
+  }
+  return item.status
 }
 
 const reactivateConsignment = async (id) => {

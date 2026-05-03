@@ -18,6 +18,7 @@ class UserPackage extends Model
         'expires_at',
         'posts_used',
         'featured_posts_used',
+        'total_posts_allowed',
         'status',
         'payment_status',
         'payment_method',
@@ -89,15 +90,16 @@ class UserPackage extends Model
     }
 
     /**
-     * Get remaining posts
+     * Get remaining posts. Reads `total_posts_allowed` so stacked purchases
+     * (extending an active package) reflect the cumulative quota.
      */
     public function getRemainingPostsAttribute(): int|string
     {
-        $postLimit = $this->postingPackage->post_limit ?? -1;
-        if ($postLimit === -1) {
+        $allowed = $this->total_posts_allowed ?? ($this->postingPackage->post_limit ?? -1);
+        if ($allowed === -1) {
             return 'Không giới hạn';
         }
-        return max(0, $postLimit - $this->posts_used);
+        return max(0, $allowed - $this->posts_used);
     }
 
     /**
@@ -108,13 +110,13 @@ class UserPackage extends Model
         if (!$this->isActive()) {
             return false;
         }
-        
-        $postLimit = $this->postingPackage->post_limit ?? -1;
-        if ($postLimit === -1) {
+
+        $allowed = $this->total_posts_allowed ?? ($this->postingPackage->post_limit ?? -1);
+        if ($allowed === -1) {
             return true;
         }
-        
-        return $this->posts_used < $postLimit;
+
+        return $this->posts_used < $allowed;
     }
 
     /**

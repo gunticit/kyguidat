@@ -113,20 +113,27 @@ class PostingPackageController extends Controller
                 'reference_type' => 'user_package',
             ]);
 
-            // Kiểm tra nếu user đang có gói active, gia hạn thêm
+            // Stack with ANY existing active package (regardless of which posting_package_id),
+            // so duration + post quota cumulate when the user buys multiple times.
             $activePackage = $user->userPackages()
-                ->where('posting_package_id', $package->id)
                 ->active()
+                ->orderBy('expires_at', 'desc')
                 ->first();
 
             if ($activePackage) {
-                // Gia hạn gói hiện tại
+                // Extend duration from current expires_at; add posts to total_posts_allowed.
                 $newExpiresAt = Carbon::parse($activePackage->expires_at)
                     ->addMonths($package->duration_months);
+
+                // Unlimited absorbs everything; otherwise sum quotas.
+                $newAllowed = ($activePackage->total_posts_allowed === -1 || $package->post_limit === -1)
+                    ? -1
+                    : ($activePackage->total_posts_allowed + $package->post_limit);
 
                 $activePackage->update([
                     'expires_at' => $newExpiresAt,
                     'amount_paid' => $activePackage->amount_paid + $package->price,
+                    'total_posts_allowed' => $newAllowed,
                 ]);
 
                 $userPackage = $activePackage;
@@ -138,6 +145,7 @@ class PostingPackageController extends Controller
                     'amount_paid' => $package->price,
                     'started_at' => now(),
                     'expires_at' => now()->addMonths($package->duration_months),
+                    'total_posts_allowed' => $package->post_limit,
                     'status' => 'active',
                     'payment_status' => 'paid',
                     'payment_method' => 'wallet',

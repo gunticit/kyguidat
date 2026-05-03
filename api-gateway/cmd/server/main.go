@@ -189,6 +189,8 @@ func main() {
 		admin.PUT("/consignments/:id/approve", proxyHandler.ProxyRequest)
 		admin.PUT("/consignments/:id/reject", proxyHandler.ProxyRequest)
 		admin.POST("/consignments/:id/reactivate", proxyHandler.ProxyRequest)
+		admin.PUT("/consignments/:id/expiration", proxyHandler.ProxyRequest)
+		admin.POST("/consignments/:id/reset", proxyHandler.ProxyRequest)
 
 		// Utility
 		admin.POST("/resolve-map-url", proxyHandler.ProxyRequest)

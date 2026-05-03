@@ -50,7 +50,10 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 	var consignments []models.Consignment
 	var total int64
 
-	query := r.db.Model(&models.Consignment{}).Where("status = ?", "approved")
+	// Hide expired listings in real-time (don't wait for the scheduler).
+	query := r.db.Model(&models.Consignment{}).
+		Where("status = ?", "approved").
+		Where("expires_at IS NULL OR expires_at > NOW()")
 
 	if search != "" {
 		query = query.Where("title LIKE ? OR address LIKE ? OR code LIKE ? OR keywords LIKE ? OR consigner_phone LIKE ? OR seller_phone LIKE ? OR CAST(order_number AS CHAR) LIKE ?",
@@ -188,7 +191,11 @@ func applyRangeFilter(_ *gorm.DB, rangeStr, column string, multiplier float64, r
 // GetConsignmentByID returns single consignment
 func (r *MySQLRepository) GetConsignmentByID(id uint) (*models.Consignment, error) {
 	var consignment models.Consignment
-	err := r.db.Preload("User").First(&consignment, id).Error
+	// Public endpoint: enforce approved + not expired (matches GetConsignmentBySlug).
+	err := r.db.Preload("User").
+		Where("status = ?", "approved").
+		Where("expires_at IS NULL OR expires_at > NOW()").
+		First(&consignment, id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +205,10 @@ func (r *MySQLRepository) GetConsignmentByID(id uint) (*models.Consignment, erro
 // GetConsignmentBySlug returns single consignment by seo_url
 func (r *MySQLRepository) GetConsignmentBySlug(slug string) (*models.Consignment, error) {
 	var consignment models.Consignment
-	err := r.db.Preload("User").Where("seo_url = ? AND status = 'approved'", slug).First(&consignment).Error
+	err := r.db.Preload("User").
+		Where("seo_url = ? AND status = 'approved'", slug).
+		Where("expires_at IS NULL OR expires_at > NOW()").
+		First(&consignment).Error
 	if err != nil {
 		return nil, err
 	}
@@ -237,6 +247,7 @@ func (r *MySQLRepository) GetLocations() ([]models.Location, error) {
 	err := r.db.Model(&models.Consignment{}).
 		Select("province, COUNT(*) as count").
 		Where("status = ?", "approved").
+		Where("expires_at IS NULL OR expires_at > NOW()").
 		Group("province").
 		Find(&locations).Error
 	return locations, err

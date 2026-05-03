@@ -212,7 +212,7 @@ services:
     container_name: khodat-backend-cron
     restart: always
     command: >
-      sh -c "while true; do php artisan schedule:run --no-interaction >> /var/log/schedule.log 2>&1; sleep 60; done"
+      sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
     environment:
       - APP_ENV=production
       - APP_DEBUG=false

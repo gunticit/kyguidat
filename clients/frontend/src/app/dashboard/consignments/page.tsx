@@ -77,11 +77,21 @@ const getDaysRemaining = (item: Consignment): number | null => {
     return Math.ceil((expireMs - Date.now()) / (1000 * 60 * 60 * 24));
 };
 
+/** Whether the listing has passed its expires_at (real-time check, not waiting for scheduler). */
+const isExpired = (item: Consignment): boolean =>
+    !!item.expires_at && new Date(item.expires_at).getTime() <= Date.now();
+
+/** Effective status: expired approved/selling appears as 'deactivated' even before scheduler flips DB. */
+const displayStatus = (item: Consignment): string => {
+    if (['approved', 'selling'].includes(item.status) && isExpired(item)) return 'deactivated';
+    return item.status;
+};
+
 /** Whether user can edit this consignment (FE check; backend enforces too). */
 const isLocked = (item: Consignment): boolean => {
     if (item.auto_deactivated) return true;
     if (['deactivated', 'sold', 'cancelled'].includes(item.status)) return true;
-    if (item.expires_at && new Date(item.expires_at).getTime() <= Date.now()) return true;
+    if (isExpired(item)) return true;
     return false;
 };
 
@@ -294,8 +304,8 @@ export default function ConsignmentsPage() {
                         </thead>
                         <tbody>
                             {consignments.map((item) => {
-                                const status = getStatusBadge(item.status);
-                                const daysRemaining = getDaysRemaining(item);
+                                const status = getStatusBadge(displayStatus(item));
+                                const daysRemaining = isExpired(item) ? null : getDaysRemaining(item);
                                 const locked = isLocked(item);
                                 return (
                                     <tr key={item.id}>

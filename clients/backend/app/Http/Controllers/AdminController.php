@@ -210,7 +210,11 @@ class AdminController extends Controller
         }
 
         $perPage = $request->input('per_page', 15);
-        $consignments = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        // Pin deactivated rows to the top so admins notice them first.
+        $consignments = $query
+            ->orderByRaw("CASE WHEN status = 'deactivated' THEN 0 ELSE 1 END")
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -462,11 +466,30 @@ class AdminController extends Controller
     public function approveConsignment(Request $request, $id): JsonResponse
     {
         $consignment = Consignment::findOrFail($id);
-        $consignment->update([
-            'status' => 'approved',
-            'approved_at' => now(),
-            'approved_by' => $request->user()->id,
-        ]);
+
+        // Compute expires_at from the OWNER's active subscription package.
+        // - With active package: pin to package.expires_at (post hides when subscription ends).
+        // - No active package: fall back to 30 days.
+        $owner = $consignment->user;
+        $activePackage = $owner
+            ? $owner->userPackages()->active()->orderBy('expires_at', 'desc')->first()
+            : null;
+        $expiresAt = $activePackage ? $activePackage->expires_at : now()->addDays(30);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($consignment, $request, $expiresAt, $activePackage) {
+            $consignment->update([
+                'status' => 'approved',
+                'approved_at' => now(),
+                'approved_by' => $request->user()->id,
+                'published_at' => $consignment->published_at ?? now(),
+                'expires_at' => $expiresAt,
+            ]);
+
+            // Consume one post slot from the package (only on first approval transition).
+            if ($activePackage) {
+                $activePackage->incrementPostsUsed();
+            }
+        });
 
         // Trigger ES sync
         $this->triggerEsSync();
@@ -474,7 +497,7 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Duyệt thành công',
-            'data' => $consignment
+            'data' => $consignment->fresh(),
         ]);
     }
 
