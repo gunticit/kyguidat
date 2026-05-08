@@ -50,8 +50,12 @@ class AdministrativeDivisionController extends Controller
             ->ordered()
             ->get()
             ->map(function ($province) {
+                // Loại bài hết hạn — đồng bộ filter của trang chủ (api-gateway GetApprovedConsignments).
                 $count = Consignment::where('province', $province->name)
                     ->where('status', 'approved')
+                    ->where(function ($q) {
+                        $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                    })
                     ->count();
                 return [
                     'id' => $province->id,
