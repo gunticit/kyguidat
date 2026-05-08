@@ -113,27 +113,26 @@ class PostingPackageController extends Controller
                 'reference_type' => 'user_package',
             ]);
 
-            // Stack with ANY existing active package (regardless of which posting_package_id),
-            // so duration + post quota cumulate when the user buys multiple times.
+            // Stack với BẤT KỲ gói nào đã thanh toán và còn hạn — bất kể posting_package_id.
+            // Chỉ cộng thời gian; số bài đăng (total_posts_allowed) giữ nguyên.
             $activePackage = $user->userPackages()
-                ->active()
+                ->where('payment_status', 'paid')
+                ->where('expires_at', '>', now())
                 ->orderBy('expires_at', 'desc')
                 ->first();
 
             if ($activePackage) {
-                // Extend duration from current expires_at; add posts to total_posts_allowed.
-                $newExpiresAt = Carbon::parse($activePackage->expires_at)
-                    ->addMonths($package->duration_months);
-
-                // Unlimited absorbs everything; otherwise sum quotas.
-                $newAllowed = ($activePackage->total_posts_allowed === -1 || $package->post_limit === -1)
-                    ? -1
-                    : ($activePackage->total_posts_allowed + $package->post_limit);
+                // Cộng dồn duration từ expires_at hiện tại. Dùng ->copy() tránh mutate Carbon gốc.
+                $base = $activePackage->expires_at instanceof Carbon
+                    ? $activePackage->expires_at->copy()
+                    : Carbon::parse($activePackage->expires_at);
+                $newExpiresAt = $base->addMonths((int) $package->duration_months);
 
                 $activePackage->update([
                     'expires_at' => $newExpiresAt,
                     'amount_paid' => $activePackage->amount_paid + $package->price,
-                    'total_posts_allowed' => $newAllowed,
+                    // KHÔNG cộng total_posts_allowed — giữ nguyên quota gốc.
+                    'status' => 'active',
                 ]);
 
                 $userPackage = $activePackage;
