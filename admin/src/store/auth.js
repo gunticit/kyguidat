@@ -14,10 +14,12 @@ export const useAuthStore = defineStore('auth', {
             if (roles.some(r => r.name === 'admin')) return 'admin'
             if (roles.some(r => r.name === 'moderator')) return 'moderator'
             if (roles.some(r => r.name === 'publisher')) return 'publisher'
+            if (roles.some(r => r.name === 'auditor')) return 'auditor'
             // Fallback to email check for legacy support
             if (state.user?.email === 'admin@khodat.com') return 'admin'
             if (state.user?.email?.includes('moderator')) return 'moderator'
             if (state.user?.email?.includes('publisher')) return 'publisher'
+            if (state.user?.email === 'audit@khodat.com' || state.user?.email?.includes('audit')) return 'auditor'
             return 'user'
         },
         isAdmin: (state) => {
@@ -31,6 +33,13 @@ export const useAuthStore = defineStore('auth', {
         isPublisher: (state) => {
             const roles = state.user?.roles || []
             return roles.some(r => r.name === 'publisher') || state.user?.email?.includes('publisher')
+        },
+        isAuditor: (state) => {
+            // Auditor: chỉ thao tác menu Ký gửi (đăng + duyệt bài).
+            const roles = state.user?.roles || []
+            return roles.some(r => r.name === 'auditor')
+                || state.user?.email === 'audit@khodat.com'
+                || state.user?.email?.includes('audit')
         },
         isIT: (state) => {
             // IT account only has access to Settings

@@ -222,8 +222,25 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::get('/stats/overview', [IpnConfigController::class, 'statistics']);
     });
 
-    // Admin Panel Routes (admin role required)
-    Route::prefix('admin')->middleware('role:admin')->group(function () {
+    // Admin Panel Routes
+    Route::prefix('admin')->group(function () {
+        // Consignments + map URL — accessible by admin AND auditor
+        Route::middleware('role:admin,auditor')->group(function () {
+            Route::get('/consignments', [App\Http\Controllers\AdminController::class, 'consignments']);
+            Route::get('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'showConsignment']);
+            Route::post('/consignments', [App\Http\Controllers\AdminController::class, 'storeConsignment']);
+            Route::put('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'updateConsignment']);
+            Route::delete('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'destroyConsignment']);
+            Route::put('/consignments/{id}/approve', [App\Http\Controllers\AdminController::class, 'approveConsignment']);
+            Route::put('/consignments/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectConsignment']);
+            Route::post('/consignments/{id}/reactivate', [App\Http\Controllers\AdminController::class, 'reactivateConsignment']);
+            Route::put('/consignments/{id}/expiration', [App\Http\Controllers\AdminController::class, 'updateConsignmentExpiration']);
+            Route::post('/consignments/{id}/reset', [App\Http\Controllers\AdminController::class, 'resetConsignmentCountdown']);
+            Route::post('/resolve-map-url', [App\Http\Controllers\AdminController::class, 'resolveMapUrl']);
+        });
+
+        // Everything else — admin only
+        Route::middleware('role:admin')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
         Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
@@ -232,19 +249,6 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
 
         // Customers (frontend-registered users)
         Route::get('/customers', [App\Http\Controllers\AdminController::class, 'customers']);
-
-        // Consignments - CRUD
-        Route::get('/consignments', [App\Http\Controllers\AdminController::class, 'consignments']);
-        Route::get('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'showConsignment']);
-        Route::post('/consignments', [App\Http\Controllers\AdminController::class, 'storeConsignment']);
-        Route::put('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'updateConsignment']);
-        Route::delete('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'destroyConsignment']);
-        Route::put('/consignments/{id}/approve', [App\Http\Controllers\AdminController::class, 'approveConsignment']);
-        Route::put('/consignments/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectConsignment']);
-        Route::post('/consignments/{id}/reactivate', [App\Http\Controllers\AdminController::class, 'reactivateConsignment']);
-        Route::put('/consignments/{id}/expiration', [App\Http\Controllers\AdminController::class, 'updateConsignmentExpiration']);
-        Route::post('/consignments/{id}/reset', [App\Http\Controllers\AdminController::class, 'resetConsignmentCountdown']);
-        Route::post('/resolve-map-url', [App\Http\Controllers\AdminController::class, 'resolveMapUrl']);
 
         // Support Tickets - Admin Management
         Route::get('/supports', [App\Http\Controllers\AdminController::class, 'supportTickets']);
@@ -288,6 +292,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/posting-packages', [App\Http\Controllers\AdminController::class, 'storePostingPackage']);
         Route::put('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'updatePostingPackage']);
         Route::delete('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'destroyPostingPackage']);
-    });
-});
+        }); // end admin-only group
+    }); // end /admin prefix
+}); // end auth:sanctum group
 

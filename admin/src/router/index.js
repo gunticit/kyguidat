@@ -34,13 +34,13 @@ const routes = [
         path: '/consignments',
         name: 'consignments',
         component: ConsignmentList,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, allowAuditor: true }
     },
     {
         path: '/consignments/:id',
         name: 'consignment-detail',
         component: ConsignmentDetail,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, allowAuditor: true }
     },
     {
         path: '/users',
@@ -116,15 +116,20 @@ router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
         next('/login')
     } else if (to.meta.guest && authStore.isAuthenticated) {
-        // IT account should redirect to /settings instead of /
+        // Redirect post-login dựa trên role hạn chế.
         if (authStore.isIT) {
             next('/settings')
+        } else if (authStore.isAuditor) {
+            next('/consignments')
         } else {
             next('/')
         }
     } else if (authStore.isIT && !to.meta.allowIT && to.path !== '/login') {
         // IT account can only access /settings
         next('/settings')
+    } else if (authStore.isAuditor && !to.meta.allowAuditor && to.path !== '/login') {
+        // Auditor chỉ được vào /consignments*
+        next('/consignments')
     } else {
         next()
     }

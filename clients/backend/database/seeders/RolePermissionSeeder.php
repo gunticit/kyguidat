@@ -65,6 +65,11 @@ class RolePermissionSeeder extends Seeder
             ['display_name' => 'Đăng bài', 'description' => 'Tạo và quản lý bài đăng']
         );
 
+        $auditorRole = Role::firstOrCreate(
+            ['name' => 'auditor'],
+            ['display_name' => 'Audit', 'description' => 'Chỉ thao tác menu Ký gửi: đăng và duyệt bài']
+        );
+
         // Gán permissions cho Admin (tất cả)
         $allPermissions = Permission::all();
         $adminRole->permissions()->sync($allPermissions->pluck('id'));
@@ -86,6 +91,16 @@ class RolePermissionSeeder extends Seeder
             'consignments.edit',
         ])->pluck('id');
         $publisherRole->permissions()->sync($publisherPermissions);
+
+        // Auditor: chỉ Ký gửi — xem, tạo, sửa, duyệt, từ chối.
+        $auditorPermissions = Permission::whereIn('name', [
+            'consignments.view',
+            'consignments.create',
+            'consignments.edit',
+            'consignments.approve',
+            'consignments.reject',
+        ])->pluck('id');
+        $auditorRole->permissions()->sync($auditorPermissions);
 
         // Tạo Admin user mặc định
         $adminUser = User::firstOrCreate(
@@ -123,9 +138,22 @@ class RolePermissionSeeder extends Seeder
         );
         $publisherUser->assignRole('publisher');
 
+        // Tạo Auditor user mẫu
+        $auditorUser = User::firstOrCreate(
+            ['email' => 'audit@khodat.com'],
+            [
+                'name' => 'Audit',
+                'password' => Hash::make('audit123'),
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ]
+        );
+        $auditorUser->assignRole('auditor');
+
         $this->command->info('Roles and Permissions seeded successfully!');
         $this->command->info('Admin: admin@khodat.com / admin123');
         $this->command->info('Moderator: moderator@khodat.com / mod123');
         $this->command->info('Publisher: publisher@khodat.com / pub123');
+        $this->command->info('Auditor: audit@khodat.com / audit123');
     }
 }
