@@ -224,7 +224,18 @@ class ConsignmentController extends Controller
      */
     public function reactivate(Request $request, int $id): JsonResponse
     {
-        $consignment = $this->consignmentService->reactivate($request->user(), $id);
+        try {
+            $consignment = $this->consignmentService->reactivate($request->user(), $id);
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'NO_ACTIVE_PACKAGE') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tài khoản đã hết gói đăng tin. Vui lòng mua gói mới để mở lại sản phẩm.',
+                    'code' => 'no_active_package',
+                ], 422);
+            }
+            throw $e;
+        }
 
         if (!$consignment) {
             return response()->json([

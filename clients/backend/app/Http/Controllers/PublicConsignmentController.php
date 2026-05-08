@@ -148,14 +148,15 @@ class PublicConsignmentController extends Controller
                 $query->where('parcel_number', $request->so_thua);
             }
 
-            // Sort
+            // Sort — "newest" và default đều dùng COALESCE(published_at, created_at)
+            // để bài reactivate/reset (published_at = now()) bubble lên top.
             $sort = $request->get('sort', '');
             switch ($sort) {
                 case 'newest':
-                    $query->orderByDesc('created_at');
+                    $query->orderByRaw('COALESCE(published_at, created_at) DESC');
                     break;
                 case 'oldest':
-                    $query->orderBy('created_at');
+                    $query->orderByRaw('COALESCE(published_at, created_at) ASC');
                     break;
                 case 'price_asc':
                     $query->orderBy('price');
@@ -170,7 +171,8 @@ class PublicConsignmentController extends Controller
                     $query->orderByDesc('residential_area');
                     break;
                 default:
-                    $query->orderBy('display_order')->orderByDesc('created_at');
+                    $query->orderBy('display_order')
+                        ->orderByRaw('COALESCE(published_at, created_at) DESC');
                     break;
             }
 

@@ -657,7 +657,8 @@ class AdminController extends Controller
                 'status' => $wasDeactivated ? Consignment::STATUS_APPROVED : $c->status,
                 'auto_deactivated' => false,
                 'deactivated_at' => null,
-                'published_at' => $wasDeactivated ? now() : $c->published_at,
+                // Luôn bump published_at để bài reset lên top homepage (sort theo COALESCE(published_at, created_at)).
+                'published_at' => now(),
             ]);
 
             \App\Models\ConsignmentHistory::create([
@@ -670,9 +671,8 @@ class AdminController extends Controller
             return [$c, $wasDeactivated];
         });
 
-        if ($wasDeactivated) {
-            $this->triggerEsSync();
-        }
+        // Luôn sync ES — published_at đã đổi nên homepage cần index lại để bài bubble lên top.
+        $this->triggerEsSync();
 
         return response()->json([
             'success' => true,

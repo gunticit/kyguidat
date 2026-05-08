@@ -209,7 +209,11 @@ class ConsignmentService
     }
 
     /**
-     * Reactivate a deactivated consignment
+     * Reactivate a deactivated consignment.
+     * Yêu cầu user có gói còn hạn — expires_at align với gói để post tự ẩn khi hết gói.
+     * Bump published_at để bài lên top homepage (sort theo COALESCE(published_at, created_at)).
+     *
+     * @throws \RuntimeException 'NO_ACTIVE_PACKAGE' khi user không có gói còn hạn.
      */
     public function reactivate(User $user, int $id): ?Consignment
     {
@@ -221,11 +225,48 @@ class ConsignmentService
             return null;
         }
 
-        $consignment->reactivate();
+        $activePackage = $user->userPackages()
+            ->where('payment_status', 'paid')
+            ->where('expires_at', '>', now())
+            ->orderBy('expires_at', 'desc')
+            ->first();
 
-        $this->createHistory($consignment, Consignment::STATUS_SELLING, 'Mở lại sản phẩm đã tắt tự động', $user->id);
+        if (!$activePackage) {
+            throw new \RuntimeException('NO_ACTIVE_PACKAGE');
+        }
+
+        $consignment->update([
+            'status' => Consignment::STATUS_SELLING,
+            'auto_deactivated' => false,
+            'deactivated_at' => null,
+            'published_at' => now(),
+            'expires_at' => $activePackage->expires_at,
+        ]);
+
+        $this->createHistory(
+            $consignment,
+            Consignment::STATUS_SELLING,
+            'User mở lại sản phẩm — expires_at theo gói (' . $activePackage->expires_at->toDateString() . ')',
+            $user->id
+        );
+
+        $this->triggerEsSync();
 
         return $consignment->fresh();
+    }
+
+    /**
+     * Notify api-gateway re-index Elasticsearch.
+     */
+    private function triggerEsSync(): void
+    {
+        try {
+            $apiGatewayUrl = config('services.golang_api.url', 'http://api-gateway:8080');
+            \Illuminate\Support\Facades\Http::timeout(2)
+                ->post("{$apiGatewayUrl}/internal/es-sync");
+        } catch (\Exception $e) {
+            Log::warning('ES sync trigger failed: ' . $e->getMessage());
+        }
     }
 
     /**

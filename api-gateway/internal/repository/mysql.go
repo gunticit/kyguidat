@@ -115,14 +115,15 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 
 	offset := (page - 1) * limit
 
-	// Determine sort order
-	sortOrder := "created_at DESC"
+	// Determine sort order. Default + "newest" dùng COALESCE(published_at, created_at)
+	// để bài reactivate/reset (published_at = now()) bubble lên top homepage.
+	sortOrder := "COALESCE(published_at, created_at) DESC"
 	if filters != nil {
 		switch filters["sort"] {
 		case "newest":
-			sortOrder = "created_at DESC"
+			sortOrder = "COALESCE(published_at, created_at) DESC"
 		case "oldest":
-			sortOrder = "created_at ASC"
+			sortOrder = "COALESCE(published_at, created_at) ASC"
 		case "price_asc":
 			sortOrder = "price ASC"
 		case "price_desc":
