@@ -226,6 +226,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+        Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);
         Route::delete('/users/{id}', [App\Http\Controllers\AdminController::class, 'destroyUser']);
 

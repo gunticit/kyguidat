@@ -52,6 +52,38 @@ class AdminController extends Controller
     }
 
     /**
+     * Create a new user (admin)
+     */
+    public function storeUser(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:6',
+            'phone' => 'nullable|string|max:32',
+            'roles' => 'array',
+            'roles.*' => 'integer|exists:roles,id',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'phone' => $validated['phone'] ?? null,
+        ]);
+
+        if (!empty($validated['roles'])) {
+            $user->roles()->sync($validated['roles']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tạo người dùng thành công',
+            'data' => $user->load('roles'),
+        ], 201);
+    }
+
+    /**
      * Delete a user
      */
     public function destroyUser(Request $request, $id): JsonResponse
@@ -210,9 +242,15 @@ class AdminController extends Controller
         }
 
         $perPage = $request->input('per_page', 15);
-        // Pin deactivated rows to the top so admins notice them first.
+        // Pin deactivated/expired rows to the top — only when admin views "Tất cả" (no status filter).
+        // When a specific status is filtered, all rows share that status so priority sort is meaningless.
+        $statusFilter = $request->input('status');
+        if (empty($statusFilter)) {
+            $query->orderByRaw(
+                "CASE WHEN status = 'deactivated' OR (status IN ('approved','selling') AND expires_at IS NOT NULL AND expires_at <= NOW()) THEN 0 ELSE 1 END"
+            );
+        }
         $consignments = $query
-            ->orderByRaw("CASE WHEN status = 'deactivated' THEN 0 ELSE 1 END")
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 

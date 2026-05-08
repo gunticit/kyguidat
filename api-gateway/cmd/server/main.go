@@ -176,6 +176,7 @@ func main() {
 	{
 		admin.GET("/dashboard", proxyHandler.ProxyRequest)
 		admin.GET("/users", proxyHandler.ProxyRequest)
+		admin.POST("/users", proxyHandler.ProxyRequest)
 		admin.PUT("/users/:id", proxyHandler.ProxyRequest)
 		admin.DELETE("/users/:id", proxyHandler.ProxyRequest)
 		admin.GET("/customers", proxyHandler.ProxyRequest)
