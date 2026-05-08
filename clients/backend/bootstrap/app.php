@@ -51,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'role' => \App\Http\Middleware\CheckRole::class,
+            'active.package' => \App\Http\Middleware\RequireActivePackage::class,
         ]);
 
         // Append session middleware to api group for social auth routes

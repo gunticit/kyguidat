@@ -155,11 +155,20 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     // Consignments (Ký gửi) — custom routes BEFORE apiResource to avoid {id} catching sub-paths
     Route::get('/my-consignments', [ConsignmentController::class, 'index']); // User's own consignments
     Route::post('/consignments/parse-quick-post', [ConsignmentController::class, 'parseQuickPost']); // AI parse
-    Route::put('/consignments/{id}/price', [ConsignmentController::class, 'updatePrice']);
-    Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
-    Route::post('/consignments/{id}/reactivate', [ConsignmentController::class, 'reactivate']);
     Route::get('/consignments/{id}/history', [ConsignmentController::class, 'history']);
+
+    // Write operations on EXISTING consignments require an active subscription package.
+    // Read (index/show) + create (store) + AI parse + history are exempt.
+    Route::middleware('active.package')->group(function () {
+        Route::put('/consignments/{id}/price', [ConsignmentController::class, 'updatePrice']);
+        Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
+        Route::post('/consignments/{id}/reactivate', [ConsignmentController::class, 'reactivate']);
+        Route::put('/consignments/{id}', [ConsignmentController::class, 'update'])->where('id', '[0-9]+');
+        Route::delete('/consignments/{id}', [ConsignmentController::class, 'destroy'])->where('id', '[0-9]+');
+    });
+
     Route::apiResource('/consignments', ConsignmentController::class)
+        ->only(['index', 'show', 'store'])
         ->where(['consignment' => '[0-9]+']);
     Route::get('/posting-quota', [ConsignmentController::class, 'postingQuota']);
 
