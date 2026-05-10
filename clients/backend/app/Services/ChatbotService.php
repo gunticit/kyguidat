@@ -343,10 +343,10 @@ PROMPT;
                     'Content-Type'  => 'application/json',
                 ])
                 ->post($this->openaiApiUrl, [
-                    'model'       => $this->openaiModel,
-                    'messages'    => $messages,
-                    'temperature' => $temperature,
-                    'max_tokens'  => $maxTokens,
+                    'model'                 => $this->openaiModel,
+                    'messages'              => $messages,
+                    'temperature'           => $temperature,
+                    'max_completion_tokens' => $maxTokens,
                 ]);
 
             if ($response->successful()) {
