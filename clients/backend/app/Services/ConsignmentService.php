@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Consignment;
 use App\Models\ConsignmentHistory;
 use App\Models\UserPackage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -244,25 +245,44 @@ class ConsignmentService
             throw new \RuntimeException('NO_ACTIVE_PACKAGE');
         }
 
+        // User mở lại: cap tối đa 30 ngày kể từ now (hoặc theo hạn gói nếu gói còn dưới 30 ngày).
+        // Ngăn user lạm dụng gói dài hạn để giữ bài cũ vô thời hạn — phải tự reactivate định kỳ.
+        $cap = now()->addDays(30);
+        $expiresAt = $activePackage->expires_at->lt($cap) ? $activePackage->expires_at : $cap;
+
         $oldStatus = $consignment->status;
         $consignment->update([
             'status' => Consignment::STATUS_SELLING,
             'auto_deactivated' => false,
             'deactivated_at' => null,
             'published_at' => now(),
-            'expires_at' => $activePackage->expires_at,
+            'expires_at' => $expiresAt,
         ]);
 
         $this->createHistory(
             $consignment,
             Consignment::STATUS_SELLING,
-            "User mở lại sản phẩm (trước: {$oldStatus}) — expires_at theo gói (" . $activePackage->expires_at->toDateString() . ')',
+            "User mở lại sản phẩm (trước: {$oldStatus}) — expires_at " . $expiresAt->toDateString()
+                . ' (cap 30 ngày, gói tới ' . $activePackage->expires_at->toDateString() . ')',
             $user->id
         );
 
+        $this->forgetPublicCache($consignment);
         $this->triggerEsSync();
 
         return $consignment->fresh();
+    }
+
+    /**
+     * Forget detail-page caches set by PublicConsignmentController nên FE/SSR thấy
+     * trạng thái mới ngay sau reactivate (list cache TTL 60s tự hết — không bust).
+     */
+    private function forgetPublicCache(Consignment $consignment): void
+    {
+        Cache::forget("public_consignment_{$consignment->id}");
+        if (!empty($consignment->seo_url)) {
+            Cache::forget("public_consignment_slug_{$consignment->seo_url}");
+        }
     }
 
     /**

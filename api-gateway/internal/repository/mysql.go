@@ -51,8 +51,10 @@ func (r *MySQLRepository) GetApprovedConsignments(page, limit int, search, provi
 	var total int64
 
 	// Hide expired listings in real-time (don't wait for the scheduler).
+	// Bao gồm cả 'selling' vì user/admin reactivate set status='selling' — bài bật lại
+	// vẫn phải hiện trên homepage. Match Laravel PublicConsignmentController.
 	query := r.db.Model(&models.Consignment{}).
-		Where("status = ?", "approved").
+		Where("status IN ?", []string{"approved", "selling"}).
 		Where("expires_at IS NULL OR expires_at > NOW()")
 
 	if search != "" {
@@ -192,9 +194,9 @@ func applyRangeFilter(_ *gorm.DB, rangeStr, column string, multiplier float64, r
 // GetConsignmentByID returns single consignment
 func (r *MySQLRepository) GetConsignmentByID(id uint) (*models.Consignment, error) {
 	var consignment models.Consignment
-	// Public endpoint: enforce approved + not expired (matches GetConsignmentBySlug).
+	// Public endpoint: cho cả 'approved' và 'selling' (sau reactivate), không quá hạn.
 	err := r.db.Preload("User").
-		Where("status = ?", "approved").
+		Where("status IN ?", []string{"approved", "selling"}).
 		Where("expires_at IS NULL OR expires_at > NOW()").
 		First(&consignment, id).Error
 	if err != nil {
@@ -207,7 +209,8 @@ func (r *MySQLRepository) GetConsignmentByID(id uint) (*models.Consignment, erro
 func (r *MySQLRepository) GetConsignmentBySlug(slug string) (*models.Consignment, error) {
 	var consignment models.Consignment
 	err := r.db.Preload("User").
-		Where("seo_url = ? AND status = 'approved'", slug).
+		Where("seo_url = ?", slug).
+		Where("status IN ?", []string{"approved", "selling"}).
 		Where("expires_at IS NULL OR expires_at > NOW()").
 		First(&consignment).Error
 	if err != nil {
@@ -247,7 +250,7 @@ func (r *MySQLRepository) GetLocations() ([]models.Location, error) {
 	var locations []models.Location
 	err := r.db.Model(&models.Consignment{}).
 		Select("province, COUNT(*) as count").
-		Where("status = ?", "approved").
+		Where("status IN ?", []string{"approved", "selling"}).
 		Where("expires_at IS NULL OR expires_at > NOW()").
 		Group("province").
 		Find(&locations).Error

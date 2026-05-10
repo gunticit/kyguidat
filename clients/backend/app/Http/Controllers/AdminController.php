@@ -592,6 +592,12 @@ class AdminController extends Controller
             'changed_by' => $request->user()->id,
         ]);
 
+        // Forget public detail cache (list cache TTL 60s tự hết) — bài hiện ngay sau reload.
+        \Illuminate\Support\Facades\Cache::forget("public_consignment_{$consignment->id}");
+        if (!empty($consignment->seo_url)) {
+            \Illuminate\Support\Facades\Cache::forget("public_consignment_slug_{$consignment->seo_url}");
+        }
+
         // Trigger ES sync
         $this->triggerEsSync();
 
