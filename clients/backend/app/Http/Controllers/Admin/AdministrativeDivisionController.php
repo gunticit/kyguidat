@@ -50,12 +50,11 @@ class AdministrativeDivisionController extends Controller
             ->ordered()
             ->get()
             ->map(function ($province) {
-                // Đồng bộ với api-gateway GetApprovedConsignments: cả approved và selling, loại bài hết hạn.
+                // Đồng bộ tuyệt đối với api-gateway GetApprovedConsignments. Dùng MySQL NOW() (raw)
+                // để tránh lệch timezone giữa PHP (Asia/Ho_Chi_Minh) và MySQL (UTC) — Go cũng dùng NOW().
                 $count = Consignment::where('province', $province->name)
                     ->whereIn('status', ['approved', 'selling'])
-                    ->where(function ($q) {
-                        $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                    })
+                    ->whereRaw('(expires_at IS NULL OR expires_at > NOW())')
                     ->count();
                 return [
                     'id' => $province->id,
