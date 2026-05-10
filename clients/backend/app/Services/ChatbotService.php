@@ -42,6 +42,15 @@ class ChatbotService
 
             $intent = $this->extractIntent($text);
 
+            // Chỉ hỗ trợ các câu hỏi liên quan BĐS/đất đai/Khodat. Off-topic → từ chối lễ phép, không gọi LLM lần 2.
+            if (!$intent['is_on_topic']) {
+                return [
+                    'is_property_query' => false,
+                    'reply'             => 'Dạ em là trợ lý AI của Khodat.com, chỉ hỗ trợ các câu hỏi liên quan đến bất động sản, đất đai và dịch vụ ký gửi tại Khodat ạ. Anh/chị cần tư vấn về sản phẩm hay khu vực nào không ạ?',
+                    'consignments'      => [],
+                ];
+            }
+
             if (!$intent['is_property_query']) {
                 return [
                     'is_property_query' => false,
@@ -103,6 +112,7 @@ DANH SÁCH TỈNH/THÀNH VÀ XÃ/PHƯỜNG:
 
 Trả về JSON THUẦN, không markdown:
 {
+  "is_on_topic": true/false,
   "is_property_query": true/false,
   "province": "tên tỉnh/thành khớp danh sách" | null,
   "ward": "tên xã/phường" | null,
@@ -112,6 +122,9 @@ Trả về JSON THUẦN, không markdown:
   "direction": "Đông" | "Tây" | "Nam" | "Bắc" | "Đông Nam" | "Đông Bắc" | "Tây Nam" | "Tây Bắc" | null,
   "rewritten_query": "câu truy vấn được viết lại giàu ngữ nghĩa hơn để dùng cho vector search"
 }
+
+is_on_topic = true nếu liên quan: bất động sản, đất đai, nhà cửa, dự án, ký gửi/đăng tin, pháp lý đất, sổ đỏ/sổ hồng, giá đất, khu vực, dịch vụ Khodat.com, hotline, chào hỏi xã giao, cảm ơn.
+is_on_topic = false cho mọi chủ đề khác: ngày lễ, lịch sử, thời tiết, toán, code, thể thao, giải trí, chính trị, sức khỏe, ẩm thực, du lịch không liên quan BĐS, v.v.
 
 Quy đổi giá:
 - "500 triệu" = 500000000
@@ -139,6 +152,7 @@ PROMPT;
         ], temperature: 0.1, maxTokens: 400);
 
         $defaults = [
+            'is_on_topic'       => false,
             'is_property_query' => false,
             'province'          => null,
             'ward'              => null,
