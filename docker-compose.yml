@@ -383,11 +383,9 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - bootstrap.memory_lock=true
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      # memory_lock tắt: host kernel không cho memlock=unlimited cho non-privileged container
+      # (rlimit type 8: operation not permitted). ES vẫn chạy bình thường, chỉ mất chống swap.
+      - bootstrap.memory_lock=false
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
     ports:
