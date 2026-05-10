@@ -324,31 +324,16 @@ class AdminController extends Controller
             'parcel_number' => 'nullable|string|max:50',
             'keywords' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'seo_url' => 'nullable|string|max:500|unique:consignments,seo_url',
+            'seo_url' => 'nullable|string|max:500',
             'display_order' => 'nullable|integer',
             'status' => 'nullable|in:pending,approved,rejected',
         ]);
 
-        // Auto-generate seo_url from title if not provided
-        if (empty($validated['seo_url']) && !empty($validated['title'])) {
-            $validated['seo_url'] = \Illuminate\Support\Str::slug($validated['title']);
-            // Ensure uniqueness by appending suffix if needed
-            $original = $validated['seo_url'];
-            $count = 1;
-            while (Consignment::where('seo_url', $validated['seo_url'])->exists() || \App\Models\Article::where('slug', $validated['seo_url'])->exists()) {
-                $validated['seo_url'] = $original . '-' . $count;
-                $count++;
-            }
-        } elseif (!empty($validated['seo_url'])) {
-            // Check cross-table uniqueness
-            if (\App\Models\Article::where('slug', $validated['seo_url'])->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'SEO URL đã được sử dụng bởi một bài viết',
-                    'errors' => ['seo_url' => ['SEO URL đã được sử dụng bởi một bài viết']],
-                ], 422);
-            }
-        }
+        // Auto-generate hoặc chuẩn hoá seo_url. Trùng → tự động append timestamp suffix.
+        $validated['seo_url'] = $this->makeUniqueConsignmentSlug(
+            $validated['seo_url'] ?? null,
+            $validated['title'] ?? null
+        );
 
         // Auto-assign order_number if not provided
         if (empty($validated['order_number'])) {
@@ -439,19 +424,20 @@ class AdminController extends Controller
             'parcel_number' => 'nullable|string|max:50',
             'keywords' => 'nullable|string',
             'price' => 'sometimes|numeric|min:0',
-            'seo_url' => 'nullable|string|max:500|unique:consignments,seo_url,' . $id,
+            'seo_url' => 'nullable|string|max:500',
             'display_order' => 'nullable|integer',
             'status' => 'nullable|in:pending,approved,rejected',
             'expires_at' => 'nullable|date',
         ]);
 
-        // Check cross-table uniqueness for seo_url
-        if (!empty($validated['seo_url']) && \App\Models\Article::where('slug', $validated['seo_url'])->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'SEO URL đã được sử dụng bởi một bài viết',
-                'errors' => ['seo_url' => ['SEO URL đã được sử dụng bởi một bài viết']],
-            ], 422);
+        // Auto-generate hoặc chuẩn hoá seo_url. Trùng → tự động append timestamp suffix.
+        // Pass $id để loại chính bản ghi đang sửa khỏi check uniqueness.
+        if (array_key_exists('seo_url', $validated) || !empty($validated['title'])) {
+            $validated['seo_url'] = $this->makeUniqueConsignmentSlug(
+                $validated['seo_url'] ?? $consignment->seo_url,
+                $validated['title'] ?? $consignment->title,
+                $id
+            );
         }
 
         // Auto-extract lat/lng from google_map_link if not provided
@@ -784,6 +770,44 @@ class AdminController extends Controller
                 'message' => 'Lỗi khi resolve URL: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Tạo seo_url duy nhất cho consignment.
+     * - Nếu $rawSlug rỗng, slugify từ $title.
+     * - Nếu trùng với consignment khác (loại $excludeId) hoặc article slug → append "-{timestamp}".
+     * - Hard fallback: thêm random nếu vẫn trùng (cực hiếm khi 2 lần save trong 1 giây).
+     */
+    private function makeUniqueConsignmentSlug(?string $rawSlug, ?string $title, ?int $excludeId = null): ?string
+    {
+        $base = $rawSlug ? \Illuminate\Support\Str::slug($rawSlug) : '';
+        if ($base === '' && !empty($title)) {
+            $base = \Illuminate\Support\Str::slug($title);
+        }
+        if ($base === '') {
+            return null;
+        }
+
+        $candidate = $base;
+        if ($this->slugCollides($candidate, $excludeId)) {
+            $candidate = $base . '-' . time();
+            if ($this->slugCollides($candidate, $excludeId)) {
+                $candidate = $base . '-' . time() . '-' . \Illuminate\Support\Str::random(4);
+            }
+        }
+        return $candidate;
+    }
+
+    private function slugCollides(string $slug, ?int $excludeId): bool
+    {
+        $consignmentQuery = Consignment::where('seo_url', $slug);
+        if ($excludeId) {
+            $consignmentQuery->where('id', '!=', $excludeId);
+        }
+        if ($consignmentQuery->exists()) {
+            return true;
+        }
+        return \App\Models\Article::where('slug', $slug)->exists();
     }
 
     /**

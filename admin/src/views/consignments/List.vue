@@ -489,20 +489,24 @@
               <!-- Section 9: Trạng thái -->
               <div>
                 <h3 class="text-lg font-semibold mb-4 text-indigo-700">Trạng thái</h3>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div v-if="authStore.isAdmin">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-                    <select v-model="form.status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <select v-model="form.status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
                       <option value="pending">Chờ duyệt</option>
                       <option value="approved">Đã duyệt</option>
                       <option value="rejected">Từ chối</option>
+                      <option v-if="editingId && form.status === 'selling'" value="selling" disabled>Đang bán (không đổi tại đây)</option>
+                      <option v-if="editingId && form.status === 'sold'" value="sold" disabled>Đã bán (không đổi tại đây)</option>
+                      <option v-if="editingId && form.status === 'cancelled'" value="cancelled" disabled>Đã hủy (không đổi tại đây)</option>
+                      <option v-if="editingId && form.status === 'deactivated'" value="deactivated" disabled>Đã tắt (không đổi tại đây)</option>
                     </select>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Thứ tự hiển thị</label>
                     <input v-model.number="form.display_order" type="number" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                   </div>
-                  <div v-if="authStore.isAdmin && editingId" class="col-span-2">
+                  <div v-if="authStore.isAdmin && editingId" class="sm:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Thời hạn hiển thị (expires_at)</label>
                     <input v-model="form.expires_at" type="datetime-local" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                     <p class="text-xs text-gray-500 mt-1">Để trống = không giới hạn. Sau thời điểm này, bài tự động chuyển sang trạng thái "Đã tắt".</p>
@@ -745,11 +749,13 @@ function slugify(str) {
     .replace(/^-+|-+$/g, '')
 }
 
-// Auto-generate seo_url from title (only when creating new, not editing)
+// Auto-generate seo_url from title — both create & edit, miễn user chưa chỉnh tay seo_url.
+// openCreateModal/openEditModal chịu trách nhiệm reset seoUrlManuallyEdited đúng cách
+// (false khi seo_url trống, true khi seo_url đã có giá trị từ DB).
+// Backend đảm bảo unique bằng cách append timestamp khi trùng.
 watch(() => form.value?.title, (newTitle) => {
-  if (!editingId.value && !seoUrlManuallyEdited.value) {
-    form.value.seo_url = slugify(newTitle)
-  }
+  if (seoUrlManuallyEdited.value) return
+  form.value.seo_url = slugify(newTitle || '')
 })
 
 // Auto-extract lat/lng from Google Maps link
@@ -1272,6 +1278,7 @@ const fetchData = async () => {
 const openCreateModal = () => {
   editingId.value = null
   form.value = { ...defaultForm, land_directions: [], land_types: [] }
+  seoUrlManuallyEdited.value = false
   error.value = ''
   showModal.value = true
 }
@@ -1300,7 +1307,11 @@ const openEditModal = async (item) => {
   
   // Convert category_id to number to match select option values
   const categoryId = data.category_id ? parseInt(data.category_id, 10) : ''
-  
+
+  // Bật cờ trước khi assign form: nếu DB đã có seo_url thì coi như user đã chỉnh tay
+  // (không auto-regenerate khi watcher fires lúc title được set). Nếu trống thì cho phép auto-gen.
+  seoUrlManuallyEdited.value = !!data.seo_url
+
   form.value = {
     title: data.title || '',
     category_id: categoryId,
