@@ -151,7 +151,7 @@
                 <div class="grid grid-cols-3 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm *</label>
-                    <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <input v-model="form.title" @input="onTitleInput" type="text" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Danh mục *</label>
@@ -749,10 +749,15 @@ function slugify(str) {
     .replace(/^-+|-+$/g, '')
 }
 
-// Auto-generate seo_url from title — both create & edit, miễn user chưa chỉnh tay seo_url.
-// openCreateModal/openEditModal chịu trách nhiệm reset seoUrlManuallyEdited đúng cách
-// (false khi seo_url trống, true khi seo_url đã có giá trị từ DB).
+// Auto-generate seo_url from title — gắn trực tiếp lên @input của title để chắc chắn
+// fire mỗi keystroke, kèm watcher fallback cho trường hợp title bị set programmatically.
+// Cờ seoUrlManuallyEdited do openCreateModal (false) / openEditModal (= !!data.seo_url) /
+// input handler trên seo_url (true khi user gõ tay) quản lý.
 // Backend đảm bảo unique bằng cách append timestamp khi trùng.
+function onTitleInput() {
+  if (seoUrlManuallyEdited.value) return
+  form.value.seo_url = slugify(form.value?.title || '')
+}
 watch(() => form.value?.title, (newTitle) => {
   if (seoUrlManuallyEdited.value) return
   form.value.seo_url = slugify(newTitle || '')
