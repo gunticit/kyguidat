@@ -217,8 +217,17 @@ class ConsignmentService
      */
     public function reactivate(User $user, int $id): ?Consignment
     {
+        // Cho phép mở lại bài thực sự deactivated HOẶC bài approved/selling đã quá expires_at
+        // (scheduler chưa kịp flip status — UI đã hiển thị "Đã tắt" qua displayStatus).
         $consignment = $user->consignments()
-            ->where('status', Consignment::STATUS_DEACTIVATED)
+            ->where(function ($q) {
+                $q->where('status', Consignment::STATUS_DEACTIVATED)
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('status', [Consignment::STATUS_APPROVED, Consignment::STATUS_SELLING])
+                         ->whereNotNull('expires_at')
+                         ->where('expires_at', '<=', now());
+                  });
+            })
             ->find($id);
 
         if (!$consignment) {
@@ -235,6 +244,7 @@ class ConsignmentService
             throw new \RuntimeException('NO_ACTIVE_PACKAGE');
         }
 
+        $oldStatus = $consignment->status;
         $consignment->update([
             'status' => Consignment::STATUS_SELLING,
             'auto_deactivated' => false,
@@ -246,7 +256,7 @@ class ConsignmentService
         $this->createHistory(
             $consignment,
             Consignment::STATUS_SELLING,
-            'User mở lại sản phẩm — expires_at theo gói (' . $activePackage->expires_at->toDateString() . ')',
+            "User mở lại sản phẩm (trước: {$oldStatus}) — expires_at theo gói (" . $activePackage->expires_at->toDateString() . ')',
             $user->id
         );
 

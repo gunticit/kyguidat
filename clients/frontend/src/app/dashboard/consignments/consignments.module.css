@@ -114,32 +114,93 @@
 
 .actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
 }
 
 .actionBtn {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     background: var(--background);
     border: 1px solid var(--border);
     color: var(--text-secondary);
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+    flex-shrink: 0;
 }
 
-.actionBtn:hover {
+.actionBtn:hover:not(:disabled) {
     background: var(--card-hover);
     color: var(--text);
     border-color: var(--primary);
 }
 
-.deleteBtn:hover {
+.actionBtn:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.actionBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.priceBtn {
+    color: #3b82f6;
+}
+
+.priceBtn:hover:not(:disabled) {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.reactivateBtn {
+    color: #22c55e;
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.reactivateBtn:hover:not(:disabled) {
+    border-color: #22c55e;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+}
+
+.lockBtn {
+    color: #f59e0b;
+    cursor: help;
+    background: rgba(245, 158, 11, 0.08);
+}
+
+.deleteBtn:hover:not(:disabled) {
     border-color: var(--error);
     color: var(--error);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* Status column: keeps badge on one line, stacks hints under it */
+.statusCell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 110px;
+}
+
+.statusCell .badge {
+    white-space: nowrap;
+}
+
+.statusHint {
+    font-size: 11px;
+    line-height: 1.3;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .loading {

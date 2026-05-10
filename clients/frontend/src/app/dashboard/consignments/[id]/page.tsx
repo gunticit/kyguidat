@@ -301,7 +301,8 @@ export default function ConsignmentDetailPage() {
     // Lock content edits when expired/deactivated. Reactivate/delete remain available.
     const canUpdatePrice = isOwner && ['approved', 'selling'].includes(consignment.status) && !locked;
     const canDelete = isOwner && ['pending', 'rejected', 'cancelled', 'approved', 'selling', 'deactivated'].includes(consignment.status);
-    const canReactivate = isOwner && consignment.status === 'deactivated';
+    // Reactivate được khi UI hiển thị "Đã tắt" (deactivated thực + approved/selling đã hết hạn).
+    const canReactivate = isOwner && effective === 'deactivated';
     const canEdit = isOwner && consignment.status === 'pending' && !locked;
 
     return (

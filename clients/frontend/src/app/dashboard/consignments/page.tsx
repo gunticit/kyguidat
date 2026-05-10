@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiPlus, FiSearch, FiFilter, FiEye, FiEdit, FiTrash2, FiX, FiRefreshCw, FiDollarSign, FiClock } from 'react-icons/fi';
-import { consignmentApi } from '@/lib/api';
+import { FiPlus, FiSearch, FiFilter, FiEye, FiEdit, FiTrash2, FiX, FiRefreshCw, FiDollarSign, FiClock, FiLock } from 'react-icons/fi';
+import { consignmentApi, postingPackageApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/formatCurrency';
 import styles from './consignments.module.css';
 
@@ -87,14 +87,6 @@ const displayStatus = (item: Consignment): string => {
     return item.status;
 };
 
-/** Whether user can edit this consignment (FE check; backend enforces too). */
-const isLocked = (item: Consignment): boolean => {
-    if (item.auto_deactivated) return true;
-    if (['deactivated', 'sold', 'cancelled'].includes(item.status)) return true;
-    if (isExpired(item)) return true;
-    return false;
-};
-
 export default function ConsignmentsPage() {
     const [consignments, setConsignments] = useState<Consignment[]>([]);
     const [pagination, setPagination] = useState<PaginationData | null>(null);
@@ -105,6 +97,7 @@ export default function ConsignmentsPage() {
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
     const [deleting, setDeleting] = useState(false);
     const [reactivating, setReactivating] = useState<number | null>(null);
+    const [hasActivePackage, setHasActivePackage] = useState<boolean>(false);
     // Price update modal state
     const [priceModal, setPriceModal] = useState<{ id: number; currentPrice: number } | null>(null);
     const [newPrice, setNewPrice] = useState('');
@@ -113,6 +106,13 @@ export default function ConsignmentsPage() {
     useEffect(() => {
         loadConsignments();
     }, [statusFilter, currentPage]);
+
+    // Active-package flag: drives whether to expose the reactivate button.
+    useEffect(() => {
+        postingPackageApi.getMyPackages()
+            .then(res => setHasActivePackage(!!res.data?.data?.has_active_package))
+            .catch(() => setHasActivePackage(false));
+    }, []);
 
     // Debounce search
     useEffect(() => {
@@ -304,9 +304,14 @@ export default function ConsignmentsPage() {
                         </thead>
                         <tbody>
                             {consignments.map((item) => {
-                                const status = getStatusBadge(displayStatus(item));
+                                const effective = displayStatus(item);
+                                const status = getStatusBadge(effective);
                                 const daysRemaining = isExpired(item) ? null : getDaysRemaining(item);
-                                const locked = isLocked(item);
+                                // "Đã tắt" về mặt UX: cả deactivated thật và approved/selling đã quá hạn.
+                                const isInactive = effective === 'deactivated';
+                                const canEditPending = item.status === 'pending';
+                                const canUpdatePrice = ['approved', 'selling'].includes(item.status) && !isInactive;
+                                const canReactivate = isInactive && hasActivePackage;
                                 return (
                                     <tr key={item.id}>
                                         <td className={styles.code}>{item.code}</td>
@@ -314,23 +319,25 @@ export default function ConsignmentsPage() {
                                         <td className={styles.addressCell}>{item.address}</td>
                                         <td className={styles.priceCell}>{formatCurrency(item.price, { showBillion: true })}</td>
                                         <td>
-                                            <span className={`badge ${status.class}`}>{status.label}</span>
-                                            {item.status === 'rejected' && item.reject_reason && (
-                                                <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
-                                                    Lý do: {item.reject_reason}
-                                                </div>
-                                            )}
-                                            {daysRemaining !== null && (
-                                                <div style={{ fontSize: '11px', color: daysRemaining <= 7 ? '#ef4444' : '#f59e0b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    <FiClock size={11} />
-                                                    {daysRemaining > 0 ? `Còn ${daysRemaining} ngày` : 'Sắp bị tắt'}
-                                                </div>
-                                            )}
-                                            {item.status === 'deactivated' && item.auto_deactivated && (
-                                                <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>
-                                                    Tắt tự động sau 30 ngày
-                                                </div>
-                                            )}
+                                            <div className={styles.statusCell}>
+                                                <span className={`badge ${status.class}`}>{status.label}</span>
+                                                {item.status === 'rejected' && item.reject_reason && (
+                                                    <div className={styles.statusHint} style={{ color: '#ef4444' }}>
+                                                        Lý do: {item.reject_reason}
+                                                    </div>
+                                                )}
+                                                {daysRemaining !== null && (
+                                                    <div className={styles.statusHint} style={{ color: daysRemaining <= 7 ? '#ef4444' : '#f59e0b' }}>
+                                                        <FiClock size={11} />
+                                                        {daysRemaining > 0 ? `Còn ${daysRemaining} ngày` : 'Sắp bị tắt'}
+                                                    </div>
+                                                )}
+                                                {isInactive && (
+                                                    <div className={styles.statusHint} style={{ color: '#f59e0b' }}>
+                                                        {hasActivePackage ? 'Có thể bật lại' : 'Cần mua gói để bật lại'}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                         <td>{formatDate(item.created_at)}</td>
                                         <td>
@@ -342,68 +349,50 @@ export default function ConsignmentsPage() {
                                                 >
                                                     <FiEye />
                                                 </Link>
-                                                {/* Pending: edit + delete */}
-                                                {item.status === 'pending' && !locked && (
-                                                    <>
-                                                        <Link
-                                                            href={`/dashboard/consignments/${item.id}/edit`}
-                                                            className={styles.actionBtn}
-                                                            title="Chỉnh sửa"
-                                                        >
-                                                            <FiEdit />
-                                                        </Link>
-                                                        <button
-                                                            className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                                                            title="Xóa"
-                                                            onClick={() => setDeleteConfirm(item.id)}
-                                                        >
-                                                            <FiTrash2 />
-                                                        </button>
-                                                    </>
+                                                {canEditPending && (
+                                                    <Link
+                                                        href={`/dashboard/consignments/${item.id}/edit`}
+                                                        className={styles.actionBtn}
+                                                        title="Chỉnh sửa"
+                                                    >
+                                                        <FiEdit />
+                                                    </Link>
                                                 )}
-                                                {/* Approved/Selling: update price + delete */}
-                                                {['approved', 'selling'].includes(item.status) && !locked && (
-                                                    <>
-                                                        <button
-                                                            className={styles.actionBtn}
-                                                            title="Cập nhật giá"
-                                                            onClick={() => openPriceModal(item)}
-                                                            style={{ color: '#3b82f6' }}
-                                                        >
-                                                            <FiDollarSign />
-                                                        </button>
-                                                        <button
-                                                            className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                                                            title="Xóa bài"
-                                                            onClick={() => setDeleteConfirm(item.id)}
-                                                        >
-                                                            <FiTrash2 />
-                                                        </button>
-                                                    </>
+                                                {canUpdatePrice && (
+                                                    <button
+                                                        className={`${styles.actionBtn} ${styles.priceBtn}`}
+                                                        title="Cập nhật giá"
+                                                        onClick={() => openPriceModal(item)}
+                                                    >
+                                                        <FiDollarSign />
+                                                    </button>
                                                 )}
-                                                {/* Deactivated: reactivate (toggle) + delete only — edit/price locked, must contact admin */}
-                                                {item.status === 'deactivated' && (
-                                                    <>
-                                                        <button
-                                                            className={styles.actionBtn}
-                                                            title="Bật lại"
-                                                            onClick={() => handleReactivate(item.id)}
-                                                            disabled={reactivating === item.id}
-                                                            style={{ color: '#22c55e' }}
-                                                        >
-                                                            <FiRefreshCw className={reactivating === item.id ? styles.spinning : ''} />
-                                                        </button>
-                                                        <button
-                                                            className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                                                            title="Xóa bài"
-                                                            onClick={() => setDeleteConfirm(item.id)}
-                                                        >
-                                                            <FiTrash2 />
-                                                        </button>
-                                                    </>
+                                                {canReactivate && (
+                                                    <button
+                                                        className={`${styles.actionBtn} ${styles.reactivateBtn}`}
+                                                        title="Bật lại bài (theo hạn gói hiện tại)"
+                                                        onClick={() => handleReactivate(item.id)}
+                                                        disabled={reactivating === item.id}
+                                                    >
+                                                        <FiRefreshCw className={reactivating === item.id ? styles.spinning : ''} />
+                                                    </button>
                                                 )}
-                                                {locked && item.status !== 'deactivated' && (
-                                                    <span title="Bài đã hết hạn, liên hệ admin" style={{ fontSize: '11px', color: '#92400e' }}>🔒</span>
+                                                {isInactive && !hasActivePackage && (
+                                                    <span
+                                                        className={`${styles.actionBtn} ${styles.lockBtn}`}
+                                                        title="Cần gói đăng bài còn hạn để bật lại"
+                                                    >
+                                                        <FiLock />
+                                                    </span>
+                                                )}
+                                                {(canEditPending || canUpdatePrice || isInactive) && (
+                                                    <button
+                                                        className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                                                        title="Xóa bài"
+                                                        onClick={() => setDeleteConfirm(item.id)}
+                                                    >
+                                                        <FiTrash2 />
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
