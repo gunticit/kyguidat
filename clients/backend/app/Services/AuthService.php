@@ -61,7 +61,7 @@ class AuthService
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
-            'user' => $user->load('wallet'),
+            'user' => $user->load(['wallet', 'roles']),
             'token' => $token,
         ];
     }

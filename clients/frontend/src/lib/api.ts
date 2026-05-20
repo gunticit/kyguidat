@@ -196,4 +196,20 @@ export const uploadApi = {
     },
 };
 
+// Admin Consignment APIs (for auditor/admin staff)
+export const adminConsignmentApi = {
+    getList: (params?: { status?: string; search?: string; page?: number; per_page?: number }) =>
+        api.get('/admin/consignments', { params }),
+    getById: (id: number) =>
+        api.get(`/admin/consignments/${id}`),
+    approve: (id: number) =>
+        api.put(`/admin/consignments/${id}/approve`),
+    reject: (id: number, reason?: string) =>
+        api.put(`/admin/consignments/${id}/reject`, { reason }),
+    reactivate: (id: number) =>
+        api.post(`/admin/consignments/${id}/reactivate`),
+    resetCountdown: (id: number, days?: number) =>
+        api.post(`/admin/consignments/${id}/reset`, { days: days || 30 }),
+};
+
 export default api;

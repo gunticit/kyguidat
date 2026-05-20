@@ -50,9 +50,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     setUser(JSON.parse(storedUser));
                 }
 
-                // If we have a token but no user data (e.g. just after social login),
-                // or user data might be stale, fetch fresh data
-                if (token && !storedUser) {
+                // Always refresh user data to keep roles up-to-date
+                if (token) {
                     const res = await authApi.me();
                     if (res.data?.success && res.data?.data) {
                         const userData = res.data.data;

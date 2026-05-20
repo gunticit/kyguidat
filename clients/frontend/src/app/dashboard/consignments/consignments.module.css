@@ -182,6 +182,26 @@
     background: rgba(239, 68, 68, 0.08);
 }
 
+.approveBtn {
+    color: #22c55e;
+}
+
+.approveBtn:hover:not(:disabled) {
+    border-color: #22c55e;
+    color: #fff;
+    background: #22c55e;
+}
+
+.rejectBtn {
+    color: #ef4444;
+}
+
+.rejectBtn:hover:not(:disabled) {
+    border-color: #ef4444;
+    color: #fff;
+    background: #ef4444;
+}
+
 /* Status column: keeps badge on one line, stacks hints under it */
 .statusCell {
     display: flex;

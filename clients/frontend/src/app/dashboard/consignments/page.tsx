@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiPlus, FiSearch, FiFilter, FiEye, FiEdit, FiTrash2, FiX, FiRefreshCw, FiDollarSign, FiClock, FiLock } from 'react-icons/fi';
-import { consignmentApi, postingPackageApi } from '@/lib/api';
+import { FiPlus, FiSearch, FiFilter, FiEye, FiEdit, FiTrash2, FiX, FiRefreshCw, FiDollarSign, FiClock, FiLock, FiCheck, FiXCircle } from 'react-icons/fi';
+import { consignmentApi, adminConsignmentApi, postingPackageApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/formatCurrency';
 import styles from './consignments.module.css';
 
@@ -102,10 +102,28 @@ export default function ConsignmentsPage() {
     const [priceModal, setPriceModal] = useState<{ id: number; currentPrice: number } | null>(null);
     const [newPrice, setNewPrice] = useState('');
     const [updatingPrice, setUpdatingPrice] = useState(false);
+    // Staff role detection
+    const [isStaff, setIsStaff] = useState(false);
+    const [approving, setApproving] = useState<number | null>(null);
+    const [rejectModal, setRejectModal] = useState<number | null>(null);
+    const [rejectReason, setRejectReason] = useState('');
+    const [rejecting, setRejecting] = useState(false);
+
+    // Detect staff role from localStorage
+    useEffect(() => {
+        try {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                const userData = JSON.parse(storedUser);
+                const roles = userData.roles?.map((r: { name: string }) => r.name) || [];
+                setIsStaff(roles.includes('admin') || roles.includes('auditor'));
+            }
+        } catch { /* ignore */ }
+    }, []);
 
     useEffect(() => {
         loadConsignments();
-    }, [statusFilter, currentPage]);
+    }, [statusFilter, currentPage, isStaff]);
 
     // Active-package flag: drives whether to expose the reactivate button.
     useEffect(() => {
@@ -126,22 +144,29 @@ export default function ConsignmentsPage() {
     const loadConsignments = async () => {
         try {
             setLoading(true);
-            const response = await consignmentApi.getList({
-                status: statusFilter || undefined,
-                search: search || undefined,
-                page: currentPage,
-            });
+
+            // Staff uses admin API (sees ALL consignments), regular users see own
+            const response = isStaff
+                ? await adminConsignmentApi.getList({
+                    status: statusFilter || undefined,
+                    search: search || undefined,
+                    page: currentPage,
+                    per_page: 15,
+                })
+                : await consignmentApi.getList({
+                    status: statusFilter || undefined,
+                    search: search || undefined,
+                    page: currentPage,
+                });
 
             const resData = response.data;
 
-            // Handle both Go API format: {data: [...], total: N, ...}
-            // and Laravel format: {success: true, data: {data: [...], meta: {...}}}
             if (resData.success) {
-                // Laravel format
                 const items = resData.data?.data || resData.data;
                 setConsignments(Array.isArray(items) ? items : []);
-                if (resData.data?.meta) {
-                    setPagination(resData.data.meta);
+                const meta = resData.meta || resData.data?.meta;
+                if (meta) {
+                    setPagination(meta);
                 } else if (resData.data?.current_page) {
                     setPagination({
                         current_page: resData.data.current_page,
@@ -151,7 +176,6 @@ export default function ConsignmentsPage() {
                     });
                 }
             } else if (Array.isArray(resData.data)) {
-                // Go API format: {data: [...], total: N, page: N, ...}
                 setConsignments(resData.data);
                 if (resData.total) {
                     setPagination({
@@ -162,7 +186,6 @@ export default function ConsignmentsPage() {
                     });
                 }
             } else if (Array.isArray(resData)) {
-                // Direct array
                 setConsignments(resData);
             }
         } catch (error) {
@@ -228,6 +251,63 @@ export default function ConsignmentsPage() {
         setNewPrice(String(item.price));
     };
 
+    // Staff actions: approve & reject
+    const handleApprove = async (id: number) => {
+        if (!confirm('Xác nhận duyệt bài đăng này?')) return;
+        try {
+            setApproving(id);
+            const res = await adminConsignmentApi.approve(id);
+            if (res.data.success) {
+                loadConsignments();
+            } else {
+                alert(res.data.message || 'Không thể duyệt');
+            }
+        } catch (error) {
+            console.error('Approve error:', error);
+            alert('Có lỗi xảy ra khi duyệt bài');
+        } finally {
+            setApproving(null);
+        }
+    };
+
+    const handleReject = async () => {
+        if (!rejectModal) return;
+        try {
+            setRejecting(true);
+            const res = await adminConsignmentApi.reject(rejectModal, rejectReason);
+            if (res.data.success) {
+                setRejectModal(null);
+                setRejectReason('');
+                loadConsignments();
+            } else {
+                alert(res.data.message || 'Không thể từ chối');
+            }
+        } catch (error) {
+            console.error('Reject error:', error);
+            alert('Có lỗi xảy ra khi từ chối bài');
+        } finally {
+            setRejecting(false);
+        }
+    };
+
+    const handleStaffReactivate = async (id: number) => {
+        if (!confirm('Bật lại bài đăng này (30 ngày)?')) return;
+        try {
+            setReactivating(id);
+            const res = await adminConsignmentApi.resetCountdown(id, 30);
+            if (res.data.success) {
+                loadConsignments();
+            } else {
+                alert(res.data.message || 'Không thể bật lại');
+            }
+        } catch (error) {
+            console.error('Reactivate error:', error);
+            alert('Có lỗi xảy ra');
+        } finally {
+            setReactivating(null);
+        }
+    };
+
     if (loading && consignments.length === 0) {
         return (
             <div className={styles.loading}>
@@ -241,8 +321,8 @@ export default function ConsignmentsPage() {
         <div>
             <div className={styles.header}>
                 <div>
-                    <h1 className={styles.pageTitle}>Ký gửi</h1>
-                    <p className={styles.pageSubtitle}>Quản lý các yêu cầu ký gửi của bạn</p>
+                    <h1 className={styles.pageTitle}>{isStaff ? 'Duyệt bài ký gửi' : 'Ký gửi'}</h1>
+                    <p className={styles.pageSubtitle}>{isStaff ? 'Duyệt, từ chối và quản lý bài đăng' : 'Quản lý các yêu cầu ký gửi của bạn'}</p>
                 </div>
                 <Link href="/dashboard/consignments/new" className="btn btn-primary">
                     <FiPlus /> Tạo mới
@@ -367,7 +447,39 @@ export default function ConsignmentsPage() {
                                                         <FiDollarSign />
                                                     </button>
                                                 )}
-                                                {canReactivate && (
+                                                {/* Staff: Approve/Reject buttons */}
+                                                {isStaff && item.status === 'pending' && (
+                                                    <>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.approveBtn}`}
+                                                            title="Duyệt bài"
+                                                            onClick={() => handleApprove(item.id)}
+                                                            disabled={approving === item.id}
+                                                        >
+                                                            <FiCheck />
+                                                        </button>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.rejectBtn}`}
+                                                            title="Từ chối"
+                                                            onClick={() => { setRejectModal(item.id); setRejectReason(''); }}
+                                                        >
+                                                            <FiXCircle />
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {/* Staff: Reactivate deactivated */}
+                                                {isStaff && isInactive && (
+                                                    <button
+                                                        className={`${styles.actionBtn} ${styles.reactivateBtn}`}
+                                                        title="Bật lại bài (30 ngày)"
+                                                        onClick={() => handleStaffReactivate(item.id)}
+                                                        disabled={reactivating === item.id}
+                                                    >
+                                                        <FiRefreshCw className={reactivating === item.id ? styles.spinning : ''} />
+                                                    </button>
+                                                )}
+                                                {/* User: Reactivate */}
+                                                {!isStaff && canReactivate && (
                                                     <button
                                                         className={`${styles.actionBtn} ${styles.reactivateBtn}`}
                                                         title="Bật lại bài (theo hạn gói hiện tại)"
@@ -377,7 +489,7 @@ export default function ConsignmentsPage() {
                                                         <FiRefreshCw className={reactivating === item.id ? styles.spinning : ''} />
                                                     </button>
                                                 )}
-                                                {isInactive && !hasActivePackage && (
+                                                {!isStaff && isInactive && !hasActivePackage && (
                                                     <span
                                                         className={`${styles.actionBtn} ${styles.lockBtn}`}
                                                         title="Cần gói đăng bài còn hạn để bật lại"
@@ -492,6 +604,45 @@ export default function ConsignmentsPage() {
                                 disabled={updatingPrice || !newPrice || parseFloat(newPrice) <= 0}
                             >
                                 {updatingPrice ? 'Đang cập nhật...' : 'Cập nhật giá'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Reject Reason Modal */}
+            {rejectModal && (
+                <div className={styles.modalOverlay} onClick={() => setRejectModal(null)}>
+                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                        <button className={styles.modalClose} onClick={() => setRejectModal(null)}>
+                            <FiX />
+                        </button>
+                        <h3>Từ chối bài đăng</h3>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Lý do từ chối</label>
+                            <textarea
+                                className="input"
+                                value={rejectReason}
+                                onChange={(e) => setRejectReason(e.target.value)}
+                                placeholder="Nhập lý do từ chối (không bắt buộc)..."
+                                rows={3}
+                                autoFocus
+                                style={{ resize: 'vertical' }}
+                            />
+                        </div>
+                        <div className={styles.modalActions}>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setRejectModal(null)}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                className="btn btn-danger"
+                                onClick={handleReject}
+                                disabled={rejecting}
+                            >
+                                {rejecting ? 'Đang xử lý...' : 'Từ chối'}
                             </button>
                         </div>
                     </div>
