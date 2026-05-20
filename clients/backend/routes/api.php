@@ -252,6 +252,10 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::middleware('role:admin')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
         Route::get('/roles', [App\Http\Controllers\AdminController::class, 'roles']);
+        Route::post('/roles', [App\Http\Controllers\AdminController::class, 'storeRole']);
+        Route::get('/roles/{id}', [App\Http\Controllers\AdminController::class, 'showRole']);
+        Route::put('/roles/{id}', [App\Http\Controllers\AdminController::class, 'updateRole']);
+        Route::delete('/roles/{id}', [App\Http\Controllers\AdminController::class, 'destroyRole']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
         Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);

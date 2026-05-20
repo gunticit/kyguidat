@@ -1186,11 +1186,109 @@ class AdminController extends Controller
      */
     public function roles(): JsonResponse
     {
-        $roles = \App\Models\Role::all();
+        $roles = \App\Models\Role::with('permissions')->get();
 
         return response()->json([
             'success' => true,
             'data' => $roles,
+        ]);
+    }
+
+    /**
+     * Show a single role
+     */
+    public function showRole($id): JsonResponse
+    {
+        $role = \App\Models\Role::with('permissions')->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $role,
+        ]);
+    }
+
+    /**
+     * Create a new role
+     */
+    public function storeRole(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:50|unique:roles,name',
+            'display_name' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:255',
+            'permissions' => 'array',
+            'permissions.*' => 'integer|exists:permissions,id',
+        ]);
+
+        $role = \App\Models\Role::create([
+            'name' => $validated['name'],
+            'display_name' => $validated['display_name'] ?? $validated['name'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        if (!empty($validated['permissions'])) {
+            $role->permissions()->sync($validated['permissions']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tạo nhóm quyền thành công',
+            'data' => $role->load('permissions'),
+        ], 201);
+    }
+
+    /**
+     * Update a role
+     */
+    public function updateRole(Request $request, $id): JsonResponse
+    {
+        $role = \App\Models\Role::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:50|unique:roles,name,' . $id,
+            'display_name' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:255',
+            'permissions' => 'array',
+            'permissions.*' => 'integer|exists:permissions,id',
+        ]);
+
+        $role->update(array_filter([
+            'name' => $validated['name'] ?? null,
+            'display_name' => $validated['display_name'] ?? null,
+            'description' => $validated['description'] ?? null,
+        ], fn($v) => $v !== null));
+
+        if (isset($validated['permissions'])) {
+            $role->permissions()->sync($validated['permissions']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật nhóm quyền thành công',
+            'data' => $role->load('permissions'),
+        ]);
+    }
+
+    /**
+     * Delete a role
+     */
+    public function destroyRole($id): JsonResponse
+    {
+        $role = \App\Models\Role::findOrFail($id);
+
+        if (in_array($role->name, ['admin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể xóa nhóm admin',
+            ], 403);
+        }
+
+        $role->permissions()->detach();
+        $role->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa nhóm quyền',
         ]);
     }
 }
