@@ -1180,4 +1180,17 @@ class AdminController extends Controller
             \Illuminate\Support\Facades\Log::warning('ES sync trigger failed: ' . $e->getMessage());
         }
     }
+
+    /**
+     * List all roles
+     */
+    public function roles(): JsonResponse
+    {
+        $roles = \App\Models\Role::all();
+
+        return response()->json([
+            'success' => true,
+            'data' => $roles,
+        ]);
+    }
 }

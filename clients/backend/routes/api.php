@@ -251,6 +251,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         // Everything else — admin only
         Route::middleware('role:admin')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
+        Route::get('/roles', [App\Http\Controllers\AdminController::class, 'roles']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
         Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);
