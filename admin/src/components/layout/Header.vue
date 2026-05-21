@@ -213,13 +213,15 @@ const notifIconClass = (type) => ({
 const roleLabel = computed(() => ({
   admin: 'Quản trị viên',
   moderator: 'Kiểm duyệt viên',
-  publisher: 'Người đăng tin'
+  publisher: 'Người đăng tin',
+  auditor: 'Kiểm duyệt viên'
 }[authStore.userRole] || authStore.userRole))
 
 const roleBadgeClass = computed(() => ({
   admin: 'bg-red-100 text-red-700',
   moderator: 'bg-blue-100 text-blue-700',
-  publisher: 'bg-green-100 text-green-700'
+  publisher: 'bg-green-100 text-green-700',
+  auditor: 'bg-purple-100 text-purple-700'
 }[authStore.userRole] || 'bg-gray-100 text-gray-700'))
 
 const goToSettings = () => {

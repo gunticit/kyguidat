@@ -999,17 +999,17 @@ const landTypes = [
 ]
 
 // Role-based permissions
-const canCreate = computed(() => authStore.isAdmin || authStore.isPublisher)
-const canApprove = computed(() => authStore.isAdmin || authStore.isModerator)
+const canCreate = computed(() => authStore.isAdmin || authStore.isPublisher || authStore.isAuditor)
+const canApprove = computed(() => authStore.isAdmin || authStore.isModerator || authStore.isAuditor)
 
 const canEdit = (item) => {
-  if (authStore.isAdmin) return true
+  if (authStore.isAdmin || authStore.isAuditor) return true
   if (authStore.isPublisher && item.user_id === authStore.userId) return true
   return false
 }
 
 const canDelete = (item) => {
-  if (authStore.isAdmin) return true
+  if (authStore.isAdmin || authStore.isAuditor) return true
   if (authStore.isPublisher && item.user_id === authStore.userId) return true
   return false
 }

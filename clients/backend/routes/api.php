@@ -233,7 +233,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
 
     // Admin Panel Routes
     Route::prefix('admin')->group(function () {
-        // Consignments + map URL — accessible by admin AND auditor
+        // Consignments + map URL + shared data — accessible by admin AND auditor
         Route::middleware('role:admin,auditor')->group(function () {
             Route::get('/consignments', [App\Http\Controllers\AdminController::class, 'consignments']);
             Route::get('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'showConsignment']);
@@ -246,6 +246,10 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
             Route::put('/consignments/{id}/expiration', [App\Http\Controllers\AdminController::class, 'updateConsignmentExpiration']);
             Route::post('/consignments/{id}/reset', [App\Http\Controllers\AdminController::class, 'resetConsignmentCountdown']);
             Route::post('/resolve-map-url', [App\Http\Controllers\AdminController::class, 'resolveMapUrl']);
+
+            // Shared data for consignment forms (auditor needs these)
+            Route::get('/provinces', [AdministrativeDivisionController::class, 'provinceIndex']);
+            Route::get('/wards', [AdministrativeDivisionController::class, 'wardIndex']);
         });
 
         // Everything else — admin only
@@ -288,14 +292,11 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::put('/pages/{id}', [PageController::class, 'update']);
         Route::delete('/pages/{id}', [PageController::class, 'destroy']);
 
-        // Administrative Divisions — Provinces
-        Route::get('/provinces', [AdministrativeDivisionController::class, 'provinceIndex']);
+        // Administrative Divisions — Provinces (write ops admin-only)
         Route::post('/provinces', [AdministrativeDivisionController::class, 'provinceStore']);
         Route::put('/provinces/{id}', [AdministrativeDivisionController::class, 'provinceUpdate']);
         Route::delete('/provinces/{id}', [AdministrativeDivisionController::class, 'provinceDestroy']);
-
-        // Administrative Divisions — Wards
-        Route::get('/wards', [AdministrativeDivisionController::class, 'wardIndex']);
+        // Administrative Divisions — Wards (write ops admin-only)
         Route::post('/wards', [AdministrativeDivisionController::class, 'wardStore']);
         Route::put('/wards/{id}', [AdministrativeDivisionController::class, 'wardUpdate']);
         Route::delete('/wards/{id}', [AdministrativeDivisionController::class, 'wardDestroy']);
