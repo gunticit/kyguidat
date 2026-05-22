@@ -498,7 +498,13 @@ class AdminController extends Controller
         $activePackage = $owner
             ? $owner->userPackages()->active()->orderBy('expires_at', 'desc')->first()
             : null;
-        $expiresAt = $activePackage ? $activePackage->expires_at : now()->addDays(30);
+        
+        $approver = $request->user();
+        if ($approver && $approver->hasRole('auditor')) {
+            $expiresAt = now()->addDays(30);
+        } else {
+            $expiresAt = $activePackage ? $activePackage->expires_at : now()->addDays(30);
+        }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($consignment, $request, $expiresAt, $activePackage) {
             $consignment->update([
