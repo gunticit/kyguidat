@@ -167,6 +167,9 @@ services:
       # AI Quick Post Parser
       - AI_API_URL=${AI_API_URL:-http://103.90.226.30:20128/v1/responses}
       - AI_API_MODEL=${AI_API_MODEL:-cx/gpt-5-codex-mini}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_MODEL=${GEMINI_API_MODEL:-gemini-2.5-flash}
+      - GEMINI_API_URL=${GEMINI_API_URL:-https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent}
       # OpenAI (Chatbot + RAG embeddings/generation)
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_API_URL=${OPENAI_API_URL:-https://api.openai.com/v1/chat/completions}
@@ -229,6 +232,9 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - CACHE_DRIVER=redis
       - QUEUE_CONNECTION=redis
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_MODEL=${GEMINI_API_MODEL:-gemini-2.5-flash}
+      - GEMINI_API_URL=${GEMINI_API_URL:-https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent}
     networks:
       - khodat-network
     depends_on:

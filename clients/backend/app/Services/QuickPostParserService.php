@@ -20,7 +20,7 @@ class QuickPostParserService
         $this->apiUrl = env('AI_API_URL', 'http://103.90.226.30:20128/v1/responses');
         $this->model = env('AI_API_MODEL', 'cx/gpt-5-codex-mini');
         $this->geminiApiKey = env('GEMINI_API_KEY', 'AIzaSyA7nIOfFED0zrdUNvxYi8MqYFFB0VLZMqQ');
-        $this->geminiModel = env('GEMINI_API_MODEL', 'gemini-1.5-flash');
+        $this->geminiModel = env('GEMINI_API_MODEL', 'gemini-2.5-flash');
         $this->geminiApiUrl = env('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/' . $this->geminiModel . ':generateContent');
     }
 

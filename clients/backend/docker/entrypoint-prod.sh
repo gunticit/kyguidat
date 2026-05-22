@@ -18,7 +18,9 @@ if [ "$1" = "php-fpm" ]; then
   echo "[entrypoint] Warming caches..."
   php artisan config:cache --no-interaction || true
   php artisan route:cache --no-interaction || true
-  php artisan view:cache --no-interaction || true
+  if [ -d "/var/www/resources/views" ]; then
+    php artisan view:cache --no-interaction || true
+  fi
 fi
 
 exec "$@"
