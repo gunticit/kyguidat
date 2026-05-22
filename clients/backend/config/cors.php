@@ -13,11 +13,24 @@ return [
     'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 
     'allowed_origins' => array_filter([
+        // Hardcoded production domains for absolute safety
+        'https://app.khodat.com',
+        'https://khodat.com',
+        'https://admin.khodat.com',
+        'https://backend.khodat.com',
+        
+        // Custom production domains (kyguidatvuon.com)
+        'https://app.kyguidatvuon.com',
+        'https://kyguidatvuon.com',
+        'https://admin.kyguidatvuon.com',
+        'https://backend.kyguidatvuon.com',
+
+        // Dynamic environment fallbacks
         env('FRONTEND_URL', 'http://localhost:3015'),
         env('APP_URL', 'http://localhost:8015'),
         env('APP_URL_SANDAT', 'https://khodat.com'),
         env('APP_URL_ADMIN', 'https://admin.khodat.com'),
-        'https://backend.khodat.com',
+        
         // Dev origins (only available when set in .env)
         env('CORS_DEV_ORIGIN_1'),
         env('CORS_DEV_ORIGIN_2'),
@@ -29,7 +42,7 @@ return [
         env('APP_ENV') !== 'production' ? '#^http://127\.0\.0\.1:\d+$#' : null,
     ]),
 
-    'allowed_headers' => ['Content-Type', 'Accept', 'Authorization', 'X-Requested-With'],
+    'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
 
