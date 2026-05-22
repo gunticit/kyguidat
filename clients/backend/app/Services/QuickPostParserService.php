@@ -11,17 +11,17 @@ class QuickPostParserService
 {
     private string $apiUrl;
     private string $model;
-    private string $openaiApiKey;
-    private string $openaiApiUrl;
-    private string $openaiModel;
+    private string $geminiApiKey;
+    private string $geminiApiUrl;
+    private string $geminiModel;
 
     public function __construct()
     {
         $this->apiUrl = env('AI_API_URL', 'http://103.90.226.30:20128/v1/responses');
         $this->model = env('AI_API_MODEL', 'cx/gpt-5-codex-mini');
-        $this->openaiApiKey = env('OPENAI_API_KEY', '');
-        $this->openaiApiUrl = env('OPENAI_API_URL', 'https://api.openai.com/v1/chat/completions');
-        $this->openaiModel = env('OPENAI_API_MODEL', 'gpt-5.4-mini');
+        $this->geminiApiKey = env('GEMINI_API_KEY', 'AIzaSyA7nIOfFED0zrdUNvxYi8MqYFFB0VLZMqQ');
+        $this->geminiModel = env('GEMINI_API_MODEL', 'gemini-1.5-flash');
+        $this->geminiApiUrl = env('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/' . $this->geminiModel . ':generateContent');
     }
 
     /**
@@ -60,33 +60,42 @@ class QuickPostParserService
     }
 
     /**
-     * Call AI API: OpenAI first, fallback to custom API when OpenAI fails
+     * Call AI API: Gemini first, fallback to custom API when Gemini fails
      */
     private function callAI(string $prompt): array
     {
-        // --- Try OpenAI first (primary) ---
-        if (!empty($this->openaiApiKey)) {
+        // --- Try Gemini first (primary) ---
+        if (!empty($this->geminiApiKey)) {
             try {
-                Log::info('Using OpenAI as primary API', ['model' => $this->openaiModel]);
+                Log::info('Using Gemini as primary API', ['model' => $this->geminiModel]);
+
+                $url = $this->geminiApiUrl;
+                if (!str_contains($url, 'key=')) {
+                    $url .= '?key=' . $this->geminiApiKey;
+                }
 
                 $response = Http::timeout(60)
                     ->withHeaders([
-                        'Authorization' => 'Bearer ' . $this->openaiApiKey,
                         'Content-Type' => 'application/json',
                     ])
-                    ->post($this->openaiApiUrl, [
-                        'model' => $this->openaiModel,
-                        'messages' => [
+                    ->post($url, [
+                        'contents' => [
                             [
-                                'role' => 'user',
-                                'content' => $prompt,
-                            ],
+                                'parts' => [
+                                    [
+                                        'text' => $prompt
+                                    ]
+                                ]
+                            ]
                         ],
-                        'temperature' => 0.1,
+                        'generationConfig' => [
+                            'responseMimeType' => 'application/json',
+                            'temperature' => 0.1,
+                        ]
                     ]);
 
                 if ($response->status() === 429 || $response->serverError()) {
-                    Log::warning('OpenAI quota/error, switching to fallback API', [
+                    Log::warning('Gemini quota/error, switching to fallback API', [
                         'status' => $response->status(),
                         'body' => substr($response->body(), 0, 500),
                     ]);
@@ -94,16 +103,16 @@ class QuickPostParserService
                 }
 
                 if (!$response->successful()) {
-                    Log::error('OpenAI API error', [
+                    Log::error('Gemini API error', [
                         'status' => $response->status(),
                         'body' => $response->body(),
                     ]);
                     return $this->callFallbackAPI($prompt);
                 }
 
-                // Wrap OpenAI response in unified format
+                // Wrap Gemini response in unified format
                 $data = $response->json();
-                $text = $data['choices'][0]['message']['content'] ?? null;
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
                 return [
                     'output' => [
@@ -117,17 +126,17 @@ class QuickPostParserService
                             ],
                         ],
                     ],
-                    '_source' => 'openai',
+                    '_source' => 'gemini',
                 ];
             } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                Log::warning('OpenAI connection failed, switching to fallback API', [
+                Log::warning('Gemini connection failed, switching to fallback API', [
                     'error' => $e->getMessage(),
                 ]);
                 return $this->callFallbackAPI($prompt);
             }
         }
 
-        // No OpenAI key configured, use fallback directly
+        // No Gemini key configured, use fallback directly
         return $this->callFallbackAPI($prompt);
     }
 
