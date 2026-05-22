@@ -14,6 +14,9 @@ class QuickPostParserService
     private string $geminiApiKey;
     private string $geminiApiUrl;
     private string $geminiModel;
+    private string $openaiApiKey;
+    private string $openaiApiUrl;
+    private string $openaiModel;
 
     public function __construct()
     {
@@ -28,6 +31,10 @@ class QuickPostParserService
         } else {
             $this->geminiApiUrl = $configuredUrl;
         }
+
+        $this->openaiApiKey = config('services.openai.api_key', '');
+        $this->openaiApiUrl = config('services.openai.api_url', 'https://api.openai.com/v1/chat/completions');
+        $this->openaiModel = config('services.openai.model', 'gpt-4o-mini');
     }
 
 
@@ -62,16 +69,18 @@ class QuickPostParserService
             return $parsed;
         } catch (\Exception $e) {
             Log::error('AI Parse failed completely', ['error' => $e->getMessage()]);
-            throw new \Exception('Không thể kết nối đến AI. Vui lòng thử lại.');
+            throw new \Exception($e->getMessage());
         }
     }
 
     /**
-     * Call AI API: Gemini first, fallback to custom API when Gemini fails
+     * Call AI API: Gemini first, fallback to OpenAI, and finally custom API
      */
     private function callAI(string $prompt): array
     {
-        // --- Try Gemini first (primary) ---
+        $geminiError = '';
+
+        // 1. Try Gemini first (primary)
         if (!empty($this->geminiApiKey)) {
             try {
                 Log::info('Using Gemini as primary API', ['model' => $this->geminiModel]);
@@ -102,24 +111,31 @@ class QuickPostParserService
                     ]);
 
                 if ($response->status() === 429 || $response->serverError()) {
-                    Log::warning('Gemini quota/error, switching to fallback API', [
+                    $geminiError = "Gemini Status " . $response->status() . ": " . substr($response->body(), 0, 150);
+                    Log::warning('Gemini quota/error, switching to OpenAI fallback', [
                         'status' => $response->status(),
                         'body' => substr($response->body(), 0, 500),
                     ]);
-                    return $this->callFallbackAPI($prompt);
+                    return $this->callOpenAIFallback($prompt, $geminiError);
                 }
 
                 if (!$response->successful()) {
+                    $geminiError = "Gemini Status " . $response->status() . ": " . substr($response->body(), 0, 150);
                     Log::error('Gemini API error', [
                         'status' => $response->status(),
                         'body' => $response->body(),
                     ]);
-                    return $this->callFallbackAPI($prompt);
+                    return $this->callOpenAIFallback($prompt, $geminiError);
                 }
 
-                // Wrap Gemini response in unified format
                 $data = $response->json();
                 $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+                if ($text === null) {
+                    $geminiError = "Gemini returned empty candidate content.";
+                    Log::warning('Gemini empty content, switching to OpenAI fallback');
+                    return $this->callOpenAIFallback($prompt, $geminiError);
+                }
 
                 return [
                     'output' => [
@@ -135,39 +151,126 @@ class QuickPostParserService
                     ],
                     '_source' => 'gemini',
                 ];
-            } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                Log::warning('Gemini connection failed, switching to fallback API', [
+            } catch (\Throwable $e) {
+                $geminiError = "Gemini Exception: " . $e->getMessage();
+                Log::warning('Gemini connection failed, switching to OpenAI fallback', [
                     'error' => $e->getMessage(),
                 ]);
-                return $this->callFallbackAPI($prompt);
+                return $this->callOpenAIFallback($prompt, $geminiError);
             }
+        } else {
+            $geminiError = "Gemini API key is empty.";
         }
 
-        // No Gemini key configured, use fallback directly
-        return $this->callFallbackAPI($prompt);
+        // No Gemini key configured, try OpenAI fallback directly
+        return $this->callOpenAIFallback($prompt, $geminiError);
     }
 
     /**
-     * Call custom AI API as fallback
+     * Call OpenAI API as fallback
      */
-    private function callFallbackAPI(string $prompt): array
+    private function callOpenAIFallback(string $prompt, string $geminiError): array
     {
-        Log::info('Using fallback API', ['url' => $this->apiUrl, 'model' => $this->model]);
+        $openaiError = '';
 
-        $response = Http::timeout(30)->post($this->apiUrl, [
-            'model' => $this->model,
-            'input' => $prompt,
-        ]);
+        if (!empty($this->openaiApiKey)) {
+            try {
+                Log::info('Using OpenAI as secondary fallback API', ['model' => $this->openaiModel]);
 
-        if (!$response->successful()) {
-            Log::error('Fallback API also failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-            throw new \Exception('Cả 2 AI API đều không khả dụng. Vui lòng thử lại sau.');
+                $response = Http::timeout(60)
+                    ->withHeaders([
+                        'Authorization' => 'Bearer ' . $this->openaiApiKey,
+                        'Content-Type' => 'application/json',
+                    ])
+                    ->post($this->openaiApiUrl, [
+                        'model' => $this->openaiModel,
+                        'messages' => [
+                            ['role' => 'user', 'content' => $prompt]
+                        ],
+                        'temperature' => 0.1,
+                        'response_format' => ['type' => 'json_object']
+                    ]);
+
+                if (!$response->successful()) {
+                    $openaiError = "OpenAI Status " . $response->status() . ": " . substr($response->body(), 0, 150);
+                    Log::error('OpenAI API fallback error', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                    ]);
+                    return $this->callCustomAPIFallback($prompt, $geminiError, $openaiError);
+                }
+
+                $text = $response->json('choices.0.message.content');
+
+                if ($text === null) {
+                    $openaiError = "OpenAI returned empty message content.";
+                    Log::warning('OpenAI empty content, switching to custom API');
+                    return $this->callCustomAPIFallback($prompt, $geminiError, $openaiError);
+                }
+
+                return [
+                    'output' => [
+                        [
+                            'type' => 'message',
+                            'content' => [
+                                [
+                                    'type' => 'output_text',
+                                    'text' => $text,
+                                ],
+                            ],
+                        ],
+                    ],
+                    '_source' => 'openai',
+                ];
+            } catch (\Throwable $e) {
+                $openaiError = "OpenAI Exception: " . $e->getMessage();
+                Log::warning('OpenAI connection failed, switching to custom API', [
+                    'error' => $e->getMessage(),
+                ]);
+                return $this->callCustomAPIFallback($prompt, $geminiError, $openaiError);
+            }
+        } else {
+            $openaiError = "OpenAI API key is empty.";
         }
 
-        return $response->json();
+        return $this->callCustomAPIFallback($prompt, $geminiError, $openaiError);
+    }
+
+    /**
+     * Call custom AI API as the final tertiary fallback
+     */
+    private function callCustomAPIFallback(string $prompt, string $geminiError, string $openaiError): array
+    {
+        Log::info('Using custom fallback API (tertiary)', ['url' => $this->apiUrl, 'model' => $this->model]);
+
+        $customError = '';
+        try {
+            $response = Http::timeout(30)->post($this->apiUrl, [
+                'model' => $this->model,
+                'input' => $prompt,
+            ]);
+
+            if (!$response->successful()) {
+                $customError = "Custom API Status " . $response->status() . ": " . substr($response->body(), 0, 150);
+                Log::error('Custom fallback API also failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception("Custom API failed with status " . $response->status());
+            }
+
+            return $response->json();
+        } catch (\Throwable $e) {
+            $customError = "Custom API Exception: " . $e->getMessage();
+            
+            // Build extremely detailed diagnostic message
+            $errorMessage = "Tất cả các AI Engine đều gặp sự cố.\n"
+                . "- Gemini (Chính): " . ($geminiError ?: 'Không rõ lỗi') . "\n"
+                . "- OpenAI (Dự phòng 1): " . ($openaiError ?: 'Không rõ lỗi') . "\n"
+                . "- Custom API (Dự phòng 2): " . ($customError ?: $e->getMessage());
+
+            throw new \Exception($errorMessage);
+        }
     }
 
     /**
