@@ -20,7 +20,8 @@ class SepayController extends Controller
 
     public function webhook(Request $request)
     {
-        $sepayApiKey = env('SEPAY_API_KEY', 'ANlxGJkKFDoB6uy5BEGjfTjsbUEJPOxu6MBvuEjklS4=');
+        $sepayApiKey = config('services.sepay.api_key', 'ANlxGJkKFDoB6uy5BEGjfTjsbUEJPOxu6MBvuEjklS4=');
+
 
         // Verify Authorization header
         $authHeader = $request->header('Authorization');

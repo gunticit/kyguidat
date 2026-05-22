@@ -9,21 +9,30 @@ use Illuminate\Support\Facades\Log;
 
 class ChatbotService
 {
-    private string $openaiApiKey;
-    private string $openaiApiUrl;
-    private string $openaiModel;
+    private string $geminiApiKey;
+    private string $geminiApiUrl;
+    private string $geminiModel;
     private string $siteUrl;
     private bool $ragEnabled;
 
     public function __construct(
         private RAGRetrievalService $retrieval,
     ) {
-        $this->openaiApiKey = env('OPENAI_API_KEY', '');
-        $this->openaiApiUrl = env('OPENAI_API_URL', 'https://api.openai.com/v1/chat/completions');
-        $this->openaiModel  = config('rag.llm.model', env('OPENAI_API_MODEL', 'gpt-4o-mini'));
-        $this->siteUrl      = env('APP_URL_SANDAT', 'https://khodat.com');
+        $this->geminiApiKey = config('services.gemini.api_key', '');
+        $this->geminiModel  = config('services.gemini.model', 'gemini-2.5-flash');
+        
+        $configuredUrl = config('services.gemini.api_url');
+        if (empty($configuredUrl) || $configuredUrl === 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent') {
+            $this->geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/' . $this->geminiModel . ':generateContent';
+        } else {
+            $this->geminiApiUrl = $configuredUrl;
+        }
+
+        $this->siteUrl      = config('app.url_sandat', 'https://khodat.com');
         $this->ragEnabled   = (bool) config('rag.enabled', true);
     }
+
+
 
     /**
      * @return array{is_property_query: bool, reply: string|null, consignments: array, debug?: array}
@@ -149,7 +158,8 @@ PROMPT;
 
         $response = $this->callLLM([
             ['role' => 'user', 'content' => $prompt],
-        ], temperature: 0.1, maxTokens: 400);
+        ], temperature: 0.1, maxTokens: 400, responseMimeType: 'application/json');
+
 
         $defaults = [
             'is_on_topic'       => false,
@@ -330,37 +340,114 @@ PROMPT;
         });
     }
 
-    private function callLLM(array $messages, float $temperature = 0.3, int $maxTokens = 800): ?string
+    private function callLLM(array $messages, float $temperature = 0.3, int $maxTokens = 800, string $responseMimeType = 'text/plain'): ?string
     {
-        if (empty($this->openaiApiKey)) {
-            Log::warning('OPENAI_API_KEY is empty');
-            return null;
-        }
-        try {
-            $response = Http::timeout(60)
-                ->withHeaders([
-                    'Authorization' => 'Bearer ' . $this->openaiApiKey,
-                    'Content-Type'  => 'application/json',
-                ])
-                ->post($this->openaiApiUrl, [
-                    'model'                 => $this->openaiModel,
-                    'messages'              => $messages,
-                    'temperature'           => $temperature,
-                    'max_completion_tokens' => $maxTokens,
-                ]);
+        // 1. Try Gemini first if configured
+        if (!empty($this->geminiApiKey)) {
+            try {
+                Log::info('Chatbot: calling Gemini API', ['model' => $this->geminiModel]);
 
-            if ($response->successful()) {
-                return $response->json('choices.0.message.content');
+                $url = $this->geminiApiUrl;
+                if (!str_contains($url, 'key=')) {
+                    $url .= '?key=' . $this->geminiApiKey;
+                }
+
+                $systemInstruction = null;
+                $contents = [];
+
+                foreach ($messages as $message) {
+                    $role = $message['role'] ?? 'user';
+                    $content = $message['content'] ?? '';
+
+                    if ($role === 'system') {
+                        $systemInstruction = [
+                            'parts' => [
+                                ['text' => $content]
+                            ]
+                        ];
+                    } else {
+                        $geminiRole = $role === 'assistant' ? 'model' : 'user';
+                        $contents[] = [
+                            'role' => $geminiRole,
+                            'parts' => [
+                                ['text' => $content]
+                            ]
+                        ];
+                    }
+                }
+
+                $body = [
+                    'contents' => $contents,
+                    'generationConfig' => [
+                        'responseMimeType' => $responseMimeType,
+                        'temperature'      => $temperature,
+                    ]
+                ];
+
+                if ($systemInstruction) {
+                    $body['systemInstruction'] = $systemInstruction;
+                }
+
+                $response = Http::timeout(60)
+                    ->withHeaders([
+                        'Content-Type' => 'application/json',
+                    ])
+                    ->post($url, $body);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                    if ($text !== null) {
+                        return $text;
+                    }
+                }
+
+                Log::warning('Chatbot: Gemini API call failed, trying fallback to OpenAI', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Chatbot: Gemini exception, trying fallback to OpenAI', ['error' => $e->getMessage()]);
             }
-            Log::warning('LLM call failed', [
-                'status' => $response->status(),
-                'body'   => $response->body(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('LLM exception', ['error' => $e->getMessage()]);
         }
+
+        // 2. Fallback to OpenAI if configured
+        $openaiApiKey = config('services.openai.api_key');
+        if (!empty($openaiApiKey)) {
+            try {
+                Log::info('Chatbot: calling OpenAI API as fallback');
+                
+                $openaiApiUrl = config('services.openai.api_url', 'https://api.openai.com/v1/chat/completions');
+                $openaiModel  = config('rag.llm.model', config('services.openai.model', 'gpt-4o-mini'));
+
+                $response = Http::timeout(60)
+                    ->withHeaders([
+                        'Authorization' => 'Bearer ' . $openaiApiKey,
+                        'Content-Type'  => 'application/json',
+                    ])
+                    ->post($openaiApiUrl, [
+                        'model'                 => $openaiModel,
+                        'messages'              => $messages,
+                        'temperature'           => $temperature,
+                        'max_completion_tokens' => $maxTokens,
+                    ]);
+
+                if ($response->successful()) {
+                    return $response->json('choices.0.message.content');
+                }
+
+                Log::warning('Chatbot: OpenAI API call failed', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Chatbot: OpenAI exception', ['error' => $e->getMessage()]);
+            }
+        }
+
         return null;
     }
+
 
     private function countWord(array $items): string
     {

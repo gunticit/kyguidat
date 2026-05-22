@@ -17,12 +17,19 @@ class QuickPostParserService
 
     public function __construct()
     {
-        $this->apiUrl = env('AI_API_URL', 'http://103.90.226.30:20128/v1/responses');
-        $this->model = env('AI_API_MODEL', 'cx/gpt-5-codex-mini');
-        $this->geminiApiKey = env('GEMINI_API_KEY', 'AIzaSyA7nIOfFED0zrdUNvxYi8MqYFFB0VLZMqQ');
-        $this->geminiModel = env('GEMINI_API_MODEL', 'gemini-2.5-flash');
-        $this->geminiApiUrl = env('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/' . $this->geminiModel . ':generateContent');
+        $this->apiUrl = config('services.ai_api.url', 'http://103.90.226.30:20128/v1/responses');
+        $this->model = config('services.ai_api.model', 'cx/gpt-5-codex-mini');
+        $this->geminiApiKey = config('services.gemini.api_key');
+        $this->geminiModel = config('services.gemini.model', 'gemini-2.5-flash');
+        
+        $configuredUrl = config('services.gemini.api_url');
+        if (empty($configuredUrl) || $configuredUrl === 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent') {
+            $this->geminiApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/' . $this->geminiModel . ':generateContent';
+        } else {
+            $this->geminiApiUrl = $configuredUrl;
+        }
     }
+
 
     /**
      * Parse raw text from Zalo/Facebook post into structured consignment data

@@ -36,6 +36,9 @@ return [
 
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3015'),
 
+    'url_sandat' => env('APP_URL_SANDAT', 'https://khodat.com'),
+
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
