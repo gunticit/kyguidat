@@ -25,18 +25,10 @@ Route::get('/tin-tuc/{slug}', [ArticleController::class, 'show'])->name('article
 // Contact (Liên hệ)
 Route::get('/lien-he', [ArticleController::class, 'contact'])->name('contact');
 
-// Policy pages (static fallbacks)
-Route::get('/chinh-sach-bao-mat', function () {
-    return view('pages.privacy-policy');
-})->name('privacy-policy');
-
-Route::get('/dieu-khoan-su-dung', function () {
-    return view('pages.terms');
-})->name('terms');
-
-Route::get('/xoa-tai-khoan', function () {
-    return view('pages.delete-account');
-})->name('delete-account');
+// Policy pages (dynamic with static fallbacks)
+Route::get('/chinh-sach-bao-mat', [PageController::class, 'show'])->defaults('slug', 'chinh-sach-bao-mat')->name('privacy-policy');
+Route::get('/dieu-khoan-su-dung', [PageController::class, 'show'])->defaults('slug', 'dieu-khoan-su-dung')->name('terms');
+Route::get('/xoa-tai-khoan', [PageController::class, 'show'])->defaults('slug', 'xoa-tai-khoan')->name('delete-account');
 
 // Settings API (protected by admin API key — called cross-origin from admin.khodat.com)
 Route::get('/api/settings', [SettingsController::class, 'index']);

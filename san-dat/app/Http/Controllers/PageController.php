@@ -19,15 +19,25 @@ class PageController extends Controller
      */
     public function show(string $slug)
     {
-        $response = Http::get("{$this->apiUrl}/api/public/pages/{$slug}");
-
-        if (!$response->successful()) {
-            abort(404);
+        $page = null;
+        try {
+            $response = Http::get("{$this->apiUrl}/api/public/pages/{$slug}");
+            if ($response->successful()) {
+                $page = $response->json()['data'] ?? null;
+            }
+        } catch (\Throwable $e) {
+            // Gracefully ignore API errors and let fallback handle it
         }
 
-        $page = $response->json()['data'] ?? null;
-
         if (!$page) {
+            $staticViewMap = [
+                'chinh-sach-bao-mat' => 'pages.privacy-policy',
+                'dieu-khoan-su-dung' => 'pages.terms',
+                'xoa-tai-khoan' => 'pages.delete-account',
+            ];
+            if (isset($staticViewMap[$slug]) && view()->exists($staticViewMap[$slug])) {
+                return view($staticViewMap[$slug]);
+            }
             abort(404);
         }
 
