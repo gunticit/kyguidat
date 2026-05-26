@@ -22,11 +22,18 @@ class HomeController extends Controller
             'sort' => 'latest',
         ]);
 
+        $mapResponse = $this->apiService->getConsignments([
+            'page' => 1,
+            'limit' => 1000,
+            'sort' => 'latest',
+        ]);
+
         $consignments = $response['data'] ?? [];
+        $mapConsignments = $mapResponse['data'] ?? [];
         $categories = $this->apiService->getCategories();
         $locations = $this->apiService->getLocations();
         $featuredProvinces = $this->apiService->getFeaturedProvinces();
 
-        return view('home', compact('consignments', 'categories', 'locations', 'featuredProvinces'));
+        return view('home', compact('consignments', 'mapConsignments', 'categories', 'locations', 'featuredProvinces'));
     }
 }

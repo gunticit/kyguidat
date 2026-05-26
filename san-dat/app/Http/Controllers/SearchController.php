@@ -39,11 +39,17 @@ class SearchController extends Controller
 
         $response = $this->apiService->getConsignments(array_filter($params));
 
+        $mapParams = $params;
+        $mapParams['limit'] = 1000;
+        $mapParams['page'] = 1;
+        $mapResponse = $this->apiService->getConsignments(array_filter($mapParams));
+
         $consignments = $response['data'] ?? [];
+        $mapConsignments = $mapResponse['data'] ?? [];
         $meta = $response['meta'] ?? null;
         $locations = $this->apiService->getLocations();
         $searchQuery = $request->get('q', '');
 
-        return view('search.results', compact('consignments', 'meta', 'locations', 'searchQuery'));
+        return view('search.results', compact('consignments', 'mapConsignments', 'meta', 'locations', 'searchQuery'));
     }
 }

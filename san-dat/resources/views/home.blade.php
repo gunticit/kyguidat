@@ -437,6 +437,7 @@
                     locationReady = true;
                     updateLocationStatus('active');
                     loadAllProperties(1);
+                    loadMapProperties();
                 },
                 function (err) {
                     updateLocationStatus('denied');
@@ -451,6 +452,30 @@
             locationReady = false;
             updateLocationStatus('reset');
             loadAllProperties(1);
+            loadMapProperties();
+        }
+
+        function loadMapProperties() {
+            let apiUrl = `/api/consignments?page=1&limit=1000&sort=latest`;
+            if (userLat && userLng) {
+                apiUrl += `&lat=${userLat}&lng=${userLng}&max_distance=15`;
+            }
+            fetch(apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    let items = data.data || [];
+                    if (locationReady && userLat && userLng) {
+                        items = items.filter(item => {
+                            const d = calcDistance(item);
+                            item._distance = d;
+                            return d !== null && d <= 15;
+                        });
+                    }
+                    updateMapMarkers(items);
+                })
+                .catch(err => {
+                    console.error('Error fetching map properties:', err);
+                });
         }
 
         function updateLocationStatus(status) {
@@ -551,9 +576,6 @@
                         : emptyMsg;
 
                     renderPagination(currentPage, totalPages, pagination);
-
-                    // Update map to show only current results
-                    updateMapMarkers(items);
 
                     skeleton.classList.add('hidden');
                     var savedMode = 'grid'; try { savedMode = localStorage.getItem('viewMode') || 'grid'; } catch(e) {}
@@ -775,7 +797,7 @@
     <!-- Map Scripts -->
 
     @php
-        $propertiesData = collect($consignments)->map(function ($item) {
+        $propertiesData = collect($mapConsignments ?? $consignments)->map(function ($item) {
             return [
                 'id' => $item['id'] ?? rand(1000, 9999),
                 'title' => $item['title'] ?? 'Bất động sản',

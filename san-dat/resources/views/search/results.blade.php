@@ -476,9 +476,8 @@
         document.addEventListener('DOMContentLoaded', function() { var m = 'grid'; try { m = localStorage.getItem('viewMode') || 'grid'; } catch(e) {} setView(m); });
     </script>
 
-    <!-- Map Scripts -->
     @php
-        $mapData = collect($consignments)->map(function ($item) {
+        $mapData = collect($mapConsignments ?? $consignments)->map(function ($item) {
             return [
                 'id' => $item['id'] ?? rand(1000, 9999),
                 'title' => $item['title'] ?? 'Bất động sản',
