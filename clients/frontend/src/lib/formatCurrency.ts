@@ -26,18 +26,14 @@ export function formatCurrency(
     // Nếu số lớn hơn 1 tỷ và muốn hiển thị dạng tỷ
     if (showBillion && numAmount >= 1000000000) {
         const billions = numAmount / 1000000000;
-        const formatted = billions % 1 === 0
-            ? billions.toString()
-            : billions.toFixed(1).replace('.0', '');
+        const formatted = parseFloat(billions.toFixed(9)).toString();
         return `${formatted} tỷ`;
     }
 
     // Nếu số lớn hơn 1 triệu và muốn hiển thị dạng ngắn
     if (showBillion && numAmount >= 1000000) {
         const millions = numAmount / 1000000;
-        const formatted = millions % 1 === 0
-            ? millions.toString()
-            : millions.toFixed(1).replace('.0', '');
+        const formatted = parseFloat(millions.toFixed(9)).toString();
         return `${formatted} triệu`;
     }
 
