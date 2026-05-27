@@ -486,7 +486,7 @@
                     if ($p >= 1000000000)
                         return rtrim(rtrim(number_format($p / 1000000000, 1), '0'), '.') . ' tỷ';
                     if ($p >= 1000000)
-                        return rtrim(rtrim(number_format($p / 1000000, 0), '0'), '.') . ' triệu';
+                        return rtrim(rtrim(number_format($p / 1000000, 1), '0'), '.') . ' triệu';
                     return number_format($p) . ' đ';
                 })($item['price']) : 'Liên hệ',
                 'address' => $item['address'] ?? '',
@@ -610,7 +610,7 @@
         function formatPrice(p) {
             if (!p) return 'Liên hệ';
             if (p >= 1000000000) { const v = p / 1000000000; return (v % 1 === 0 ? v.toFixed(0) : parseFloat(v.toFixed(1))) + ' tỷ'; }
-            if (p >= 1000000) { const v = p / 1000000; return (v % 1 === 0 ? v.toFixed(0) : parseFloat(v.toFixed(0))) + ' triệu'; }
+            if (p >= 1000000) { const v = p / 1000000; return (v % 1 === 0 ? v.toFixed(0) : parseFloat(v.toFixed(1))) + ' triệu'; }
             return new Intl.NumberFormat('vi-VN').format(p) + ' đ';
         }
 
