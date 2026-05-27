@@ -830,6 +830,11 @@
                 })($item),
                 'seo_url' => $item['seo_url'] ?? '',
                 'direction' => $item['direction'] ?? '',
+                'order_number' => $item['order_number'] ?? '',
+                'area_dimensions' => $item['area_dimensions'] ?? '',
+                'residential_area' => $item['residential_area'] ?? '',
+                'land_directions' => $item['land_directions'] ?? [],
+                'road' => $item['road'] ?? '',
                 'image' => (function ($item) {
                     $imgs = is_string($item['images'] ?? '') ? json_decode($item['images'], true) : ($item['images'] ?? []);
                     $img = $imgs[0] ?? $item['featured_image'] ?? $item['image'] ?? '/images/placeholder.jpg';
@@ -851,6 +856,9 @@
             padding: 0 !important;
             border-radius: 12px !important;
             overflow: hidden;
+            background: var(--navy-700) !important;
+            color: var(--gray-100) !important;
+            border: 1px solid var(--navy-600) !important;
         }
 
         .leaflet-popup-content {
@@ -859,7 +867,9 @@
         }
 
         .leaflet-popup-tip {
-            border-top-color: white !important;
+            background: var(--navy-700) !important;
+            border: 1px solid var(--navy-600) !important;
+            box-shadow: none !important;
         }
 
         /* Cluster overrides */
@@ -999,22 +1009,24 @@
 
             // Build detail rows
             let popupDetails = '';
-            if (property.address) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 6px;grid-column:1/-1"><span style="color:#6b7280">Địa chỉ:</span> ' + property.address + '</p>';
-            if (property.area_dimensions) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Diện tích:</span> ' + property.area_dimensions + '</p>';
-            if (property.residential_area) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Thổ cư:</span> ' + parseFloat(property.residential_area) + ' m²</p>';
-            if (popupDirText) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Hướng:</span> ' + popupDirText + '</p>';
-            if (property.road) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Loại đường:</span> ' + property.road + '</p>';
-            if (property.frontage_actual && property.frontage_actual !== '0' && property.frontage_actual !== '0.00') popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Mặt tiền:</span> ' + parseFloat(property.frontage_actual) + ' m</p>';
-            if (property.statusText) popupDetails += '<p style="color:#94a3b8;font-size:12px;margin:0 0 2px"><span style="color:#6b7280">Tình trạng:</span> ' + property.statusText + '</p>';
+            if (property.address) popupDetails += `<p style="color:var(--gray-300);font-size:12px;margin:0 0 6px;grid-column:1/-1"><span style="color:var(--gray-500);">Địa chỉ:</span> ${property.address}</p>`;
+            if (property.area_dimensions) popupDetails += `<p style="color:var(--gray-300);font-size:12px;margin:0 0 2px;"><span style="color:var(--gray-500);">Diện tích:</span> ${property.area_dimensions}</p>`;
+            if (property.residential_area) popupDetails += `<p style="color:var(--gray-300);font-size:12px;margin:0 0 2px;"><span style="color:var(--gray-500);">Thổ cư:</span> ${parseFloat(property.residential_area)} m²</p>`;
+            if (popupDirText) popupDetails += `<p style="color:var(--gray-300);font-size:12px;margin:0 0 2px;"><span style="color:var(--gray-500);">Hướng:</span> ${popupDirText}</p>`;
+            if (property.road) popupDetails += `<p style="color:var(--gray-300);font-size:12px;margin:0 0 2px;"><span style="color:var(--gray-500);">Loại đường:</span> ${property.road}</p>`;
+            if (property.frontage_actual && property.frontage_actual !== '0' && property.frontage_actual !== '0.00') popupDetails += `<p style="color:var(--gray-300);font-size:12px;margin:0 0 2px;"><span style="color:var(--gray-500);">Mặt tiền:</span> ${parseFloat(property.frontage_actual)} m</p>`;
+            if (property.statusText) popupDetails += `<p style="color:var(--gray-300);font-size:12px;margin:0 0 2px;"><span style="color:var(--gray-500);">Tình trạng:</span> ${property.statusText}</p>`;
+
+            const code = property.order_number || property.id;
 
             return `
-                    <div style="width:320px;max-width:90vw;font-family:Arial,sans-serif;">
+                    <div style="width:350px;max-width:90vw;font-family:Arial,sans-serif;">
                         <img src="${property.image}" alt="${property.title}"
                             style="width:100%;height:160px;object-fit:cover;"
                             onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22350%22 height=%22160%22%3E%3Crect fill=%22%23334155%22 width=%22350%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                         <div style="padding:12px;">
-                            ${property.id ? `<p style="color:#6b7280;font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${property.id}</p>` : ''}
-                            <p style="font-weight:bold;font-size:14px;margin:0 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;">
+                            ${code ? `<p style="color:var(--gray-500);font-size:11px;margin:0 0 4px;font-weight:500;">Mã Số: ${code}</p>` : ''}
+                            <p style="font-weight:bold;font-size:14px;margin:0 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-transform:uppercase;color:var(--gray-100);">
                                 ${property.title}
                             </p>
                             <p style="color:#f97316;font-weight:bold;font-size:16px;margin:0 0 8px;">Giá: ${property.priceFormatted}</p>
