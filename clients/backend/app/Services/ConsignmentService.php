@@ -145,15 +145,15 @@ class ConsignmentService
             if (preg_match('/!3d(-?\d+\.?\d*)/', $mapLink, $latM) && preg_match('/!4d(-?\d+\.?\d*)/', $mapLink, $lngM)) {
                 $latitude = $latM[1];
                 $longitude = $lngM[1];
-            // Priority 2: ?q=lat,lng
+                // Priority 2: ?q=lat,lng
             } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $mapLink, $matches)) {
                 $latitude = $matches[1];
                 $longitude = $matches[2];
-            // Priority 3: @lat,lng (viewport center, less accurate)
+                // Priority 3: @lat,lng (viewport center, less accurate)
             } elseif (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
                 $latitude = $matches[1];
                 $longitude = $matches[2];
-            // Fallback: resolve short URL
+                // Fallback: resolve short URL
             } elseif (preg_match('/maps\.app\.goo\.gl|goo\.gl\/maps/i', $mapLink)) {
                 try {
                     $parser = app(QuickPostParserService::class);
@@ -223,11 +223,11 @@ class ConsignmentService
         $consignment = $user->consignments()
             ->where(function ($q) {
                 $q->where('status', Consignment::STATUS_DEACTIVATED)
-                  ->orWhere(function ($q2) {
-                      $q2->whereIn('status', [Consignment::STATUS_APPROVED, Consignment::STATUS_SELLING])
-                         ->whereNotNull('expires_at')
-                         ->where('expires_at', '<=', now());
-                  });
+                    ->orWhere(function ($q2) {
+                        $q2->whereIn('status', [Consignment::STATUS_APPROVED, Consignment::STATUS_SELLING])
+                            ->whereNotNull('expires_at')
+                            ->where('expires_at', '<=', now());
+                    });
             })
             ->find($id);
 
@@ -263,7 +263,7 @@ class ConsignmentService
             $consignment,
             Consignment::STATUS_SELLING,
             "User mở lại sản phẩm (trước: {$oldStatus}) — expires_at " . $expiresAt->toDateString()
-                . ' (cap 30 ngày, gói tới ' . $activePackage->expires_at->toDateString() . ')',
+            . ' (cap 30 ngày, gói tới ' . $activePackage->expires_at->toDateString() . ')',
             $user->id
         );
 
@@ -333,11 +333,11 @@ class ConsignmentService
             if (preg_match('/!3d(-?\d+\.?\d*)/', $mapLink, $latM) && preg_match('/!4d(-?\d+\.?\d*)/', $mapLink, $lngM)) {
                 $latitude = $latM[1];
                 $longitude = $lngM[1];
-            // Priority 2: ?q=lat,lng
+                // Priority 2: ?q=lat,lng
             } elseif (preg_match('/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/', $mapLink, $matches)) {
                 $latitude = $matches[1];
                 $longitude = $matches[2];
-            // Priority 3: @lat,lng (viewport center, less accurate)
+                // Priority 3: @lat,lng (viewport center, less accurate)
             } elseif (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $mapLink, $matches)) {
                 $latitude = $matches[1];
                 $longitude = $matches[2];
@@ -452,12 +452,14 @@ class ConsignmentService
             if ($owner) {
                 $activePackage = $owner->userPackages()
                     ->active()
+                    ->where('posts_used', '>', 0)
+                    ->orderBy('posts_used', 'desc')
                     ->first();
 
-                if ($activePackage && $activePackage->posts_used > 0) {
+                if ($activePackage) {
                     $activePackage->decrement('posts_used');
                 } else {
-                    // Không có gói active hoặc gói chưa dùng lượt nào → hoàn về free
+                    // Không có gói active nào còn posts_used → hoàn về free
                     $owner->increment('free_posts_remaining');
                 }
             }
