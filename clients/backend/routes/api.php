@@ -164,8 +164,8 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/consignments/{id}/cancel', [ConsignmentController::class, 'cancel']);
         Route::post('/consignments/{id}/reactivate', [ConsignmentController::class, 'reactivate']);
         Route::put('/consignments/{id}', [ConsignmentController::class, 'update'])->where('id', '[0-9]+');
-        Route::delete('/consignments/{id}', [ConsignmentController::class, 'destroy'])->where('id', '[0-9]+');
     });
+    Route::delete('/consignments/{id}', [ConsignmentController::class, 'destroy'])->where('id', '[0-9]+');
 
     Route::apiResource('/consignments', ConsignmentController::class)
         ->only(['index', 'show', 'store'])
@@ -254,59 +254,59 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
 
         // Everything else — admin only
         Route::middleware('role:admin')->group(function () {
-        Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
-        Route::get('/roles', [App\Http\Controllers\AdminController::class, 'roles']);
-        Route::post('/roles', [App\Http\Controllers\AdminController::class, 'storeRole']);
-        Route::get('/roles/{id}', [App\Http\Controllers\AdminController::class, 'showRole']);
-        Route::put('/roles/{id}', [App\Http\Controllers\AdminController::class, 'updateRole']);
-        Route::delete('/roles/{id}', [App\Http\Controllers\AdminController::class, 'destroyRole']);
-        Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
-        Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
-        Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);
-        Route::delete('/users/{id}', [App\Http\Controllers\AdminController::class, 'destroyUser']);
+            Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
+            Route::get('/roles', [App\Http\Controllers\AdminController::class, 'roles']);
+            Route::post('/roles', [App\Http\Controllers\AdminController::class, 'storeRole']);
+            Route::get('/roles/{id}', [App\Http\Controllers\AdminController::class, 'showRole']);
+            Route::put('/roles/{id}', [App\Http\Controllers\AdminController::class, 'updateRole']);
+            Route::delete('/roles/{id}', [App\Http\Controllers\AdminController::class, 'destroyRole']);
+            Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+            Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
+            Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser']);
+            Route::delete('/users/{id}', [App\Http\Controllers\AdminController::class, 'destroyUser']);
 
-        // Customers (frontend-registered users)
-        Route::get('/customers', [App\Http\Controllers\AdminController::class, 'customers']);
+            // Customers (frontend-registered users)
+            Route::get('/customers', [App\Http\Controllers\AdminController::class, 'customers']);
 
-        // Support Tickets - Admin Management
-        Route::get('/supports', [App\Http\Controllers\AdminController::class, 'supportTickets']);
-        Route::get('/supports/{id}', [App\Http\Controllers\AdminController::class, 'showSupportTicket']);
-        Route::post('/supports/{id}/reply', [App\Http\Controllers\AdminController::class, 'replySupportTicket']);
-        Route::put('/supports/{id}/status', [App\Http\Controllers\AdminController::class, 'updateTicketStatus']);
-        Route::post('/supports/{id}/close', [App\Http\Controllers\AdminController::class, 'closeSupportTicket']);
+            // Support Tickets - Admin Management
+            Route::get('/supports', [App\Http\Controllers\AdminController::class, 'supportTickets']);
+            Route::get('/supports/{id}', [App\Http\Controllers\AdminController::class, 'showSupportTicket']);
+            Route::post('/supports/{id}/reply', [App\Http\Controllers\AdminController::class, 'replySupportTicket']);
+            Route::put('/supports/{id}/status', [App\Http\Controllers\AdminController::class, 'updateTicketStatus']);
+            Route::post('/supports/{id}/close', [App\Http\Controllers\AdminController::class, 'closeSupportTicket']);
 
-        Route::get('/transactions', [App\Http\Controllers\AdminController::class, 'transactions']);
+            Route::get('/transactions', [App\Http\Controllers\AdminController::class, 'transactions']);
 
-        // Articles
-        Route::get('/articles', [ArticleController::class, 'index']);
-        Route::get('/articles/{id}', [ArticleController::class, 'show']);
-        Route::post('/articles', [ArticleController::class, 'store']);
-        Route::put('/articles/{id}', [ArticleController::class, 'update']);
-        Route::delete('/articles/{id}', [ArticleController::class, 'destroy']);
-        Route::get('/check-slug', [ArticleController::class, 'checkSlug']);
+            // Articles
+            Route::get('/articles', [ArticleController::class, 'index']);
+            Route::get('/articles/{id}', [ArticleController::class, 'show']);
+            Route::post('/articles', [ArticleController::class, 'store']);
+            Route::put('/articles/{id}', [ArticleController::class, 'update']);
+            Route::delete('/articles/{id}', [ArticleController::class, 'destroy']);
+            Route::get('/check-slug', [ArticleController::class, 'checkSlug']);
 
-        // Pages
-        Route::get('/pages', [PageController::class, 'index']);
-        Route::get('/pages/{id}', [PageController::class, 'show']);
-        Route::post('/pages', [PageController::class, 'store']);
-        Route::put('/pages/{id}', [PageController::class, 'update']);
-        Route::delete('/pages/{id}', [PageController::class, 'destroy']);
+            // Pages
+            Route::get('/pages', [PageController::class, 'index']);
+            Route::get('/pages/{id}', [PageController::class, 'show']);
+            Route::post('/pages', [PageController::class, 'store']);
+            Route::put('/pages/{id}', [PageController::class, 'update']);
+            Route::delete('/pages/{id}', [PageController::class, 'destroy']);
 
-        // Administrative Divisions — Provinces (write ops admin-only)
-        Route::post('/provinces', [AdministrativeDivisionController::class, 'provinceStore']);
-        Route::put('/provinces/{id}', [AdministrativeDivisionController::class, 'provinceUpdate']);
-        Route::delete('/provinces/{id}', [AdministrativeDivisionController::class, 'provinceDestroy']);
-        // Administrative Divisions — Wards (write ops admin-only)
-        Route::post('/wards', [AdministrativeDivisionController::class, 'wardStore']);
-        Route::put('/wards/{id}', [AdministrativeDivisionController::class, 'wardUpdate']);
-        Route::delete('/wards/{id}', [AdministrativeDivisionController::class, 'wardDestroy']);
+            // Administrative Divisions — Provinces (write ops admin-only)
+            Route::post('/provinces', [AdministrativeDivisionController::class, 'provinceStore']);
+            Route::put('/provinces/{id}', [AdministrativeDivisionController::class, 'provinceUpdate']);
+            Route::delete('/provinces/{id}', [AdministrativeDivisionController::class, 'provinceDestroy']);
+            // Administrative Divisions — Wards (write ops admin-only)
+            Route::post('/wards', [AdministrativeDivisionController::class, 'wardStore']);
+            Route::put('/wards/{id}', [AdministrativeDivisionController::class, 'wardUpdate']);
+            Route::delete('/wards/{id}', [AdministrativeDivisionController::class, 'wardDestroy']);
 
-        // Posting Packages — CRUD
-        Route::get('/posting-packages', [App\Http\Controllers\AdminController::class, 'postingPackages']);
-        Route::get('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'showPostingPackage']);
-        Route::post('/posting-packages', [App\Http\Controllers\AdminController::class, 'storePostingPackage']);
-        Route::put('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'updatePostingPackage']);
-        Route::delete('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'destroyPostingPackage']);
+            // Posting Packages — CRUD
+            Route::get('/posting-packages', [App\Http\Controllers\AdminController::class, 'postingPackages']);
+            Route::get('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'showPostingPackage']);
+            Route::post('/posting-packages', [App\Http\Controllers\AdminController::class, 'storePostingPackage']);
+            Route::put('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'updatePostingPackage']);
+            Route::delete('/posting-packages/{id}', [App\Http\Controllers\AdminController::class, 'destroyPostingPackage']);
         }); // end admin-only group
     }); // end /admin prefix
 }); // end auth:sanctum group
