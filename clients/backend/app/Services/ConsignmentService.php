@@ -439,12 +439,39 @@ class ConsignmentService
             return false;
         }
 
-        $this->createHistory($consignment, 'deleted', 'Người dùng xóa bài đăng', $user->id);
+        $deleted = DB::transaction(function () use ($consignment, $user) {
+            $isAdmin = $user->hasRole('admin');
+            $note = $isAdmin ? 'Admin xóa bài đăng' : 'Người dùng xóa bài đăng';
+            $this->createHistory($consignment, 'deleted', $note, $user->id);
 
-        // Dispatch webhook for ES sync
-        $this->webhookService?->dispatchStatusChanged($consignment, $consignment->status, 'deleted');
+            // Hoàn lại lượt đăng cho chủ sở hữu bài viết.
+            // Thứ tự ưu tiên khi TẠO bài: free_posts_remaining trước → package sau.
+            // Thứ tự hoàn ngược lại: hoàn về package trước (nếu có gói active còn posts_used),
+            // chỉ hoàn về free nếu không có gói active hoặc posts_used == 0.
+            $owner = $consignment->user;
+            if ($owner) {
+                $activePackage = $owner->userPackages()
+                    ->active()
+                    ->first();
 
-        return $consignment->delete();
+                if ($activePackage && $activePackage->posts_used > 0) {
+                    $activePackage->decrement('posts_used');
+                } else {
+                    // Không có gói active hoặc gói chưa dùng lượt nào → hoàn về free
+                    $owner->increment('free_posts_remaining');
+                }
+            }
+
+            return $consignment->delete();
+        });
+
+        if ($deleted) {
+            // Dispatch webhook & ES sync SAU khi transaction commit thành công.
+            $this->webhookService?->dispatchStatusChanged($consignment, $consignment->status, 'deleted');
+            $this->triggerEsSync();
+        }
+
+        return $deleted;
     }
 
     /**

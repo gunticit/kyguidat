@@ -470,13 +470,16 @@ class AdminController extends Controller
     /**
      * Delete a consignment
      */
-    public function destroyConsignment($id): JsonResponse
+    public function destroyConsignment(Request $request, $id): JsonResponse
     {
-        $consignment = Consignment::findOrFail($id);
-        $consignment->delete();
+        $result = app(\App\Services\ConsignmentService::class)->delete($request->user(), $id);
 
-        // Trigger ES sync
-        $this->triggerEsSync();
+        if (!$result) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy ký gửi hoặc không có quyền xóa'
+            ], 404);
+        }
 
         return response()->json([
             'success' => true,
@@ -506,7 +509,7 @@ class AdminController extends Controller
             $expiresAt = $activePackage ? $activePackage->expires_at : now()->addDays(30);
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($consignment, $request, $expiresAt, $activePackage) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($consignment, $request, $expiresAt) {
             $consignment->update([
                 'status' => 'approved',
                 'approved_at' => now(),
@@ -514,11 +517,6 @@ class AdminController extends Controller
                 'published_at' => $consignment->published_at ?? now(),
                 'expires_at' => $expiresAt,
             ]);
-
-            // Consume one post slot from the package (only on first approval transition).
-            if ($activePackage) {
-                $activePackage->incrementPostsUsed();
-            }
         });
 
         // Trigger ES sync

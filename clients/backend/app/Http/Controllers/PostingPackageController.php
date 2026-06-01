@@ -128,10 +128,20 @@ class PostingPackageController extends Controller
                     : Carbon::parse($activePackage->expires_at);
                 $newExpiresAt = $base->addMonths((int) $package->duration_months);
 
+                // Lấy số lượng bài đăng lớn nhất (max) giữa gói hiện tại và gói mới mua. Nếu một trong hai không giới hạn (-1), kết quả là -1.
+                $currentAllowed = $activePackage->total_posts_allowed ?? ($activePackage->postingPackage->post_limit ?? -1);
+                $newLimit = $package->post_limit;
+
+                if ($currentAllowed === -1 || $newLimit === -1) {
+                    $newTotalAllowed = -1;
+                } else {
+                    $newTotalAllowed = max($currentAllowed, $newLimit);
+                }
+
                 $activePackage->update([
                     'expires_at' => $newExpiresAt,
                     'amount_paid' => $activePackage->amount_paid + $package->price,
-                    // KHÔNG cộng total_posts_allowed — giữ nguyên quota gốc.
+                    'total_posts_allowed' => $newTotalAllowed,
                     'status' => 'active',
                 ]);
 
