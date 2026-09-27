@@ -20,8 +20,18 @@
     <!-- Navigation -->
     <nav class="flex-1 p-4 overflow-y-auto">
       <ul class="space-y-2">
-        <!-- Auditor account: only sees Ký gửi -->
-        <template v-if="authStore.isAuditor">
+        <!-- Moderator / Auditor account: sees Dashboard Kiểm duyệt and Ký gửi -->
+        <template v-if="authStore.isModerator || authStore.isAuditor">
+          <li>
+            <router-link to="/moderator" @click="close"
+                         class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+                         :class="{ 'bg-gray-800': $route.path === '/moderator' }">
+              <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Kiểm duyệt
+            </router-link>
+          </li>
           <li>
             <router-link to="/consignments" @click="close"
                          class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-800 transition"

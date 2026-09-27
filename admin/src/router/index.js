@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/auth'
 // Views
 import Dashboard from '@/views/Dashboard.vue'
 import Login from '@/views/auth/Login.vue'
+import ModeratorDashboard from '@/views/moderator/Dashboard.vue'
 import ConsignmentList from '@/views/consignments/List.vue'
 import ConsignmentDetail from '@/views/consignments/Detail.vue'
 import UserList from '@/views/users/List.vue'
@@ -31,16 +32,22 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
+        path: '/moderator',
+        name: 'moderator-dashboard',
+        component: ModeratorDashboard,
+        meta: { requiresAuth: true, allowModerator: true, allowAuditor: true }
+    },
+    {
         path: '/consignments',
         name: 'consignments',
         component: ConsignmentList,
-        meta: { requiresAuth: true, allowAuditor: true }
+        meta: { requiresAuth: true, allowAuditor: true, allowModerator: true }
     },
     {
         path: '/consignments/:id',
         name: 'consignment-detail',
         component: ConsignmentDetail,
-        meta: { requiresAuth: true, allowAuditor: true }
+        meta: { requiresAuth: true, allowAuditor: true, allowModerator: true }
     },
     {
         path: '/users',
@@ -119,17 +126,17 @@ router.beforeEach((to, from, next) => {
         // Redirect post-login dựa trên role hạn chế.
         if (authStore.isIT) {
             next('/settings')
-        } else if (authStore.isAuditor) {
-            next('/consignments')
+        } else if (authStore.isModerator || authStore.isAuditor) {
+            next('/moderator')
         } else {
             next('/')
         }
     } else if (authStore.isIT && !to.meta.allowIT && to.path !== '/login') {
         // IT account can only access /settings
         next('/settings')
-    } else if (authStore.isAuditor && !to.meta.allowAuditor && to.path !== '/login') {
-        // Auditor chỉ được vào /consignments*
-        next('/consignments')
+    } else if ((authStore.isModerator || authStore.isAuditor) && !to.meta.allowModerator && !to.meta.allowAuditor && to.path !== '/login') {
+        // Kiểm duyệt viên chỉ được vào /moderator và /consignments*
+        next('/moderator')
     } else {
         next()
     }

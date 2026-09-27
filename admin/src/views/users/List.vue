@@ -35,9 +35,17 @@
               <input v-model="userFilters.search" @input="fetchUsers" type="text" placeholder="Tìm kiếm..." 
                 class="px-4 py-2 border rounded-lg">
             </div>
-            <button @click="openUserModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-              + Thêm người dùng
-            </button>
+            <div class="flex gap-2">
+              <button @click="openModeratorModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1.5 shadow-sm text-sm font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                + Thêm Kiểm duyệt viên
+              </button>
+              <button @click="openUserModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">
+                + Thêm người dùng
+              </button>
+            </div>
           </div>
 
           <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -130,9 +138,20 @@
         </div>
 
         <!-- User Modal -->
+        <!-- User Modal -->
         <div v-if="showUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
-            <h2 class="text-xl font-bold mb-6">{{ editingUserId ? 'Cập nhật người dùng' : 'Thêm người dùng mới' }}</h2>
+            <h2 class="text-xl font-bold mb-4">
+              {{ editingUserId ? 'Cập nhật người dùng' : (isCreatingModerator ? 'Thêm Kiểm duyệt viên mới' : 'Thêm người dùng mới') }}
+            </h2>
+
+            <div v-if="isCreatingModerator && !editingUserId" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-start gap-2">
+              <svg class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Tài khoản này sẽ tự động được cấp quyền <strong>Kiểm duyệt viên (moderator)</strong>: kiểm duyệt sản phẩm người dùng gửi và tự đăng bài.</span>
+            </div>
+
             <form @submit.prevent="saveUser" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tên *</label>
@@ -150,7 +169,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
                 <input v-model="userForm.phone" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
               </div>
-              <div>
+              <div v-if="!isCreatingModerator">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Nhóm người dùng</label>
                 <div class="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
                   <label v-for="role in roles" :key="role.id" class="flex items-center gap-2">
@@ -159,11 +178,17 @@
                   </label>
                 </div>
               </div>
+              <div v-else class="p-3 bg-gray-50 rounded-lg text-xs text-gray-600 flex items-center justify-between border">
+                <span>Nhóm quyền được gán:</span>
+                <span class="px-2.5 py-0.5 rounded-full font-semibold bg-blue-100 text-blue-800 text-xs">
+                  Kiểm duyệt viên (moderator)
+                </span>
+              </div>
               <p v-if="userError" class="text-red-500 text-sm">{{ userError }}</p>
               <div class="flex justify-end gap-4 pt-4">
                 <button type="button" @click="showUserModal = false" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Hủy</button>
                 <button type="submit" :disabled="savingUser" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
-                  {{ savingUser ? 'Đang lưu...' : (editingUserId ? 'Cập nhật' : 'Tạo mới') }}
+                  {{ savingUser ? 'Đang lưu...' : (editingUserId ? 'Cập nhật' : (isCreatingModerator ? 'Tạo Kiểm duyệt viên' : 'Tạo mới')) }}
                 </button>
               </div>
             </form>
@@ -311,7 +336,29 @@ const fetchRoles = async () => {
 }
 
 // User CRUD
+const isCreatingModerator = ref(false)
+
+const openModeratorModal = () => {
+  isCreatingModerator.value = true
+  editingUserId.value = null
+  userForm.value = {
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    roles: [],
+    balance: 0
+  }
+  const modRole = roles.value.find(r => r.name?.toLowerCase() === 'moderator')
+  if (modRole) {
+    userForm.value.roles = [modRole.id]
+  }
+  userError.value = ''
+  showUserModal.value = true
+}
+
 const openUserModal = (user = null) => {
+  isCreatingModerator.value = false
   editingUserId.value = user?.id || null
   userForm.value = user ? {
     name: user.name || '',
@@ -339,6 +386,14 @@ const saveUser = async () => {
     const data = { ...userForm.value }
     if (!data.password) delete data.password
     
+    if (isCreatingModerator.value) {
+      data.role_name = 'moderator'
+      const modRole = roles.value.find(r => r.name?.toLowerCase() === 'moderator')
+      if (modRole && (!data.roles || data.roles.length === 0)) {
+        data.roles = [modRole.id]
+      }
+    }
+
     if (editingUserId.value) {
       await adminApi.updateUser(editingUserId.value, data)
     } else {
@@ -428,9 +483,9 @@ const formatCurrency = (v) => v ? new Intl.NumberFormat('vi-VN').format(v) + ' �
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : ''
 const getRoleBadgeClass = (name) => {
   const n = name?.toLowerCase()
-  if (n === 'admin') return 'bg-red-100 text-red-800'
-  if (n === 'moderator') return 'bg-blue-100 text-blue-800'
-  if (n === 'publisher') return 'bg-green-100 text-green-800'
+  if (n === 'admin') return 'bg-red-100 text-red-800 font-semibold'
+  if (n === 'moderator' || n === 'auditor') return 'bg-blue-100 text-blue-800 font-semibold border border-blue-200'
+  if (n === 'publisher') return 'bg-green-100 text-green-800 font-semibold'
   return 'bg-gray-100 text-gray-800'
 }
 

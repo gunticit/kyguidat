@@ -15,6 +15,25 @@ class AdminController extends Controller
      */
     public function dashboard(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if ($user && ($user->hasRole('moderator') || $user->hasRole('auditor')) && !$user->hasRole('admin')) {
+            $userId = $user->id;
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'pending_consignments' => Consignment::where('user_id', '!=', $userId)->where('status', 'pending')->count(),
+                    'my_consignments' => Consignment::where('user_id', $userId)->count(),
+                    'my_approved_consignments' => Consignment::where('approved_by', $userId)->count(),
+                    'total_consignments' => Consignment::where(function ($q) use ($userId) {
+                        $q->where('user_id', $userId)
+                          ->orWhere(function ($sq) use ($userId) {
+                              $sq->where('user_id', '!=', $userId)->where('status', 'pending');
+                          });
+                    })->count(),
+                ]
+            ]);
+        }
+
         $stats = [
             'total_users' => User::count(),
             'total_consignments' => Consignment::count(),
@@ -61,8 +80,9 @@ class AdminController extends Controller
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
             'phone' => 'nullable|string|max:32',
-            'roles' => 'array',
+            'roles' => 'nullable|array',
             'roles.*' => 'integer|exists:roles,id',
+            'role_name' => 'nullable|string',
         ]);
 
         $user = User::create([
@@ -74,6 +94,11 @@ class AdminController extends Controller
 
         if (!empty($validated['roles'])) {
             $user->roles()->sync($validated['roles']);
+        } elseif (!empty($validated['role_name'])) {
+            $role = \App\Models\Role::where('name', $validated['role_name'])->first();
+            if ($role) {
+                $user->roles()->sync([$role->id]);
+            }
         }
 
         return response()->json([
@@ -200,6 +225,7 @@ class AdminController extends Controller
             'consigner_name',
             'province',
             'user_id',
+            'approved_by',
             'featured_image',
             'reject_reason',
             'published_at',
@@ -208,7 +234,20 @@ class AdminController extends Controller
             'expires_at',
             'created_at',
             'updated_at'
-        ])->with('user:id,name,email');
+        ])->with(['user:id,name,email', 'approver:id,name,email']);
+
+        // Data scoping: Moderator/auditor only sees their own posts OR other users' pending posts
+        $user = $request->user();
+        $isModerator = $user && ($user->hasRole('moderator') || $user->hasRole('auditor')) && !$user->hasRole('admin');
+        if ($isModerator) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere(function ($sq) use ($user) {
+                      $sq->where('user_id', '!=', $user->id)
+                         ->where('status', 'pending');
+                  });
+            });
+        }
 
         if ($status = $request->input('status')) {
             $query->where('status', $status);

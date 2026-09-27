@@ -52,6 +52,7 @@
                 <th class="px-6 py-4">Người đăng</th>
                 <th class="px-6 py-4">Giá</th>
                 <th class="px-6 py-4">Trạng thái</th>
+                <th class="px-6 py-4">Người duyệt</th>
                 <th class="px-6 py-4">Thao tác</th>
               </tr>
             </thead>
@@ -64,11 +65,12 @@
                   <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
                   <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-28"></div></td>
                   <td class="px-6 py-4"><div class="h-5 bg-gray-200 rounded-full w-16"></div></td>
+                  <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
                   <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
                 </tr>
               </template>
               <tr v-else-if="consignments.length === 0" class="border-t">
-                <td colspan="7" class="px-6 py-8 text-center text-gray-500">Chưa có dữ liệu</td>
+                <td colspan="8" class="px-6 py-8 text-center text-gray-500">Chưa có dữ liệu</td>
               </tr>
               <tr v-else v-for="item in consignments" :key="item.id" class="border-t hover:bg-gray-50">
                 <td class="px-6 py-4 text-sm font-semibold text-indigo-600">{{ item.order_number || '—' }}</td>
@@ -89,6 +91,15 @@
                   <p v-if="displayStatus(item) === 'deactivated'" class="text-xs text-amber-500 mt-1">
                     {{ item.auto_deactivated || isExpired(item) ? 'Hết hạn hiển thị' : 'Đã tắt thủ công' }}
                   </p>
+                </td>
+                <td class="px-6 py-4 text-sm">
+                  <span v-if="item.approver?.name" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                    <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    {{ item.approver.name }}
+                  </span>
+                  <span v-else class="text-gray-400 text-xs">—</span>
                 </td>
                 <td class="px-6 py-4 space-x-2">
                   <template v-if="canApprove && item.status === 'pending'">
@@ -999,18 +1010,18 @@ const landTypes = [
 ]
 
 // Role-based permissions
-const canCreate = computed(() => authStore.isAdmin || authStore.isPublisher || authStore.isAuditor)
+const canCreate = computed(() => authStore.isAdmin || authStore.isPublisher || authStore.isAuditor || authStore.isModerator)
 const canApprove = computed(() => authStore.isAdmin || authStore.isModerator || authStore.isAuditor)
 
 const canEdit = (item) => {
   if (authStore.isAdmin || authStore.isAuditor) return true
-  if (authStore.isPublisher && item.user_id === authStore.userId) return true
+  if ((authStore.isPublisher || authStore.isModerator) && item.user_id === authStore.userId) return true
   return false
 }
 
 const canDelete = (item) => {
   if (authStore.isAdmin || authStore.isAuditor) return true
-  if (authStore.isPublisher && item.user_id === authStore.userId) return true
+  if ((authStore.isPublisher || authStore.isModerator) && item.user_id === authStore.userId) return true
   return false
 }
 

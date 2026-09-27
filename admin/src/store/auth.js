@@ -28,18 +28,21 @@ export const useAuthStore = defineStore('auth', {
         },
         isModerator: (state) => {
             const roles = state.user?.roles || []
-            return roles.some(r => r.name === 'moderator') || state.user?.email?.includes('moderator')
+            return roles.some(r => r.name === 'moderator' || r.name === 'auditor') 
+                || state.user?.email?.includes('moderator')
+                || state.user?.email === 'audit@khodat.com'
+                || state.user?.email?.includes('audit')
         },
         isPublisher: (state) => {
             const roles = state.user?.roles || []
             return roles.some(r => r.name === 'publisher') || state.user?.email?.includes('publisher')
         },
         isAuditor: (state) => {
-            // Auditor: chỉ thao tác menu Ký gửi (đăng + duyệt bài).
             const roles = state.user?.roles || []
-            return roles.some(r => r.name === 'auditor')
+            return roles.some(r => r.name === 'auditor' || r.name === 'moderator')
                 || state.user?.email === 'audit@khodat.com'
                 || state.user?.email?.includes('audit')
+                || state.user?.email?.includes('moderator')
         },
         isIT: (state) => {
             // IT account only has access to Settings

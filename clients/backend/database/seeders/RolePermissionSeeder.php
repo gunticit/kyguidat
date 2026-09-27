@@ -74,9 +74,11 @@ class RolePermissionSeeder extends Seeder
         $allPermissions = Permission::all();
         $adminRole->permissions()->sync($allPermissions->pluck('id'));
 
-        // Gán permissions cho Kiểm duyệt
+        // Gán permissions cho Kiểm duyệt (xem, tạo, sửa, duyệt, từ chối)
         $moderatorPermissions = Permission::whereIn('name', [
             'consignments.view',
+            'consignments.create',
+            'consignments.edit',
             'consignments.approve',
             'consignments.reject',
             'tickets.view',

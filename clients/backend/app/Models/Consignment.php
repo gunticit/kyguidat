@@ -57,6 +57,7 @@ class Consignment extends Model
         'status',
         'admin_note',
         'reject_reason',
+        'approved_by',
         'approved_at',
         'sold_at',
         'published_at',
@@ -99,6 +100,14 @@ class Consignment extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get consignment approver (staff member who moderated this listing)
+     */
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     /**

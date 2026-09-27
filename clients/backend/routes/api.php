@@ -233,8 +233,9 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
 
     // Admin Panel Routes
     Route::prefix('admin')->group(function () {
-        // Consignments + map URL + shared data — accessible by admin AND auditor
-        Route::middleware('role:admin,auditor')->group(function () {
+        // Consignments + map URL + shared data + dashboard — accessible by admin, moderator AND auditor
+        Route::middleware('role:admin,moderator,auditor')->group(function () {
+            Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
             Route::get('/consignments', [App\Http\Controllers\AdminController::class, 'consignments']);
             Route::get('/consignments/{id}', [App\Http\Controllers\AdminController::class, 'showConsignment']);
             Route::post('/consignments', [App\Http\Controllers\AdminController::class, 'storeConsignment']);
@@ -247,14 +248,13 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
             Route::post('/consignments/{id}/reset', [App\Http\Controllers\AdminController::class, 'resetConsignmentCountdown']);
             Route::post('/resolve-map-url', [App\Http\Controllers\AdminController::class, 'resolveMapUrl']);
 
-            // Shared data for consignment forms (auditor needs these)
+            // Shared data for consignment forms (moderator/auditor needs these)
             Route::get('/provinces', [AdministrativeDivisionController::class, 'provinceIndex']);
             Route::get('/wards', [AdministrativeDivisionController::class, 'wardIndex']);
         });
 
         // Everything else — admin only
         Route::middleware('role:admin')->group(function () {
-            Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard']);
             Route::get('/roles', [App\Http\Controllers\AdminController::class, 'roles']);
             Route::post('/roles', [App\Http\Controllers\AdminController::class, 'storeRole']);
             Route::get('/roles/{id}', [App\Http\Controllers\AdminController::class, 'showRole']);
