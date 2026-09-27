@@ -127,7 +127,7 @@ router.beforeEach((to, from, next) => {
         if (authStore.isIT) {
             next('/settings')
         } else if (authStore.isModerator || authStore.isAuditor) {
-            next('/moderator')
+            next('/consignments')
         } else {
             next('/')
         }
@@ -135,8 +135,8 @@ router.beforeEach((to, from, next) => {
         // IT account can only access /settings
         next('/settings')
     } else if ((authStore.isModerator || authStore.isAuditor) && !to.meta.allowModerator && !to.meta.allowAuditor && to.path !== '/login') {
-        // Kiểm duyệt viên chỉ được vào /moderator và /consignments*
-        next('/moderator')
+        // Kiểm duyệt viên vào /consignments*
+        next('/consignments')
     } else {
         next()
     }
