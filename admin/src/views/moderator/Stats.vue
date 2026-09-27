@@ -1,4 +1,9 @@
 <template>
+  <div class="flex h-screen bg-gray-50">
+    <Sidebar ref="sidebar" />
+    <div class="flex-1 overflow-auto flex flex-col">
+      <Header @toggle-sidebar="$refs.sidebar?.open()" />
+      <main class="flex-1 p-3 sm:p-6">
   <div class="space-y-6">
     <!-- Header with Filters -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -291,11 +296,16 @@
       </div>
     </div>
   </div>
+      </main>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { adminApi } from '@/services/api'
+import Sidebar from '@/components/layout/Sidebar.vue'
+import Header from '@/components/layout/Header.vue'
 
 const currentYear = new Date().getFullYear()
 const currentMonth = new Date().getMonth() + 1

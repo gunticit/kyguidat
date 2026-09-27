@@ -53,6 +53,20 @@ git pull origin main
 bash deploy.sh --build
 ```
 
+> **⚠️ Lưu ý quan trọng:** Nếu rebuild `backend` (PHP-FPM), bắt buộc phải restart `backend-nginx` ngay sau đó, vì nginx cache IP cũ của container:
+> ```bash
+> docker compose -f docker-compose.yml --env-file .env.prod restart backend-nginx
+> ```
+
+3. Deploy thủ công (chỉ một số service):
+```bash
+# Rebuild backend + admin + api-gateway
+docker compose -f docker-compose.yml --env-file .env.prod up -d --build admin backend api-gateway
+
+# BẮT BUỘC restart nginx sau khi rebuild backend
+docker compose -f docker-compose.yml --env-file .env.prod restart backend-nginx
+```
+
 3. Setup MinIO bucket (lần đầu trên VPS):
 ```bash
 docker exec khodat-minio mc alias set local http://localhost:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
