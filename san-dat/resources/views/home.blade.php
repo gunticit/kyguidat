@@ -970,11 +970,27 @@
                     console.warn('Fullscreen plugin not available:', fsErr);
                 }
 
-                // OpenStreetMap tiles
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                    maxZoom: 19
-                }).addTo(map);
+                // Google Maps tile layers
+                var googleRoads = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                    attribution: '&copy; Google Maps'
+                });
+
+                var googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                    attribution: '&copy; Google Maps'
+                });
+
+                // Default layer
+                googleRoads.addTo(map);
+
+                // Add layer control for switching map type
+                L.control.layers({
+                    'Bản đồ đường': googleRoads,
+                    'Vệ tinh': googleHybrid
+                }, null, { position: 'topright' }).addTo(map);
 
                 // Google Maps-style gesture handling
                 setupGestureHandling();
