@@ -28,6 +28,7 @@ func (h *ProxyHandler) ProxyRequest(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
 		return
 	}
+	req.ContentLength = c.Request.ContentLength
 
 	// Copy headers including Authorization
 	for key, values := range c.Request.Header {
@@ -44,7 +45,7 @@ func (h *ProxyHandler) ProxyRequest(c *gin.Context) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "Backend connection failed"})
+		c.JSON(http.StatusBadGateway, gin.H{"error": "Backend connection failed", "details": err.Error()})
 		return
 	}
 	defer resp.Body.Close()
@@ -74,6 +75,7 @@ func (h *ProxyHandler) ProxyToPath(targetPath string) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
 			return
 		}
+		req.ContentLength = c.Request.ContentLength
 
 		for key, values := range c.Request.Header {
 			for _, value := range values {
@@ -88,7 +90,7 @@ func (h *ProxyHandler) ProxyToPath(targetPath string) gin.HandlerFunc {
 		}
 		resp, err := client.Do(req)
 		if err != nil {
-			c.JSON(http.StatusBadGateway, gin.H{"error": "Backend connection failed"})
+			c.JSON(http.StatusBadGateway, gin.H{"error": "Backend connection failed", "details": err.Error()})
 			return
 		}
 		defer resp.Body.Close()

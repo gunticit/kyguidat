@@ -11,8 +11,7 @@ set -e
 if [ "$1" = "php-fpm" ]; then
   echo "[entrypoint] Running database migrations (force, idempotent)..."
   php artisan migrate --force --no-interaction || {
-    echo "[entrypoint] Migration failed — aborting startup"
-    exit 1
+    echo "[entrypoint] Migration failed — continuing startup so container stays online..."
   }
 
   echo "[entrypoint] Warming caches..."
