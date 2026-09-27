@@ -192,6 +192,12 @@ func main() {
 		admin.POST("/consignments/:id/reactivate", proxyHandler.ProxyRequest)
 		admin.PUT("/consignments/:id/expiration", proxyHandler.ProxyRequest)
 		admin.POST("/consignments/:id/reset", proxyHandler.ProxyRequest)
+		admin.POST("/consignments/:id/reassign", proxyHandler.ProxyRequest)
+
+		// Moderator personal statistics & Leaderboard
+		admin.GET("/moderator/my-stats", proxyHandler.ProxyRequest)
+		admin.GET("/moderators/leaderboard", proxyHandler.ProxyRequest)
+		admin.GET("/moderators/list", proxyHandler.ProxyRequest)
 
 		// Utility
 		admin.POST("/resolve-map-url", proxyHandler.ProxyRequest)

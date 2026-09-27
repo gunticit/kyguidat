@@ -59,6 +59,8 @@ class Consignment extends Model
         'reject_reason',
         'approved_by',
         'approved_at',
+        'assigned_to',
+        'assigned_at',
         'sold_at',
         'published_at',
         'auto_deactivated',
@@ -78,6 +80,7 @@ class Consignment extends Model
         'land_types' => 'array',
         'notification_date' => 'date:Y-m-d',
         'approved_at' => 'datetime',
+        'assigned_at' => 'datetime',
         'sold_at' => 'datetime',
         'published_at' => 'datetime',
         'auto_deactivated' => 'boolean',
@@ -108,6 +111,14 @@ class Consignment extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Get assigned moderator (staff member designated to moderate this listing)
+     */
+    public function assignee()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
     /**

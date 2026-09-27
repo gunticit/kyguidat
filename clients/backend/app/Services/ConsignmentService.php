@@ -203,6 +203,13 @@ class ConsignmentService
         // Create history
         $this->createHistory($consignment, Consignment::STATUS_PENDING, 'Tạo yêu cầu ký gửi mới', $user->id);
 
+        // Auto-assign to least loaded moderator
+        try {
+            app(\App\Services\ModeratorAssignmentService::class)->assignToLeastLoadedModerator($consignment);
+        } catch (\Throwable $e) {
+            // Silently continue if assignment fails
+        }
+
         // Dispatch webhook
         $this->webhookService?->dispatchCreated($consignment);
 

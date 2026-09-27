@@ -251,10 +251,18 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
             // Shared data for consignment forms (moderator/auditor needs these)
             Route::get('/provinces', [AdministrativeDivisionController::class, 'provinceIndex']);
             Route::get('/wards', [AdministrativeDivisionController::class, 'wardIndex']);
+
+            // Moderator personal statistics (with month and year filters)
+            Route::get('/moderator/my-stats', [App\Http\Controllers\AdminController::class, 'moderatorMyStats']);
         });
 
         // Everything else — admin only
         Route::middleware('role:admin')->group(function () {
+            // Moderator management & performance leaderboard
+            Route::get('/moderators/leaderboard', [App\Http\Controllers\AdminController::class, 'moderatorsLeaderboard']);
+            Route::get('/moderators/list', [App\Http\Controllers\AdminController::class, 'moderatorsList']);
+            Route::post('/consignments/{id}/reassign', [App\Http\Controllers\AdminController::class, 'reassignConsignment']);
+
             Route::get('/roles', [App\Http\Controllers\AdminController::class, 'roles']);
             Route::post('/roles', [App\Http\Controllers\AdminController::class, 'storeRole']);
             Route::get('/roles/{id}', [App\Http\Controllers\AdminController::class, 'showRole']);

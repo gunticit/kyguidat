@@ -37,6 +37,12 @@
             <option v-for="name in uniqueConsigners" :key="name" :value="name">{{ name }}</option>
           </select>
 
+          <!-- Admin filter by moderator -->
+          <select v-if="authStore.isAdmin" v-model="filters.moderator_id" @change="filters.page = 1; fetchData()" class="px-3 py-2 border rounded-lg text-sm bg-amber-50/60 border-amber-200">
+            <option value="">Tất cả kiểm duyệt viên</option>
+            <option v-for="mod in moderatorsList" :key="mod.id" :value="mod.id">{{ mod.name }}</option>
+          </select>
+
           <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Từ khóa tìm kiếm..."
                  class="flex-1 min-w-[200px] px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
         </div>
@@ -98,16 +104,24 @@
                   </p>
                 </td>
                 <td class="px-6 py-4 text-sm">
-                  <span v-if="item.approver?.name" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                    <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                    {{ item.approver.name }}
-                  </span>
-                  <span v-else-if="item.status === 'pending'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                    Chờ duyệt
-                  </span>
-                  <span v-else class="text-gray-400 text-xs">—</span>
+                  <div class="flex flex-col gap-1">
+                    <span v-if="item.approver?.name" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Đã duyệt bởi">
+                      <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      {{ item.approver.name }}
+                    </span>
+                    <span v-else-if="item.assignee?.name" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200" title="Phụ trách kiểm duyệt">
+                      <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                      </svg>
+                      Giao: {{ item.assignee.name }}
+                    </span>
+                    <span v-else-if="item.status === 'pending'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                      Chờ duyệt
+                    </span>
+                    <span v-else class="text-gray-400 text-xs">—</span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 space-x-2">
                   <template v-if="canApprove && item.status === 'pending'">
@@ -595,6 +609,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useConsignmentStore } from '@/store/consignment'
 import { useAuthStore } from '@/store/auth'
 import Sidebar from '@/components/layout/Sidebar.vue'
@@ -628,22 +643,32 @@ const handleLightboxKeydown = (e) => {
   if (e.key === 'ArrowRight') galleryLightboxNav(1)
 }
 
+const route = useRoute()
 const store = useConsignmentStore()
 const authStore = useAuthStore()
 const consignments = ref([])
-const filters = ref({ status: '', province: '', category: '', consigner_name: '', search: '', page: 1 })
+const moderatorsList = ref([])
+const filters = ref({
+  status: '',
+  province: '',
+  category: '',
+  consigner_name: '',
+  moderator_id: route?.query?.moderator_id || '',
+  search: '',
+  page: 1
+})
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
 
-// Displayed consignments: If moderator, only show own posts + other users' pending posts
+// Displayed consignments: If moderator, only show own posts + posts assigned to them that are pending
 const displayedConsignments = computed(() => {
   if (authStore.isModerator && !authStore.isAdmin) {
     return consignments.value.filter(item => {
       // Bài của chính mình: hiển thị
       if (item.user_id === authStore.userId) return true
-      // Bài của người khác: CHỈ hiển thị nếu chưa được duyệt (pending)
-      return item.status === 'pending'
+      // Bài của người khác: CHỈ hiển thị nếu được phân công cho mình VÀ chưa được duyệt (pending)
+      return item.assigned_to === authStore.userId && item.status === 'pending'
     })
   }
   return consignments.value
@@ -1589,6 +1614,13 @@ const confirmReset = async (item) => {
 
 onMounted(async () => {
   document.addEventListener('keydown', handleLightboxKeydown)
+  if (authStore.isAdmin) {
+    adminApi.getModeratorsList().then(res => {
+      if (res.data?.success && res.data?.data) {
+        moderatorsList.value = res.data.data
+      }
+    }).catch(() => {})
+  }
   await Promise.all([fetchData(), loadProvinces()])
 })
 

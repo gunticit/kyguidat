@@ -72,6 +72,12 @@ export const adminApi = {
     resetConsignmentCountdown: (id, days = 30) => api.post(`/admin/consignments/${id}/reset`, { days }),
     updateConsignmentExpiration: (id, expires_at) => api.put(`/admin/consignments/${id}/expiration`, { expires_at }),
     resolveMapUrl: (url) => api.post('/admin/resolve-map-url', { url }),
+    reassignConsignment: (id, moderatorId) => api.post(`/admin/consignments/${id}/reassign`, { moderator_id: moderatorId }),
+
+    // Moderator Statistics & Leaderboard
+    getModeratorMyStats: (params) => api.get('/admin/moderator/my-stats', { params }),
+    getModeratorsLeaderboard: (params) => api.get('/admin/moderators/leaderboard', { params }),
+    getModeratorsList: () => api.get('/admin/moderators/list'),
 
     // Transactions
     getTransactions: (params) => api.get('/admin/transactions', { params }),

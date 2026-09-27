@@ -18,16 +18,21 @@ class AdminController extends Controller
         $user = $request->user();
         if ($user && ($user->hasRole('moderator') || $user->hasRole('auditor')) && !$user->hasRole('admin')) {
             $userId = $user->id;
+            // Balance any unassigned pending consignments
+            try {
+                app(\App\Services\ModeratorAssignmentService::class)->balanceUnassignedPendingConsignments();
+            } catch (\Throwable $e) {}
+
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'pending_consignments' => Consignment::where('user_id', '!=', $userId)->where('status', 'pending')->count(),
+                    'pending_consignments' => Consignment::where('assigned_to', $userId)->where('status', 'pending')->count(),
                     'my_consignments' => Consignment::where('user_id', $userId)->count(),
                     'my_approved_consignments' => Consignment::where('approved_by', $userId)->count(),
                     'total_consignments' => Consignment::where(function ($q) use ($userId) {
                         $q->where('user_id', $userId)
                           ->orWhere(function ($sq) use ($userId) {
-                              $sq->where('user_id', '!=', $userId)->where('status', 'pending');
+                              $sq->where('assigned_to', $userId)->where('status', 'pending');
                           });
                     })->count(),
                 ]
@@ -226,6 +231,8 @@ class AdminController extends Controller
             'province',
             'user_id',
             'approved_by',
+            'assigned_to',
+            'assigned_at',
             'featured_image',
             'reject_reason',
             'published_at',
@@ -234,18 +241,31 @@ class AdminController extends Controller
             'expires_at',
             'created_at',
             'updated_at'
-        ])->with(['user:id,name,email', 'approver:id,name,email']);
+        ])->with(['user:id,name,email', 'approver:id,name,email', 'assignee:id,name,email']);
 
-        // Data scoping: Moderator/auditor only sees their own posts OR other users' pending posts
+        // Auto-balance any pending consignments without assignee
+        try {
+            app(\App\Services\ModeratorAssignmentService::class)->balanceUnassignedPendingConsignments();
+        } catch (\Throwable $e) {}
+
+        // Data scoping: Moderator/auditor only sees their own posts OR items assigned to them that are pending
         $user = $request->user();
         $isModerator = $user && ($user->hasRole('moderator') || $user->hasRole('auditor')) && !$user->hasRole('admin');
         if ($isModerator) {
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                   ->orWhere(function ($sq) use ($user) {
-                      $sq->where('user_id', '!=', $user->id)
+                      $sq->where('assigned_to', $user->id)
                          ->where('status', 'pending');
                   });
+            });
+        }
+
+        // Admin filter by specific moderator
+        if ($moderatorId = $request->input('moderator_id')) {
+            $query->where(function ($q) use ($moderatorId) {
+                $q->where('assigned_to', $moderatorId)
+                  ->orWhere('approved_by', $moderatorId);
             });
         }
 
@@ -405,6 +425,12 @@ class AdminController extends Controller
         }
 
         $consignment = Consignment::create($validated);
+
+        if ($consignment->status === 'pending') {
+            try {
+                app(\App\Services\ModeratorAssignmentService::class)->assignToLeastLoadedModerator($consignment);
+            } catch (\Throwable $e) {}
+        }
 
         // Trigger ES sync
         $this->triggerEsSync();
@@ -1332,6 +1358,84 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Đã xóa nhóm quyền',
+        ]);
+    }
+
+    /**
+     * Get statistics for current logged-in moderator
+     */
+    public function moderatorMyStats(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $month = $request->filled('month') ? (int) $request->input('month') : null;
+        $year = $request->filled('year') ? (int) $request->input('year') : (int) date('Y');
+
+        $service = app(\App\Services\ModeratorAssignmentService::class);
+        $data = $service->getModeratorStats($user, $month, $year);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Get moderators leaderboard and overview for admin
+     */
+    public function moderatorsLeaderboard(Request $request): JsonResponse
+    {
+        $month = $request->filled('month') ? (int) $request->input('month') : null;
+        $year = $request->filled('year') ? (int) $request->input('year') : (int) date('Y');
+        $moderatorId = $request->filled('moderator_id') ? (int) $request->input('moderator_id') : null;
+
+        $service = app(\App\Services\ModeratorAssignmentService::class);
+        $data = $service->getLeaderboard($month, $year, $moderatorId);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Get list of active moderators for dropdowns
+     */
+    public function moderatorsList(Request $request): JsonResponse
+    {
+        $service = app(\App\Services\ModeratorAssignmentService::class);
+        $moderators = $service->getActiveModerators();
+
+        return response()->json([
+            'success' => true,
+            'data' => $moderators->map(fn($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+                'email' => $m->email,
+                'phone' => $m->phone,
+            ]),
+        ]);
+    }
+
+    /**
+     * Reassign a consignment to a different moderator (Admin only)
+     */
+    public function reassignConsignment(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'moderator_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $consignment = Consignment::findOrFail($id);
+        $newModerator = User::findOrFail($validated['moderator_id']);
+
+        $consignment->assigned_to = $newModerator->id;
+        $consignment->assigned_at = now();
+        $consignment->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Đã phân công lại cho {$newModerator->name}",
+            'data' => $consignment->load(['assignee:id,name,email', 'user:id,name,email']),
         ]);
     }
 }

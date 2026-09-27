@@ -5,6 +5,8 @@ import { useAuthStore } from '@/store/auth'
 import Dashboard from '@/views/Dashboard.vue'
 import Login from '@/views/auth/Login.vue'
 import ModeratorDashboard from '@/views/moderator/Dashboard.vue'
+import ModeratorStats from '@/views/moderator/Stats.vue'
+import ModeratorRanking from '@/views/moderator/Ranking.vue'
 import ConsignmentList from '@/views/consignments/List.vue'
 import ConsignmentDetail from '@/views/consignments/Detail.vue'
 import UserList from '@/views/users/List.vue'
@@ -36,6 +38,18 @@ const routes = [
         name: 'moderator-dashboard',
         component: ModeratorDashboard,
         meta: { requiresAuth: true, allowModerator: true, allowAuditor: true }
+    },
+    {
+        path: '/moderator/stats',
+        name: 'moderator-stats',
+        component: ModeratorStats,
+        meta: { requiresAuth: true, allowModerator: true, allowAuditor: true }
+    },
+    {
+        path: '/moderators/ranking',
+        name: 'moderator-ranking',
+        component: ModeratorRanking,
+        meta: { requiresAuth: true }
     },
     {
         path: '/consignments',
