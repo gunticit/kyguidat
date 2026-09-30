@@ -82,6 +82,8 @@
 
     <!-- Theme Detection (runs before render to prevent flash) -->
     <script>
+        // Safe fallback for In-App browsers (e.g. Zalo WebView)
+        window.zaloJSV2 = window.zaloJSV2 || {};
         (function () {
             var saved = null;
             try { saved = localStorage.getItem('theme'); } catch(e) {}

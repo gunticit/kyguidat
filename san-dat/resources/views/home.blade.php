@@ -1,19 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- iOS Debug: temporary error catcher -->
-    <div id="ios-debug" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:white;padding:8px 12px;font-size:12px;font-family:monospace;max-height:150px;overflow-y:auto;"></div>
-    <script>
-        window.onerror = function(msg, url, line, col, error) {
-            var d = document.getElementById('ios-debug');
-            if (d) { d.style.display = 'block'; d.innerHTML += '<p>' + msg + ' (line ' + line + ')</p>'; }
-            return false;
-        };
-        window.addEventListener('unhandledrejection', function(e) {
-            var d = document.getElementById('ios-debug');
-            if (d) { d.style.display = 'block'; d.innerHTML += '<p>Promise: ' + (e.reason || e) + '</p>'; }
-        });
-    </script>
     <!-- Advanced Search Section -->
     <section class="bg-navy-800 py-6 border-b border-navy-600">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -599,8 +586,6 @@
                 })
                 .catch(function(err) {
                     console.error('Error:', err);
-                    var d = document.getElementById('ios-debug');
-                    if (d) { d.style.display = 'block'; d.innerHTML += '<p>Fetch error: ' + err + '</p>'; }
                     var skeleton = document.getElementById('allPropertiesSkeleton');
                     if (skeleton) skeleton.innerHTML = '<p class="col-span-full text-center text-red-400 py-8">Lỗi tải dữ liệu. Vui lòng tải lại trang.</p>';
                 });
@@ -1012,8 +997,6 @@
                 fitMapToMarkers();
             } catch(e) {
                 console.error('Map init error:', e);
-                var d = document.getElementById('ios-debug');
-                if (d) { d.style.display = 'block'; d.innerHTML += '<p>Map init: ' + e.message + '</p>'; }
             }
         }
 
